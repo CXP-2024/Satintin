@@ -1,7 +1,7 @@
-import { Message } from '@/plugins/CommonUtils/Send/Serializable'
+import { Message } from '../Send/Serializable'
 
 class FeishuContent {
-    text: string
+    text: string = ''
 }
 
 export abstract class FeishuCardConfigBase { }

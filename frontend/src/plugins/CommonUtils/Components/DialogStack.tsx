@@ -1,6 +1,4 @@
-import create from 'zustand'
-import { StoreApi } from 'zustand/vanilla'
-import { UseBoundStore } from 'zustand/react'
+import { create, StoreApi, UseBoundStore } from 'zustand'
 import { isEqual } from 'lodash'
 
 type DialogStackFunctionPack = {
@@ -10,7 +8,9 @@ type DialogStackFunctionPack = {
     data?: any
 }
 
-const dialogStackStore = create(() => ({
+const dialogStackStore = create<{
+    stack: DialogStackFunctionPack[]
+}>(() => ({
     stack: [] as DialogStackFunctionPack[],
 }))
 
@@ -52,12 +52,12 @@ export function isDialogStackEmpty() {
 type DialogStore = { openState: boolean }
 
 export function wrapStore<T extends DialogStore>(
-    dialogStore: UseBoundStore<T, StoreApi<T>>,
-    showFocus: () => void = () => {}
+    dialogStore: UseBoundStore<StoreApi<T>>,
+    showFocus: () => void = () => { }
 ) {
-    const hideDialog = () => dialogStore.setState({ openState: false })
+    const hideDialog = () => dialogStore.setState((state) => ({ ...state, openState: false }))
     const showDialog = () => {
-        dialogStore.setState({ openState: true })
+        dialogStore.setState((state) => ({ ...state, openState: true }))
         showFocus()
     }
     const closeDialog = () => {
@@ -111,13 +111,13 @@ function popFromDialogStack(popName: string, data?: any) {
 type DialogWithDataStore<S> = { openState: boolean; data: S }
 
 export function wrapDialogWithDataStore<T extends DialogWithDataStore<S>, S>(
-    dialogStore: UseBoundStore<T, StoreApi<T>>,
+    dialogStore: UseBoundStore<StoreApi<T>>,
     dialogName: string,
-    showFocus: () => void = () => {}
+    showFocus: () => void = () => { }
 ) {
-    const hideDialog = () => dialogStore.setState({ openState: false })
+    const hideDialog = () => dialogStore.setState((state) => ({ ...state, openState: false }))
     const showDialog = (data: S) => {
-        dialogStore.setState({ openState: true, data })
+        dialogStore.setState((state) => ({ ...state, openState: true, data }))
         showFocus()
     }
     const closeDialog = (data: S) => {

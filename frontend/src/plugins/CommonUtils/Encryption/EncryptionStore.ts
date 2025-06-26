@@ -1,12 +1,11 @@
-import create from 'zustand'
-import { persist } from 'zustand/middleware'
-import { encryptionSessionStorage } from '@/plugins/CommonUtils/Functions/DefaultStorage'
-import { generateKeyPair } from '@/plugins/CommonUtils/Encryption/EncryptionUtils'
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { generateKeyPair } from './EncryptionUtils'
 
 const encryptionStore = create(
     persist(() => generateKeyPair(), {
         name: 'encryptionStore',
-        getStorage: () => encryptionSessionStorage,
+        storage: createJSONStorage(() => sessionStorage),
     })
 )
 

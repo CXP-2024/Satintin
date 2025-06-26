@@ -1,7 +1,6 @@
-import create from 'zustand'
-import { randomString } from '@/plugins/CommonUtils/Functions/StringUtils'
+import { create } from 'zustand'
+import { randomString } from './Functions/StringUtils'
 import { persist } from 'zustand/middleware'
-import { encryptionSessionStorage } from '@/plugins/CommonUtils/Functions/DefaultStorage'
 
 const uniqueIDStore = create(
     persist(
@@ -10,7 +9,6 @@ const uniqueIDStore = create(
         }),
         {
             name: 'uniqueIDStore',
-            getStorage: () => encryptionSessionStorage,
         }
     )
 )

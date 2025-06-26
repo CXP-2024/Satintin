@@ -1,18 +1,18 @@
-import { useHistory } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 
-export const redirect = (url: string, history: ReturnType<typeof useHistory>) => {
-    history.push(url)
+export const redirect = (url: string, navigate: ReturnType<typeof useNavigate>) => {
+    navigate(url)
 }
 
 /**
  * Redirect with path param, 好处是可以在url中看到参数, 刷新页面不会丢失参数
  * @param url
- * @param history
+ * @param navigate
  * @param param
  */
 export const redirectWithPathParam = <T extends object>(
     url: string,
-    history: ReturnType<typeof useHistory>,
+    navigate: ReturnType<typeof useNavigate>,
     param: T
 ) => {
     let str = ''
@@ -20,12 +20,11 @@ export const redirectWithPathParam = <T extends object>(
         str += `${key}=${value}&`
     })
     str = str.slice(0, -1)
-    history.push(`${url}?${str}`)
+    navigate(`${url}?${str}`)
 }
 
-export const redirectWithPara = <T,>(url: string, history: ReturnType<typeof useHistory>, para: T) => {
-    history.push({
-        pathname: url,
+export const redirectWithPara = <T,>(url: string, navigate: ReturnType<typeof useNavigate>, para: T) => {
+    navigate(url, {
         state: para,
     })
 }

@@ -1,7 +1,7 @@
 import React from 'react'
-import create from 'zustand'
+import { create } from 'zustand'
 import { Dialog } from '@mui/material'
-import { wrapStore } from '@/plugins/CommonUtils/Components/DialogStack'
+import { wrapStore } from '../Components/DialogStack'
 import { Alert } from 'antd'
 
 export type AlertType = 'error' | 'warning' | 'info' | 'success'

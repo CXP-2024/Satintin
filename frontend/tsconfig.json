@@ -32,15 +32,27 @@
       ],
       "@/services/*": [
         "services/*"
+      ],
+      "Globals/*": [
+        "globals/*"
       ]
     }
   },
   "include": [
-    "src"
+    "src/components/**/*",
+    "src/pages/**/*",
+    "src/store/**/*",
+    "src/types/**/*",
+    "src/globals/**/*",
+    "src/App.tsx",
+    "src/index.tsx",
+    "src/index.css",
+    "src/App.css",
+    "src/react-app-env.d.ts",
+    "src/setupTests.ts",
+    "src/reportWebVitals.ts"
   ],
   "exclude": [
-    "src/plugins/CommonUtils/Components/DialogStack.tsx",
-    "src/plugins/CommonUtils/Gadgets/**/*",
-    "src/plugins/CommonUtils/Send/**/*"
+    "src/plugins/**/*"
   ]
 }
