@@ -4,6 +4,8 @@ import { useAuthStore } from '../store/authStore';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import GameHomePage from '../pages/GameHomePage';
+import ConnectionTestPage from '../pages/ConnectionTestPage';
+import NavMenu from './NavMenu';
 
 const AppRouter: React.FC = () => {
 	const { isAuthenticated } = useAuthStore();
@@ -13,7 +15,19 @@ const AppRouter: React.FC = () => {
 
 	return (
 		<Router>
+			<NavMenu />
 			<Routes>
+					{/* 测试连接路由 - 不需要认证 */}
+					<Route
+						path="/test-connection"
+						element={
+							(() => {
+								console.log('🔌 [AppRouter] 渲染连接测试页面');
+								return <ConnectionTestPage />;
+							})()
+						}
+					/>
+
 				<Route
 					path="/login"
 					element={
