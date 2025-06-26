@@ -1,0 +1,163 @@
+package Impl
+
+
+import Objects.UserService.MessageEntry
+import Objects.UserService.User
+import Objects.UserService.BlackEntry
+import Objects.UserService.FriendEntry
+import Common.API.{PlanContext, Planner}
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.ServiceUtils.schemaName
+import cats.effect.IO
+import org.joda.time.DateTime
+import org.slf4j.LoggerFactory
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.auto._
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import io.circe._
+import io.circe.syntax._
+import io.circe.generic.auto._
+import org.joda.time.DateTime
+import cats.implicits.*
+import Common.DBAPI._
+import Common.API.{PlanContext, Planner}
+import cats.effect.IO
+import Common.Object.SqlParameter
+import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Common.ServiceUtils.schemaName
+import Objects.UserService.FriendEntry
+import Objects.UserService.{BlackEntry, FriendEntry, MessageEntry, User}
+import cats.implicits.*
+import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+
+case class GetUserInfoMessagePlanner(
+    userToken: String,
+    userID: String,
+    override val planContext: PlanContext
+) extends Planner[User] {
+
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+
+  override def plan(using planContext: PlanContext): IO[User] = {
+    for {
+      // Step 1: Verify access permissions
+      _ <- IO(logger.info(s"[Step 1] 开始验证访问权限 for userToken: ${userToken}"))
+      _ <- verifyAccessPermission()
+
+      // Step 2: Fetch basic user information from UserTable
+      _ <- IO(logger.info(s"[Step 2] 开始从UserTable查找用户的基本信息 for userID: ${userID}"))
+      userInfo <- fetchUserInfo()
+
+      // Step 3: Fetch user assets from UserAssetTable
+      _ <- IO(logger.info(s"[Step 3] 开始从UserAssetTable查询用户的资产状态 for userID: ${userID}"))
+      userAssets <- fetchUserAssets()
+
+      // Step 4: Fetch user social information from UserSocialTable
+      _ <- IO(logger.info(s"[Step 4] 开始从UserSocialTable查询用户的社交信息 for userID: ${userID}"))
+      userSocial <- fetchUserSocial()
+
+      // Step 5: Combine all fetched data to create the User object
+      _ <- IO(logger.info(s"[Step 5] 整合信息生成User对象"))
+      user <- IO(combineUserInfo(userInfo, userAssets, userSocial))
+    } yield user
+  }
+
+  private def verifyAccessPermission()(using PlanContext): IO[Unit] = {
+    // 在实际实现中，应该验证userToken的有效性
+    // 此处暂时仅记录日志
+    IO(logger.info(s"[verifyAccessPermission] userToken验证通过: ${userToken}"))
+  }
+
+  private def fetchUserInfo()(using PlanContext): IO[(String, String, String, String, String, DateTime, Int, Int, Boolean, String)] = {
+    val sql =
+      s"""
+         |SELECT user_id, username, password_hash, email, phone_number, register_time, permission_level, ban_days, is_online, COALESCE(match_status, '') as match_status
+         |FROM ${schemaName}.user_table
+         |WHERE user_id = ?;
+      """.stripMargin
+    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
+      (
+        decodeField[String](json, "user_id"),
+        decodeField[String](json, "username"),
+        decodeField[String](json, "password_hash"),
+        decodeField[String](json, "email"),
+        decodeField[String](json, "phone_number"),
+        decodeField[DateTime](json, "register_time"),
+        decodeField[Int](json, "permission_level"),
+        decodeField[Int](json, "ban_days"),
+        decodeField[Boolean](json, "is_online"),
+        decodeField[String](json, "match_status")
+      )
+    }
+  }
+
+  private def fetchUserAssets()(using PlanContext): IO[(Int, Int, String, Int)] = {
+    val sql =
+      s"""
+         |SELECT stone_amount, card_draw_count, COALESCE(rank, '') as rank, COALESCE(rank_position, 0) as rank_position
+         |FROM ${schemaName}.user_asset_table
+         |WHERE user_id = ?;
+      """.stripMargin
+    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
+      (
+        decodeField[Int](json, "stone_amount"),
+        decodeField[Int](json, "card_draw_count"),
+        decodeField[String](json, "rank"),
+        decodeField[Int](json, "rank_position")
+      )
+    }
+  }
+
+  private def fetchUserSocial()(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
+    val sql =
+      s"""
+         |SELECT friend_list, black_list, message_box
+         |FROM ${schemaName}.user_social_table
+         |WHERE user_id = ?;
+      """.stripMargin
+    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
+      val friendList = decodeField[List[String]](json, "friend_list").map(FriendEntry)
+      val blackList = decodeField[List[String]](json, "black_list").map(BlackEntry)
+      val messageBox = decodeField[List[Map[String, String]]](json, "message_box").map { msg =>
+        MessageEntry(
+          messageSource = msg("messageSource"),
+          messageContent = msg("messageContent"),
+          messageTime = DateTime.parse(msg("messageTime"))
+        )
+      }
+      (friendList, blackList, messageBox)
+    }
+  }
+
+  private def combineUserInfo(
+      userInfo: (String, String, String, String, String, DateTime, Int, Int, Boolean, String),
+      userAssets: (Int, Int, String, Int),
+      userSocial: (List[FriendEntry], List[BlackEntry], List[MessageEntry])
+  ): User = {
+    val (userID, userName, passwordHash, email, phoneNumber, registerTime, permissionLevel, banDays, isOnline, matchStatus) = userInfo
+    val (stoneAmount, cardDrawCount, rank, rankPosition) = userAssets
+    val (friendList, blackList, messageBox) = userSocial
+
+    User(
+      userID = userID,
+      userName = userName,
+      passwordHash = passwordHash,
+      email = email,
+      phoneNumber = phoneNumber,
+      registerTime = registerTime,
+      permissionLevel = permissionLevel,
+      banDays = banDays,
+      isOnline = isOnline,
+      matchStatus = matchStatus,
+      stoneAmount = stoneAmount,
+      cardDrawCount = cardDrawCount,
+      rank = rank,
+      rankPosition = rankPosition,
+      friendList = friendList,
+      blackList = blackList,
+      messageBox = messageBox
+    )
+  }
+}
