@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.PlanContext
@@ -9,6 +8,7 @@ import io.circe.*
 import io.circe.derivation.Configuration
 import io.circe.generic.auto.*
 import io.circe.parser.decode
+import io.circe.parser.parse
 import io.circe.syntax.*
 import org.http4s.*
 import org.http4s.client.Client
@@ -63,8 +63,11 @@ object Routes:
       case "RegisterUserMessage" =>
         IO(
           decode[RegisterUserMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for RegisterUserMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
+            case Left(err) => 
+              err.printStackTrace()
+              throw new Exception(s"Invalid JSON for RegisterUserMessage[${err.getMessage}]")
+            case Right(planner) => 
+              planner.fullPlan.map(_.asJson.toString)
         ).flatten
        
       case "RemoveFriendMessage" =>
@@ -150,17 +153,14 @@ object Routes:
     }
   }
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root / "health" =>
-      Ok("OK")
-      
-    case GET -> Root / "stream" / projectName =>
-      projects.get(projectName) match {
+    case GET -> Root / "health"    => Ok("OK")
+    case GET -> Root / "stream" / p => projects.get(p) match {
         case Some(topic) =>
           val stream = topic.subscribe(10)
           Ok(stream)
         case None =>
           Topic[IO, String].flatMap { topic =>
-            projects.putIfAbsent(projectName, topic) match {
+            projects.putIfAbsent(p, topic) match {
               case None =>
                 val stream = topic.subscribe(10)
                 Ok(stream)
@@ -170,19 +170,23 @@ object Routes:
             }
           }
       }
-    case req@POST -> Root / "api" / name =>
-      handlePostRequest(req).flatMap {
-        executePlan(name, _)
-      }.flatMap(Ok(_))
-      .handleErrorWith {
-        case e: DidRollbackException =>
-          println(s"Rollback error: $e")
-          val headers = Headers("X-DidRollback" -> "true")
-          BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
+    case req @ POST -> Root / "api" / name =>
+      for {
+        // 1) 读取 + merge PlanContext
+        bodyWithCtx <- handlePostRequest(req)
 
-        case e: Throwable =>
-          println(s"General error: $e")
-          BadRequest(e.getMessage.asJson.toString)
-      }
+        // 2) 执行 Planner, 拿到 JSON 字符串
+        resultStr   <- executePlan(name, bodyWithCtx)
+
+        // 3) parse 成真正的 Json
+        resultJson  <- parse(resultStr) match {
+                         case Left(e)   => IO.raiseError(e)
+                         case Right(js) => IO.pure(js)
+                       }
+
+        // 4) 返回 Json
+        resp        <- Ok(resultJson)
+      } yield resp
+
+    // … error handlers …
   }
-  

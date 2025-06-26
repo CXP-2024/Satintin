@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UserService API Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px 0; padding: 8px; width: 300px; }
+    pre { background: #f4f4f4; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>UserService API Testing</h1>
+
+  <h2>Login</h2>
+  <input id="username" placeholder="Username" /> <br />
+  <input id="password" type="password" placeholder="Password" /> <br />
+  <button id="loginBtn">Login</button>
+  <h3>Response:</h3>
+  <pre id="loginOutput"></pre>
+
+  <h2>Fetch User Info</h2>
+  <input id="token" placeholder="Auth Token" /> <br />
+  <button id="infoBtn">Get User Info</button>
+  <h3>Response:</h3>
+  <pre id="infoOutput"></pre>
+
+  <h2>Register</h2>
+  <input id="regUsername" placeholder="Username" /><br/>
+  <input id="regPassword" type="password" placeholder="Password" /><br/>
+  <input id="regEmail" type="email" placeholder="Email" /><br/>
+  <input id="regPhone" placeholder="Phone Number" /><br/>
+  <button id="registerBtn">Register</button>
+  <h3>Response:</h3>
+  <pre id="registerOutput"></pre>
+
+  <script>
+    const apiBase = 'http://localhost:10010';
+
+    async function doLogin() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const out  = document.getElementById('loginOutput');
+
+      try {
+        const resp = await fetch(`${apiBase}/api/LoginUserMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username:    user,
+            passwordHash: pass     // ← use passwordHash here
+          })
+        });
+        const data = await resp.json();
+        out.textContent = JSON.stringify(data, null, 2);
+        if (data.token) document.getElementById('token').value = data.token;
+      } catch (e) {
+        out.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function getUserInfo() {
+      const userID = document.getElementById('token').value;
+      const out = document.getElementById('infoOutput');
+      try {
+        const resp = await fetch(`${apiBase}/api/GetUserInfoMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userID: userID })
+        });
+        const data = await resp.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    async function doRegister() {
+      const out = document.getElementById('registerOutput');
+      const username    = document.getElementById('regUsername').value;
+      const passwordHash= document.getElementById('regPassword').value;
+      const email       = document.getElementById('regEmail').value;
+      const phoneNumber = document.getElementById('regPhone').value;
+      out.textContent = '';
+      try {
+        const resp = await fetch(`${apiBase}/api/RegisterUserMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, passwordHash, email, phoneNumber })
+        });
+        const data = await resp.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = 'Error: ' + e.message;
+      }
+    }
+
+    document.getElementById('loginBtn').onclick = doLogin;
+    document.getElementById('infoBtn').onclick = getUserInfo;
+    document.getElementById('registerBtn').onclick = doRegister;
+  </script>
+</body>
+</html>
