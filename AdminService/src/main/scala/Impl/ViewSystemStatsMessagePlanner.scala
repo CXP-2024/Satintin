@@ -28,7 +28,7 @@ import Common.ServiceUtils.schemaName
 import Objects.AdminService.SystemStats
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
-case class ViewSystemStatsMessage(adminToken: String) extends API[SystemStats](serviceCode = "ViewSystemStats")
+// case class ViewSystemStatsMessage(adminToken: String) extends API[SystemStats](serviceCode = "ViewSystemStats")
 
 case class ViewSystemStatsMessagePlanner(
     adminToken: String,

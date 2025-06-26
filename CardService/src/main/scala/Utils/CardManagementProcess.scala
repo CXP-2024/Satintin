@@ -26,6 +26,7 @@ import Objects.CardService.DrawResult
 import Objects.CardService.{DrawResult, CardEntry}
 import Common.Object.{ParameterList, SqlParameter}
 import java.util.UUID
+import APIs.UserService.LogUserOperationMessage // Add missing import for the logging API message
 
 case object CardManagementProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -106,13 +107,23 @@ case object CardManagementProcess {
   
       // Step 5.1: Log the upgrade operation
       _ <- IO(logger.info(s"记录本次升级操作"))
+
+      // only one log call, with all 3 args:
       _ <- LogUserOperationMessage(
-        s"User ${userID} upgraded card ${cardID} from level ${currentLevel} to level ${currentLevel + 1}"
-      ).send
+             userID,
+             "upgrade_card",
+             s"from level ${currentLevel} to level ${currentLevel + 1}"
+           ).send
       _ <- IO(logger.info(s"升级操作记录成功"))
-  
-    } yield "卡牌已成功升级!"
-  }
+
+      // Optionally keep your cost log as a separate message:
+      _ <- LogUserOperationMessage(
+            userID,
+            "upgrade_card",
+            s"cost=$upgradeCost"
+          ).send
+          } yield "卡牌已成功升级!"
+        }
   
   def fetchUserCardInventory(userID: String)(using PlanContext): IO[List[CardEntry]] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
