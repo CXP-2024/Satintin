@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { RegisterRequest, AuthResponse } from '../types/User';
+import { ApiService } from '../services/ApiService';
 import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
@@ -70,43 +71,58 @@ const RegisterPage: React.FC = () => {
 		setError('');
 
 		try {
-			console.log('🔄 [注册流程] 开始模拟注册API调用...');
+			console.log('🔄 [注册流程] 开始注册API调用...');
 
-			// 模拟网络延迟
-			await new Promise(resolve => setTimeout(resolve, 1000));
+			// 调用实际的注册API
+			const response = await ApiService.userService.register(
+				formData.username,
+				formData.email,
+				formData.password
+			);
 
-			// 模拟API调用 - 实际项目中应该调用真实的API
-			const mockResponse: AuthResponse = {
-				success: true,
-				message: '注册成功',
-				user: {
-					id: Math.random().toString(36).substr(2, 9),
-					username: formData.username,
-					email: formData.email,
-					rank: '青铜',
-					coins: 500,
-					status: 'online',
-					registrationTime: new Date().toISOString(),
-				},
-				token: 'mock-jwt-token'
-			};
+			console.log('📡 [注册流程] API响应:', response);
 
-			console.log('📡 [注册流程] API响应:', mockResponse);
+			if (!response.success) {
+				console.log('❌ [注册流程] 注册失败:', response.message);
+				setError(response.message || '注册失败，请稍后再试');
+				return;
+			}
 
-			if (mockResponse.success && mockResponse.user && mockResponse.token) {
+			// 解构API响应中的用户信息和令牌
+			const userData = response.data?.user || response.data;
+			const token = response.data?.token || userData?.token;
+
+			if (userData && token) {
 				console.log('💾 [注册流程] 注册成功，自动登录用户...');
-				setUser(mockResponse.user);
-				setToken(mockResponse.token);
+				// 确保用户数据符合预期的结构
+				const user = {
+					id: userData.id || userData.userId || Math.random().toString(36).substr(2, 9),
+					username: userData.username,
+					email: userData.email,
+					rank: userData.rank || '青铜',
+					coins: userData.coins || 500,
+					status: userData.status || 'online',
+					registrationTime: userData.registrationTime || new Date().toISOString()
+				};
+				setUser(user);
+				setToken(token);
 				console.log('🧭 [注册流程] 跳转到游戏主页...');
 				navigate('/game');
 				console.log('✨ [注册流程] 注册和登录流程完成！');
 			} else {
-				console.log('❌ [注册流程] 注册失败:', mockResponse.message);
-				setError(mockResponse.message || '注册失败');
+				console.log('❌ [注册流程] 注册失败: 无效的用户数据或令牌');
+				setError('注册失败，服务器返回的数据无效');
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error('💥 [注册流程] 发生错误:', err);
-			setError('网络错误，请重试');
+			// 尝试从错误对象中提取详细的错误信息
+			if (err.message) {
+				setError(err.message);
+			} else if (typeof err === 'string') {
+				setError(err);
+			} else {
+				setError('网络错误，请重试');
+			}
 		} finally {
 			console.log('🏁 [注册流程] 清理加载状态');
 			setLoading(false);

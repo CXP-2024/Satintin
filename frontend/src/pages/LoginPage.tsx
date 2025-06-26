@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { LoginRequest, AuthResponse } from '../types/User';
+import { ApiService } from '../services/ApiService';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -39,47 +40,58 @@ const LoginPage: React.FC = () => {
 		setError('');
 
 		try {
-			console.log('🔄 [登录流程] 开始模拟API调用...');
+			console.log('🔄 [登录流程] 开始API调用...');
 
-			// 模拟网络延迟
-			await new Promise(resolve => setTimeout(resolve, 800));
+			// 调用真实的API
+			const response = await ApiService.userService.login(formData.username, formData.password);
 
-			// 模拟API调用 - 实际项目中应该调用真实的API
-			const mockResponse: AuthResponse = {
-				success: true,
-				message: '登录成功',
-				user: {
-					id: '1',
-					username: formData.username,
-					email: `${formData.username}@example.com`,
-					rank: '青铜',
-					coins: 1000,
-					status: 'online',
-					registrationTime: new Date().toISOString(),
-				},
-				token: 'mock-jwt-token'
-			};
+			console.log('📡 [登录流程] API响应:', response);
 
-			console.log('📡 [登录流程] API响应:', mockResponse);
+			if (!response.success) {
+				console.log('❌ [登录流程] 登录失败:', response.message);
+				setError(response.message || '登录失败，请检查用户名和密码');
+				return;
+			}
 
-			if (mockResponse.success && mockResponse.user && mockResponse.token) {
+			// 解构API响应中的用户信息和令牌
+			const userData = response.data?.user || response.data;
+			const token = response.data?.token || userData?.token;
+
+			if (userData && token) {
 				console.log('💾 [登录流程] 开始更新用户状态...');
-				console.log('👤 [登录流程] 设置用户信息:', mockResponse.user);
-				setUser(mockResponse.user);
+				console.log('👤 [登录流程] 设置用户信息:', userData);
+				// 确保用户数据符合预期的结构
+				const user = {
+					id: userData.id || userData.userId || '1',
+					username: userData.username,
+					email: userData.email || `${userData.username}@example.com`,
+					rank: userData.rank || '青铜',
+					coins: userData.coins || 1000,
+					status: userData.status || 'online',
+					registrationTime: userData.registrationTime || new Date().toISOString()
+				};
+				setUser(user);
 
-				console.log('🔑 [登录流程] 设置认证令牌:', mockResponse.token);
-				setToken(mockResponse.token);
+				console.log('🔑 [登录流程] 设置认证令牌:', token);
+				setToken(token);
 
 				console.log('🧭 [登录流程] 准备跳转到游戏主页...');
 				navigate('/game');
 				console.log('✨ [登录流程] 登录流程完成！');
 			} else {
-				console.log('❌ [登录流程] 登录失败:', mockResponse.message);
-				setError(mockResponse.message || '登录失败');
+				console.log('❌ [登录流程] 登录失败: 无效的用户数据或令牌');
+				setError('登录失败，服务器返回的数据无效');
 			}
-		} catch (err) {
+		} catch (err: any) {
 			console.error('💥 [登录流程] 发生错误:', err);
-			setError('网络错误，请重试');
+			// 尝试从错误对象中提取详细的错误信息
+			if (err.message) {
+				setError(err.message);
+			} else if (typeof err === 'string') {
+				setError(err);
+			} else {
+				setError('网络错误，请重试');
+			}
 		} finally {
 			console.log('🏁 [登录流程] 清理加载状态');
 			setLoading(false);
