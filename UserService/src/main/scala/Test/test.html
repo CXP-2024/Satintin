@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UserService API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 300px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .config {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-online { background: #28a745; }
+        .status-offline { background: #dc3545; }
+        .test-users {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 UserService API Tester</h1>
+        
+        <!-- Service Configuration -->
+        <div class="config">
+            <h3>Service Configuration</h3>
+            <div class="form-group">
+                <label>Base URL:</label>
+                <input type="text" id="baseUrl" value="http://localhost:10010" />
+                <button onclick="checkServiceStatus()">Check Status</button>
+                <span id="serviceStatus">
+                    <span class="status-indicator status-offline"></span>
+                    Not checked
+                </span>
+            </div>
+        </div>
+
+        <!-- Test Users Info -->
+        <div class="test-users">
+            <h3>📋 Test Users Information</h3>
+            <p><strong>Primary User:</strong> testuser_primary (ID: test-user-primary-123)</p>
+            <p><strong>Friend User:</strong> testuser_friend (ID: test-user-friend-456)</p>
+            <p><strong>Admin User:</strong> testuser_admin (ID: test-user-admin-789)</p>
+            <p><strong>Common Password Hash:</strong> 482c811da5d5b4bc6d497ffa98491e38 (MD5 of "testpassword123")</p>
+        </div>
+    </div>
+
+    <!-- User Registration Test -->
+    <div class="container">
+        <div class="test-section">
+            <h2>👤 User Registration</h2>
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" id="regUsername" value="" placeholder="Enter username" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="regPassword" value="testpassword123" />
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="regEmail" value="" placeholder="user@example.com" />
+            </div>
+            <div class="form-group">
+                <label>Phone:</label>
+                <input type="text" id="regPhone" value="1234567890" />
+            </div>
+            <button onclick="generateRandomUser()">Generate Random User</button>
+            <button onclick="testRegisterUser()">Register User</button>
+            <div id="regResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- User Login Test -->
+    <div class="container">
+        <div class="test-section">
+            <h2>🔐 User Login</h2>
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" id="loginUsername" value="testuser_primary" />
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="testpassword123" />
+            </div>
+            <button onclick="testLoginUser()">Login User</button>
+            <button onclick="testWrongCredentials()">Test Wrong Credentials</button>
+            <div id="loginResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Get User Info Test -->
+    <div class="container">
+        <div class="test-section">
+            <h2>ℹ️ Get User Info</h2>
+            <div class="form-group">
+                <label>User Token:</label>
+                <input type="text" id="infoUserToken" value="test-user-primary-123-testuser_primary-token" />
+            </div>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="infoUserID" value="test-user-primary-123" />
+            </div>
+            <button onclick="testGetUserInfo()">Get User Info</button>
+            <div id="infoResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Friend Management Test -->
+    <div class="container">
+        <div class="test-section">
+            <h2>👥 Friend Management</h2>
+            <div class="form-group">
+                <label>User Token:</label>
+                <input type="text" id="friendUserToken" value="test-user-primary-123-testuser_primary-token" />
+            </div>
+            <div class="form-group">
+                <label>Friend ID:</label>
+                <input type="text" id="friendID" value="test-user-friend-456" />
+            </div>
+            <button onclick="testAddFriend()">Add Friend</button>
+            <button onclick="testRemoveFriend()">Remove Friend</button>
+            <button onclick="testBlockUser()">Block User</button>
+            <div id="friendResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- User Status Test -->
+    <div class="container">
+        <div class="test-section">
+            <h2>📊 User Status</h2>
+            <div class="form-group">
+                <label>User Token:</label>
+                <input type="text" id="statusUserToken" value="test-user-primary-123-testuser_primary-token" />
+            </div>
+            <div class="form-group">
+                <label>User ID:</label>
+                <input type="text" id="statusUserID" value="test-user-primary-123" />
+            </div>
+            <button onclick="testGetUserStatus()">Get User Status</button>
+            <button onclick="testLogoutUser()">Logout User</button>
+            <div id="statusResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Bulk Test Suite -->
+    <div class="container">
+        <div class="test-section">
+            <h2>🧪 Automated Test Suite</h2>
+            <button onclick="runFullTestSuite()">Run Full Test Suite</button>
+            <button onclick="clearAllResponses()">Clear All Responses</button>
+            <div id="suiteResponse" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        let baseUrl = 'http://localhost:10010';
+        let testResults = [];
+
+        // Update base URL when changed
+        document.getElementById('baseUrl').addEventListener('change', function() {
+            baseUrl = this.value;
+        });
+
+        // Utility function to make API calls
+        async function makeAPICall(endpoint, payload, responseElementId) {
+            const fullUrl = `${baseUrl}${endpoint}`;
+            const responseElement = document.getElementById(responseElementId);
+            
+            try {
+                responseElement.style.display = 'block';
+                responseElement.textContent = 'Making request...';
+                
+                const response = await fetch(fullUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const responseText = await response.text();
+                let responseData;
+                
+                try {
+                    responseData = JSON.parse(responseText);
+                } catch {
+                    responseData = responseText;
+                }
+                
+                const result = {
+                    status: response.status,
+                    url: fullUrl,
+                    payload: payload,
+                    response: responseData,
+                    timestamp: new Date().toISOString()
+                };
+                
+                responseElement.textContent = `Status: ${response.status}\nURL: ${fullUrl}\nPayload: ${JSON.stringify(payload, null, 2)}\nResponse: ${JSON.stringify(responseData, null, 2)}`;
+                responseElement.className = response.ok ? 'response success' : 'response error';
+                
+                return result;
+                
+            } catch (error) {
+                const errorResult = {
+                    status: 'ERROR',
+                    url: fullUrl,
+                    payload: payload,
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                };
+                
+                responseElement.textContent = `Error: ${error.message}\nURL: ${fullUrl}\nPayload: ${JSON.stringify(payload, null, 2)}`;
+                responseElement.className = 'response error';
+                
+                return errorResult;
+            }
+        }
+
+        // MD5 hash function (simple implementation)
+        function md5(str) {
+            // For demo purposes, using a simple hash. In production, use crypto-js
+            return btoa(str).replace(/[^a-z0-9]/gi, '').toLowerCase().substring(0, 32);
+        }
+
+        // Better MD5 implementation
+        function simpleHash(str) {
+            let hash = 0;
+            if (str.length === 0) return hash.toString(16).padStart(32, '0');
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(16).padStart(32, '0');
+        }
+
+        // Check service status
+        async function checkServiceStatus() {
+            const statusElement = document.getElementById('serviceStatus');
+            try {
+                const response = await fetch(`${baseUrl}/health`, {timeout: 5000});
+                statusElement.innerHTML = '<span class="status-indicator status-online"></span>Service Online';
+            } catch {
+                try {
+                    const testPayload = {"type": "LoginUserMessage", "username": "test", "passwordHash": "test"};
+                    const response = await fetch(`${baseUrl}/api/LoginUserMessage`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(testPayload),
+                        timeout: 5000
+                    });
+                    statusElement.innerHTML = '<span class="status-indicator status-online"></span>Service Online (API accessible)';
+                } catch {
+                    statusElement.innerHTML = '<span class="status-indicator status-offline"></span>Service Offline';
+                }
+            }
+        }
+
+        // Generate random user data
+        function generateRandomUser() {
+            const randomId = Math.random().toString(36).substring(2, 10);
+            document.getElementById('regUsername').value = `testuser_${randomId}`;
+            document.getElementById('regEmail').value = `testuser_${randomId}@example.com`;
+            document.getElementById('regPhone').value = `123456${randomId.substring(0, 4)}`;
+        }
+
+        // Test user registration
+        async function testRegisterUser() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            
+            if (!username || !password || !email) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const passwordHash = '482c811da5d5b4bc6d497ffa98491e38'; // MD5 of "testpassword123"
+            
+            const payload = {
+                type: "RegisterUserMessage",
+                username: username,
+                passwordHash: passwordHash,
+                email: email,
+                phoneNumber: phone
+            };
+            
+            const result = await makeAPICall('/api/RegisterUserMessage', payload, 'regResponse');
+            testResults.push({test: 'Register User', ...result});
+        }
+
+        // Test user login
+        async function testLoginUser() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const passwordHash = '482c811da5d5b4bc6d497ffa98491e38'; // MD5 of "testpassword123"
+            
+            const payload = {
+                type: "LoginUserMessage",
+                username: username,
+                passwordHash: passwordHash
+            };
+            
+            const result = await makeAPICall('/api/LoginUserMessage', payload, 'loginResponse');
+            testResults.push({test: 'Login User', ...result});
+        }
+
+        // Test wrong credentials
+        async function testWrongCredentials() {
+            const payload = {
+                type: "LoginUserMessage",
+                username: "nonexistent_user",
+                passwordHash: "wrong_hash"
+            };
+            
+            const result = await makeAPICall('/api/LoginUserMessage', payload, 'loginResponse');
+            testResults.push({test: 'Wrong Credentials', ...result});
+        }
+
+        // Test get user info
+        async function testGetUserInfo() {
+            const userToken = document.getElementById('infoUserToken').value;
+            const userID = document.getElementById('infoUserID').value;
+            
+            const payload = {
+                type: "GetUserInfoMessage",
+                userToken: userToken,
+                userID: userID
+            };
+            
+            const result = await makeAPICall('/api/GetUserInfoMessage', payload, 'infoResponse');
+            testResults.push({test: 'Get User Info', ...result});
+        }
+
+        // Test add friend
+        async function testAddFriend() {
+            const userToken = document.getElementById('friendUserToken').value;
+            const friendID = document.getElementById('friendID').value;
+            
+            const payload = {
+                type: "AddFriendMessage",
+                userToken: userToken,
+                friendID: friendID
+            };
+            
+            const result = await makeAPICall('/api/AddFriendMessage', payload, 'friendResponse');
+            testResults.push({test: 'Add Friend', ...result});
+        }
+
+        // Test remove friend
+        async function testRemoveFriend() {
+            const userToken = document.getElementById('friendUserToken').value;
+            const friendID = document.getElementById('friendID').value;
+            
+            const payload = {
+                type: "RemoveFriendMessage",
+                userToken: userToken,
+                friendID: friendID
+            };
+            
+            const result = await makeAPICall('/api/RemoveFriendMessage', payload, 'friendResponse');
+            testResults.push({test: 'Remove Friend', ...result});
+        }
+
+        // Test block user
+        async function testBlockUser() {
+            const userToken = document.getElementById('friendUserToken').value;
+            const friendID = document.getElementById('friendID').value;
+            
+            const payload = {
+                type: "BlockUserMessage",
+                userToken: userToken,
+                blackUserID: friendID
+            };
+            
+            const result = await makeAPICall('/api/BlockUserMessage', payload, 'friendResponse');
+            testResults.push({test: 'Block User', ...result});
+        }
+
+        // Test get user status
+        async function testGetUserStatus() {
+            const userToken = document.getElementById('statusUserToken').value;
+            const userID = document.getElementById('statusUserID').value;
+            
+            const payload = {
+                type: "GetUserStatusMessage",
+                userToken: userToken,
+                userID: userID
+            };
+            
+            const result = await makeAPICall('/api/GetUserStatusMessage', payload, 'statusResponse');
+            testResults.push({test: 'Get User Status', ...result});
+        }
+
+        // Test logout user
+        async function testLogoutUser() {
+            const userToken = document.getElementById('statusUserToken').value;
+            
+            const payload = {
+                type: "LogoutUserMessage",
+                userToken: userToken
+            };
+            
+            const result = await makeAPICall('/api/LogoutUserMessage', payload, 'statusResponse');
+            testResults.push({test: 'Logout User', ...result});
+        }
+
+        // Run full test suite
+        async function runFullTestSuite() {
+            const suiteResponseElement = document.getElementById('suiteResponse');
+            suiteResponseElement.style.display = 'block';
+            suiteResponseElement.textContent = 'Running full test suite...\n';
+            
+            testResults = [];
+            
+            // Test 1: Check service status
+            suiteResponseElement.textContent += '1. Checking service status...\n';
+            await checkServiceStatus();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 2: Generate and register a new user
+            suiteResponseElement.textContent += '2. Registering new user...\n';
+            generateRandomUser();
+            await testRegisterUser();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 3: Test login with existing user
+            suiteResponseElement.textContent += '3. Testing login with testuser_primary...\n';
+            document.getElementById('loginUsername').value = 'testuser_primary';
+            await testLoginUser();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 4: Test wrong credentials
+            suiteResponseElement.textContent += '4. Testing wrong credentials...\n';
+            await testWrongCredentials();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 5: Get user info
+            suiteResponseElement.textContent += '5. Getting user info...\n';
+            await testGetUserInfo();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 6: Add friend
+            suiteResponseElement.textContent += '6. Testing add friend...\n';
+            await testAddFriend();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 7: Remove friend
+            suiteResponseElement.textContent += '7. Testing remove friend...\n';
+            await testRemoveFriend();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 8: Block user
+            suiteResponseElement.textContent += '8. Testing block user...\n';
+            await testBlockUser();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 9: Get user status
+            suiteResponseElement.textContent += '9. Testing get user status...\n';
+            await testGetUserStatus();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 10: Logout
+            suiteResponseElement.textContent += '10. Testing logout...\n';
+            await testLogoutUser();
+            
+            // Summary
+            const successCount = testResults.filter(r => r.status === 200).length;
+            const totalTests = testResults.length;
+            
+            suiteResponseElement.textContent += `\n=== TEST SUITE COMPLETED ===\n`;
+            suiteResponseElement.textContent += `Total Tests: ${totalTests}\n`;
+            suiteResponseElement.textContent += `Successful: ${successCount}\n`;
+            suiteResponseElement.textContent += `Failed: ${totalTests - successCount}\n\n`;
+            
+            suiteResponseElement.textContent += `Detailed Results:\n`;
+            testResults.forEach((result, index) => {
+                suiteResponseElement.textContent += `${index + 1}. ${result.test}: ${result.status}\n`;
+            });
+        }
+
+        // Clear all responses
+        function clearAllResponses() {
+            const responseElements = document.querySelectorAll('.response');
+            responseElements.forEach(element => {
+                element.style.display = 'none';
+                element.textContent = '';
+            });
+            testResults = [];
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            generateRandomUser();
+            checkServiceStatus();
+        };
+    </script>
+</body>
+</html>
