@@ -56,7 +56,17 @@ case class QueryAssetStatusMessagePlanner(
       IO.raiseError(new IllegalArgumentException("用户Token不能为空或无效"))
     } else {
       for {
-        userID <- validateToken(token)
+        // Step 1: Query User table by user token to get userID
+        _ <- IO(logger.info(s"[validateAndDecodeToken] 开始验证Token: ${token}"))
+        userQuerySQL <- IO(s"SELECT user_id FROM ${schemaName}.user WHERE user_token = ?")
+        userQueryParams <- IO(List(SqlParameter("String", token)))
+        userJson <- readDBJsonOptional(userQuerySQL, userQueryParams).flatMap {
+          case Some(json) => IO.pure(json)
+          case None =>
+            IO(logger.error(s"[validateAndDecodeToken] 未找到与令牌关联的用户: ${token}")) >>
+            IO.raiseError(new IllegalArgumentException("用户Token无效或不存在"))
+        }
+        userID <- IO(decodeField[String](userJson, "user_id"))
         _ <- IO(logger.info(s"[validateAndDecodeToken] Token 验证成功，解析得到的用户ID: ${userID}"))
       } yield userID
     }
