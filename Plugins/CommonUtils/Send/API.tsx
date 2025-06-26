@@ -20,7 +20,21 @@ export abstract class API {
     }
 
     getAddress(): string{
-        return "0.0.0.0"
+        // 根据服务名选择对应的服务URL
+        switch(this.serviceName) {
+            case 'User':
+                return new URL(config.userServiceUrl).host;
+            case 'Card':
+                return new URL(config.cardServiceUrl).host;
+            case 'Admin':
+                return new URL(config.adminServiceUrl).host;
+            case 'Asset':
+                return new URL(config.assetServiceUrl).host;
+            case 'Battle':
+                return new URL(config.battleServiceUrl).host;
+            default:
+                return new URL(config.apiBaseUrl).host;
+        }
     }
 
     getRoute(): string {

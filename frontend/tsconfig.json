@@ -35,6 +35,9 @@
       ],
       "Globals/*": [
         "globals/*"
+      ],
+      "Plugins/*": [
+        "../Plugins/*"
       ]
     }
   },
@@ -50,9 +53,8 @@
     "src/App.css",
     "src/react-app-env.d.ts",
     "src/setupTests.ts",
-    "src/reportWebVitals.ts"
+    "src/reportWebVitals.ts",
+    "../Plugins/**/*"
   ],
-  "exclude": [
-    "src/plugins/**/*"
-  ]
+  "exclude": []
 }
