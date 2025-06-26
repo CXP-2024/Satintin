@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import './GameHomePage.css';
+import primogemIcon from '../assets/images/primogem-icon.png';
 
 const GameHomePage: React.FC = () => {
 	const { user, logout } = useAuthStore();
@@ -36,7 +37,9 @@ const GameHomePage: React.FC = () => {
 									</div>
 								</div>
 								<div className="stat-card">
-									<div className="stat-icon">💎</div>
+									<div className="stat-icon">
+										<img src={primogemIcon} alt="原石" className="primogem-icon" />
+									</div>
 									<div className="stat-info">
 										<span className="stat-label">原石</span>
 										<span className="stat-value">{user?.coins}</span>
@@ -142,22 +145,22 @@ const GameHomePage: React.FC = () => {
 						<h2>卡牌商店</h2>
 						<div className="shop-section">
 							<div className="pack-card">
-								<h3>标准卡包</h3>
-								<p>包含各种稀有度的卡牌</p>
-								<div className="pack-price">100 原石</div>
-								<button className="pack-btn">购买卡包</button>
+								<h3>单次抽卡</h3>
+								<p>抽取一张随机卡牌</p>
+								<div className="pack-price">
+									<img src={primogemIcon} alt="原石" className="primogem-icon small" />
+									160 原石
+								</div>
+								<button className="pack-btn">单次抽卡</button>
 							</div>
 							<div className="pack-card">
-								<h3>高级卡包</h3>
-								<p>更高概率获得稀有卡牌</p>
-								<div className="pack-price">300 原石</div>
-								<button className="pack-btn">购买卡包</button>
-							</div>
-							<div className="pack-card">
-								<h3>传说卡包</h3>
-								<p>保底一张传说卡牌</p>
-								<div className="pack-price">1000 原石</div>
-								<button className="pack-btn">购买卡包</button>
+								<h3>十连抽卡</h3>
+								<p>一次性抽取十张卡牌，更划算！</p>
+								<div className="pack-price">
+									<img src={primogemIcon} alt="原石" className="primogem-icon small" />
+									1600 原石
+								</div>
+								<button className="pack-btn">十连抽卡</button>
 							</div>
 						</div>
 					</div>
@@ -177,7 +180,10 @@ const GameHomePage: React.FC = () => {
 				<div className="header-right">
 					<div className="user-info">
 						<span className="username">{user?.username}</span>
-						<span className="coins">💎 {user?.coins}</span>
+						<span className="coins">
+							<img src={primogemIcon} alt="原石" className="primogem-icon small" />
+							{user?.coins}
+						</span>
 					</div>
 					<button className="logout-btn" onClick={handleLogout}>
 						退出登录
