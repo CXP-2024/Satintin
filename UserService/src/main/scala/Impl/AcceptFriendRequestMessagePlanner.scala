@@ -1,40 +1,25 @@
 package Impl
 
-
 import Utils.FriendManagementProcess.addFriendEntry
-import Common.API.{PlanContext, Planner}
+import Common.API.{API, PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import cats.effect.IO
+import cats.implicits.*
 import org.slf4j.LoggerFactory
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
-import cats.implicits._
 import org.joda.time.DateTime
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.FriendManagementProcess.addFriendEntry
-import io.circe._ 
-import io.circe.syntax._ 
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class AcceptFriendRequestMessage(userToken: String, friendID: String) extends API[String]("AcceptFriendRequest")
 
 case class AcceptFriendRequestMessagePlanner(userToken: String, friendID: String, override val planContext: PlanContext)
   extends Planner[String] {
 
+  
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[String] = {

@@ -1,37 +1,20 @@
 package Impl
 
-
-import Objects.UserService.MessageEntry
+import Objects.UserService.{MessageEntry, User, BlackEntry, FriendEntry}
 import Utils.FriendManagementProcess.addToBlacklist
-import Objects.UserService.User
 import Utils.UserAuthenticationProcess.authenticateUser
-import Objects.UserService.BlackEntry
-import Objects.UserService.FriendEntry
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import cats.effect.IO
+import cats.implicits.*
 import org.slf4j.LoggerFactory
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import org.joda.time.DateTime
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.UserService.FriendEntry
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class BlockUserMessagePlanner(
                                     userToken: String,
@@ -59,7 +42,7 @@ case class BlockUserMessagePlanner(
   private def validateUserToken(userToken: String)(using PlanContext): IO[String] = {
     for {
       _ <- IO(logger.info(s"调用authenticateUser方法验证用户Token"))
-      authenticationResult <- authenticateUser(userToken, "").send
+      authenticationResult <- authenticateUser(userToken, "")
       user <- authenticationResult match {
         case Some(user) => IO.pure(user)
         case None =>
@@ -68,6 +51,7 @@ case class BlockUserMessagePlanner(
     } yield user.userID
   }
 
+  
   private def performAddToBlacklist(userID: String, blackUserID: String)(using PlanContext): IO[Unit] = {
     for {
       // Step 1: Retrieve user's blacklist from the database
