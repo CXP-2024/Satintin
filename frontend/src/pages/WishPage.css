@@ -58,6 +58,9 @@
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	background-clip: text;
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
 }
 
 .user-currency-header {
@@ -443,6 +446,490 @@
 	color: #ff6b6b;
 }
 
+/* 头部右侧区域 */
+.header-right {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.history-btn {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+	border: none;
+	padding: 12px 20px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.history-btn:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: translateY(-2px);
+}
+
+/* 历史记录模态框 */
+.history-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(10px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+.history-modal {
+	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+	border-radius: 20px;
+	width: 90%;
+	max-width: 1000px;
+	max-height: 80vh;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	backdrop-filter: blur(20px);
+	animation: slideUp 0.3s ease;
+	overflow: hidden;
+}
+
+.history-modal.closing {
+	animation: slideDown 0.3s ease;
+}
+
+.history-modal-overlay.closing {
+	animation: fadeOut 0.3s ease;
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(50px);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideDown {
+	from {
+		transform: translateY(0);
+		opacity: 1;
+	}
+
+	to {
+		transform: translateY(50px);
+		opacity: 0;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+.history-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 25px 30px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.history-header h2 {
+	margin: 0;
+	font-size: 1.8rem;
+	color: white;
+	background: linear-gradient(45deg, #ffd700, #ffeb3b);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.history-close-btn {
+	background: transparent;
+	border: none;
+	color: white;
+	font-size: 1.5rem;
+	cursor: pointer;
+	padding: 10px;
+	border-radius: 50%;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s ease;
+}
+
+.history-close-btn:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: rotate(90deg);
+}
+
+.history-content {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 30px;
+	padding: 30px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+
+.history-column {
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 15px;
+	padding: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-column h3 {
+	margin: 0 0 20px 0;
+	font-size: 1.3rem;
+	color: white;
+	text-align: center;
+	background: linear-gradient(45deg, #ffd700, #ff8f00);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.history-list {
+	max-height: 400px;
+	overflow-y: auto;
+	padding-right: 10px;
+}
+
+.history-list::-webkit-scrollbar {
+	width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+	background: rgba(255, 215, 0, 0.6);
+	border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 215, 0, 0.8);
+}
+
+.history-item {
+	background: rgba(255, 255, 255, 0.08);
+	border-radius: 10px;
+	padding: 15px;
+	margin-bottom: 10px;
+	border-left: 3px solid transparent;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+}
+
+.history-item:hover {
+	background: rgba(255, 255, 255, 0.12);
+	transform: translateX(5px);
+}
+
+.history-item-main {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.history-item-name {
+	font-size: 1.1rem;
+	font-weight: bold;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.history-item-stars {
+	display: flex;
+	gap: 2px;
+}
+
+.history-star {
+	font-size: 14px;
+	filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.6));
+}
+
+.history-item-time {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+	text-align: right;
+}
+
+.history-empty {
+	text-align: center;
+	color: rgba(255, 255, 255, 0.6);
+	font-style: italic;
+	padding: 40px 20px;
+}
+
+/* 祈愿规则按钮样式 */
+.rules-btn {
+	background: rgba(255, 215, 0, 0.2);
+	color: white;
+	border: 2px solid rgba(255, 215, 0, 0.4);
+	padding: 10px 20px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-right: 15px;
+}
+
+.rules-btn:hover {
+	background: rgba(255, 215, 0, 0.3);
+	border-color: rgba(255, 215, 0, 0.6);
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* 祈愿规则模态框样式 */
+.rules-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.8);
+	backdrop-filter: blur(10px);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	animation: fadeIn 0.3s ease;
+}
+
+.rules-modal {
+	background: linear-gradient(145deg, rgba(26, 26, 46, 0.95), rgba(22, 33, 62, 0.95));
+	border-radius: 20px;
+	border: 2px solid rgba(255, 215, 0, 0.3);
+	width: 90%;
+	max-width: 800px;
+	max-height: 85vh;
+	overflow: hidden;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(20px);
+	animation: slideUp 0.3s ease;
+}
+
+.rules-modal.closing {
+	animation: slideDown 0.3s ease;
+}
+
+.rules-modal-overlay.closing {
+	animation: fadeOut 0.3s ease;
+}
+
+.rules-header {
+	background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.1));
+	padding: 25px 30px;
+	border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.rules-header h2 {
+	color: #ffd700;
+	font-size: 1.8rem;
+	font-weight: bold;
+	margin: 0;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rules-close-btn {
+	background: rgba(255, 255, 255, 0.1);
+	color: white;
+	border: none;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	cursor: pointer;
+	font-size: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s ease;
+}
+
+.rules-close-btn:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: rotate(90deg);
+}
+
+.rules-content {
+	padding: 30px;
+	max-height: calc(85vh - 120px);
+	overflow-y: auto;
+	color: white;
+}
+
+.rules-content::-webkit-scrollbar {
+	width: 8px;
+}
+
+.rules-content::-webkit-scrollbar-track {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+}
+
+.rules-content::-webkit-scrollbar-thumb {
+	background: rgba(255, 215, 0, 0.4);
+	border-radius: 4px;
+}
+
+.rules-content::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 215, 0, 0.6);
+}
+
+.rules-section {
+	margin-bottom: 30px;
+	padding: 25px;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 15px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rules-section h3 {
+	color: #ffd700;
+	font-size: 1.4rem;
+	font-weight: bold;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
+	border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rules-section h4 {
+	color: #4facfe;
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin: 20px 0 10px 0;
+}
+
+.rules-section ul {
+	list-style: none;
+	padding: 0;
+	margin: 10px 0;
+}
+
+.rules-section li {
+	padding: 8px 0;
+	padding-left: 20px;
+	position: relative;
+	line-height: 1.6;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.rules-section li::before {
+	content: '▸';
+	position: absolute;
+	left: 0;
+	color: #ffd700;
+	font-weight: bold;
+}
+
+.rules-section li strong {
+	color: #ffd700;
+	font-weight: 600;
+}
+
+/* 概率表格样式 */
+.probability-table {
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+	padding: 15px;
+	margin: 15px 0;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prob-row {
+	display: grid;
+	grid-template-columns: 2fr 1fr 2fr;
+	gap: 15px;
+	align-items: center;
+	padding: 12px 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.prob-row:last-child {
+	border-bottom: none;
+}
+
+.prob-rarity {
+	font-weight: 600;
+	padding: 4px 12px;
+	border-radius: 15px;
+	text-align: center;
+	font-size: 0.9rem;
+}
+
+.prob-rarity.legendary {
+	background: linear-gradient(45deg, #ffd700, #ffeb3b);
+	color: #1a1a1a;
+}
+
+.prob-rarity.epic {
+	background: linear-gradient(45deg, #9c27b0, #e91e63);
+	color: white;
+}
+
+.prob-rarity.rare {
+	background: linear-gradient(45deg, #2196f3, #03a9f4);
+	color: white;
+}
+
+.prob-rate {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #ffd700;
+	text-align: center;
+}
+
+.prob-detail {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+	text-align: center;
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
 	.wish-content {
@@ -502,5 +989,36 @@
 
 	.btn-icon {
 		font-size: 2rem;
+	}
+}
+
+@media (max-width: 768px) {
+	.header-right {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.history-btn {
+		font-size: 12px;
+		padding: 10px 15px;
+	}
+
+	.history-modal {
+		width: 95%;
+		max-height: 90vh;
+	}
+
+	.history-content {
+		grid-template-columns: 1fr;
+		gap: 20px;
+		padding: 20px;
+	}
+
+	.history-header {
+		padding: 20px;
+	}
+
+	.history-header h2 {
+		font-size: 1.5rem;
 	}
 }

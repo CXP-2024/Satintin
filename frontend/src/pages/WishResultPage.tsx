@@ -1,13 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
 import { useLocation } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import './WishResultPage.css';
 import danziVideo from '../assets/videos/danzi.mp4';
+import danlanVideo from '../assets/videos/danlan.mp4';
+import danjinVideo from '../assets/videos/danjin.mp4';
+import shiziVideo from '../assets/videos/shizi.mp4';
+import shijinVideo from '../assets/videos/shijin.mp4';
+
 import gaiyaImage from '../assets/images/gaiya.png';
 import nailongImage from '../assets/images/nailong.webp';
-import jiegeImage from '../assets/images/jiege.jpg';
+import jiegeImage from '../assets/images/jiege.png';
 import mygoImage from '../assets/images/mygo.png'
+import paimengImage from '../assets/images/paimeng.png';
+import kunImage from '../assets/images/kun.png';
+import manImage from '../assets/images/man.png';
+import bingbingImage from '../assets/images/bingbing.png';
+import wlmImage from '../assets/images/wlm.png';
+
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
 
@@ -29,6 +40,7 @@ const WishResultPage: React.FC = () => {
 	const [wishResults, setWishResults] = useState<WishResult[]>([]);
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [showAllCards, setShowAllCards] = useState(false);
+	const [selectedVideo, setSelectedVideo] = useState<string>(danziVideo);
 
 	// 从路由参数获取抽卡类型
 	const searchParams = new URLSearchParams(location.search);
@@ -50,24 +62,32 @@ const WishResultPage: React.FC = () => {
 		SoundUtils.playClickSound(0.5);
 	};
 
-	useEffect(() => {
-		// 生成随机抽卡结果
-		generateWishResult();
+	// 选择合适的抽卡动画视频
+	const selectWishVideo = useCallback((results: WishResult[], isTeWish: boolean) => {
+		if (isTeWish) {
+			// 十连抽：检查是否有5星
+			const hasFiveStar = results.some(card => card.rarity === 5);
+			if (hasFiveStar) {
+				return shijinVideo; // 十连出金色
+			} else {
+				return shiziVideo; // 十连出紫色（保底）
+			}
+		} else {
+			// 单抽：根据唯一卡牌的稀有度选择
+			const rarity = results[0]?.rarity || 3;
+			switch (rarity) {
+				case 5:
+					return danjinVideo; // 单抽出金色
+				case 4:
+					return danziVideo; // 单抽出紫色
+				case 3:
+				default:
+					return danlanVideo; // 单抽出蓝色
+			}
+		}
 	}, []);
 
-	// 当结果显示时播放闪光音效
-	useEffect(() => {
-		if (showResult && currentWishResult) {
-			// 延迟播放音效，配合动画时机
-			const timer = setTimeout(() => {
-				SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
-			}, 500); // 0.5秒后播放，让卡牌动画先开始
-
-			return () => clearTimeout(timer);
-		}
-	}, [showResult, currentWishResult]);
-
-	const generateWishResult = () => {
+	const generateWishResult = useCallback(() => {
 		const count = isTenWish ? 10 : 1;
 		const results: WishResult[] = [];
 
@@ -76,9 +96,9 @@ const WishResultPage: React.FC = () => {
 			const random = Math.random() * 100;
 			let rarity: number;
 
-			if (random < 50) { // 0.6% 概率出5星
+			if (random < 0.6) { // 0.6% 概率出5星
 				rarity = 5;
-			} else if (random < 70) { // 5.5% 概率出4星
+			} else if (random < 6.1) { // 5.5% 概率出4星
 				rarity = 4;
 			} else {
 				rarity = 3; // 93.9% 概率出3星
@@ -96,14 +116,13 @@ const WishResultPage: React.FC = () => {
 						{ id: '5003', name: 'Go', image: mygoImage, type: 'character' as const },
 					],
 					4: [
-						{ id: '4001', name: '火焰战士', image: '🔥', type: 'character' as const },
-						{ id: '4002', name: '冰霜法师', image: '❄️', type: 'character' as const },
-						{ id: '4003', name: '雷电忍者', image: '⚡', type: 'character' as const },
+						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
+						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
+						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
 					],
 					3: [
-						{ id: '3001', name: '见习战士', image: '⚔️', type: 'character' as const },
-						{ id: '3002', name: '普通法师', image: '🔮', type: 'character' as const },
-						{ id: '3003', name: '弓箭手', image: '🏹', type: 'character' as const },
+						{ id: '3001', name: '冰', image: bingbingImage, type: 'character' as const },
+						{ id: '3002', name: 'wlm', image: wlmImage, type: 'character' as const },
 					],
 				};
 			} else {
@@ -111,20 +130,15 @@ const WishResultPage: React.FC = () => {
 				mockCards = {
 					5: [
 						{ id: '5101', name: '杰哥', image: jiegeImage, type: 'character' as const },
-						{ id: '5102', name: '神秘法师', image: '🧙‍♂️', type: 'character' as const },
 					],
 					4: [
-						{ id: '4101', name: '风行者', image: '🌪️', type: 'character' as const },
-						{ id: '4102', name: '土元素使', image: '🗿', type: 'character' as const },
-						{ id: '4103', name: '治疗师', image: '💚', type: 'character' as const },
-						{ id: '4104', name: '暗影刺客', image: '🗡️', type: 'character' as const },
+						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
+						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
+						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
 					],
 					3: [
-						{ id: '3101', name: '村民战士', image: '🛡️', type: 'character' as const },
-						{ id: '3102', name: '学徒法师', image: '📖', type: 'character' as const },
-						{ id: '3103', name: '猎手', image: '🏹', type: 'character' as const },
-						{ id: '3104', name: '药剂师', image: '⚗️', type: 'character' as const },
-						{ id: '3105', name: '铁匠', image: '🔨', type: 'character' as const },
+						{ id: '3001', name: '冰', image: bingbingImage, type: 'character' as const },
+						{ id: '3002', name: 'wlm', image: wlmImage, type: 'character' as const },
 					],
 				};
 			}
@@ -139,8 +153,58 @@ const WishResultPage: React.FC = () => {
 			});
 		}
 
+		// 十连抽保底机制：确保至少有一个4星或以上
+		if (isTenWish) {
+			const hasHighRarity = results.some(card => card.rarity >= 4);
+			if (!hasHighRarity) {
+				// 如果没有4星或5星，将最后一张卡强制设为4星
+				const lastIndex = results.length - 1;
+				const mockCards = bannerType === 'featured' ? {
+					4: [
+						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
+						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
+						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
+					],
+				} : {
+					4: [
+						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
+						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
+						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
+					],
+				};
+
+				const randomCard = mockCards[4][Math.floor(Math.random() * mockCards[4].length)];
+				results[lastIndex] = {
+					...randomCard,
+					id: `${randomCard.id}_${lastIndex}`,
+					rarity: 4,
+				};
+			}
+		}
+
 		setWishResults(results);
-	};
+
+		// 根据抽卡结果选择合适的视频
+		const video = selectWishVideo(results, isTenWish);
+		setSelectedVideo(video);
+	}, [isTenWish, bannerType, selectWishVideo]);
+
+	useEffect(() => {
+		// 生成随机抽卡结果
+		generateWishResult();
+	}, [generateWishResult]);
+
+	// 当结果显示时播放闪光音效
+	useEffect(() => {
+		if (showResult && currentWishResult) {
+			// 延迟播放音效，配合动画时机
+			const timer = setTimeout(() => {
+				SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
+			}, 500); // 0.5秒后播放，让卡牌动画先开始
+
+			return () => clearTimeout(timer);
+		}
+	}, [showResult, currentWishResult]);
 
 	const handleVideoEnded = () => {
 		setShowVideo(false);
@@ -214,7 +278,7 @@ const WishResultPage: React.FC = () => {
 					<div className="video-container">
 						<video
 							ref={videoRef}
-							src={danziVideo}
+							src={selectedVideo}
 							autoPlay
 							onEnded={handleVideoEnded}
 							className="wish-video"
