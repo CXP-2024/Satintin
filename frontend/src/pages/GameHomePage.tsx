@@ -48,6 +48,12 @@ const GameHomePage: React.FC = () => {
 		navigateWithTransition('/wish', '正在准备祈愿...');
 	};
 
+	const handleNavigateToRules = () => {
+		console.log('📖 [GameHomePage] 导航到对战规则页面');
+		playClickSound();
+		navigateWithTransition('/battle-rules', '正在加载对战规则...');
+	};
+
 	const handleClaimReward = () => {
 		console.log('🎁 [GameHomePage] 领取每日奖励');
 		playClickSound();
@@ -62,6 +68,10 @@ const GameHomePage: React.FC = () => {
 				<header className="game-header">
 					<div className="header-left">
 						<h1>Satintin</h1>
+						<button className="rules-btn" onClick={handleNavigateToRules}>
+							<span className="rules-icon">📖</span>
+							对战规则
+						</button>
 					</div>
 					<div className="header-right">
 						<div className="user-info">
