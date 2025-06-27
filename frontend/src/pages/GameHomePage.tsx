@@ -1,223 +1,201 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
+import { usePageTransition } from '../hooks/usePageTransition';
+import PageTransition from '../components/PageTransition';
 import './GameHomePage.css';
+import primogemIcon from '../assets/images/primogem-icon.png';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const GameHomePage: React.FC = () => {
 	const { user, logout } = useAuthStore();
-	const [activeTab, setActiveTab] = useState<'home' | 'battle' | 'cards' | 'shop'>('home');
+	const { navigateWithTransition } = usePageTransition();
+
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
 
 	console.log('🎮 [GameHomePage] 游戏主页组件已挂载');
 	console.log('👤 [GameHomePage] 当前用户信息:', user);
-	console.log('📋 [GameHomePage] 当前活跃标签:', activeTab);
 
 	const handleLogout = () => {
 		console.log('🚪 [GameHomePage] 用户点击退出登录');
+		playClickSound();
 		logout();
 	};
 
-	const handleTabChange = (tab: 'home' | 'battle' | 'cards' | 'shop') => {
-		console.log(`📋 [GameHomePage] 切换标签: ${activeTab} → ${tab}`);
-		setActiveTab(tab);
+	const handleNavigateToBattle = () => {
+		console.log('⚔️ [GameHomePage] 导航到战斗页面');
+		playClickSound();
+		navigateWithTransition('/battle', '正在进入战斗...');
 	};
 
-	const renderContent = () => {
-		switch (activeTab) {
-			case 'home':
-				return (
-					<div className="home-content">
-						<div className="welcome-section">
-							<h2>欢迎回来，{user?.username}！</h2>
-							<div className="user-stats">
-								<div className="stat-card">
-									<div className="stat-icon">🏆</div>
-									<div className="stat-info">
-										<span className="stat-label">段位</span>
-										<span className="stat-value">{user?.rank}</span>
-									</div>
-								</div>
-								<div className="stat-card">
-									<div className="stat-icon">💎</div>
-									<div className="stat-info">
-										<span className="stat-label">原石</span>
-										<span className="stat-value">{user?.coins}</span>
-									</div>
-								</div>
-								<div className="stat-card">
-									<div className="stat-icon">🃏</div>
-									<div className="stat-info">
-										<span className="stat-label">卡牌</span>
-										<span className="stat-value">12</span>
-									</div>
-								</div>
-							</div>
-						</div>
+	const handleNavigateToCards = () => {
+		console.log('🃏 [GameHomePage] 导航到卡组页面');
+		playClickSound();
+		navigateWithTransition('/cards', '正在加载卡组...');
+	};
 
-						<div className="quick-actions">
-							<h3>快速开始</h3>
-							<div className="action-buttons">
-								<button
-									className="action-btn primary"
-									onClick={() => handleTabChange('battle')}
-								>
-									<span className="btn-icon">⚔️</span>
-									开始对战
-								</button>
-								<button
-									className="action-btn secondary"
-									onClick={() => handleTabChange('cards')}
-								>
-									<span className="btn-icon">🃏</span>
-									管理卡组
-								</button>
-								<button
-									className="action-btn tertiary"
-									onClick={() => handleTabChange('shop')}
-								>
-									<span className="btn-icon">🛒</span>
-									卡牌商店
-								</button>
-							</div>
-						</div>
-					</div>
-				);
+	const handleNavigateToWish = () => {
+		console.log('🛒 [GameHomePage] 导航到祈愿页面');
+		playClickSound();
+		navigateWithTransition('/wish', '正在准备祈愿...');
+	};
 
-			case 'battle':
-				return (
-					<div className="battle-content">
-						<h2>对战大厅</h2>
-						<div className="battle-modes">
-							<div className="mode-card">
-								<h3>快速对战</h3>
-								<p>与随机玩家进行对战，测试你的策略</p>
-								<button className="mode-btn">开始匹配</button>
-							</div>
-							<div className="mode-card">
-								<h3>排位赛</h3>
-								<p>排位对战，提升你的段位</p>
-								<button className="mode-btn">排位匹配</button>
-							</div>
-							<div className="mode-card">
-								<h3>好友对战</h3>
-								<p>与好友进行友谊赛</p>
-								<button className="mode-btn">创建房间</button>
-							</div>
-						</div>
-					</div>
-				);
+	const handleNavigateToRules = () => {
+		console.log('📖 [GameHomePage] 导航到对战规则页面');
+		playClickSound();
+		navigateWithTransition('/battle-rules', '正在加载对战规则...');
+	};
 
-			case 'cards':
-				return (
-					<div className="cards-content">
-						<h2>我的卡组</h2>
-						<div className="deck-section">
-							<h3>当前卡组</h3>
-							<div className="deck-cards">
-								<div className="card-slot">
-									<div className="card common">穿透卡（普通）</div>
-								</div>
-								<div className="card-slot">
-									<div className="card rare">发育卡（稀有）</div>
-								</div>
-								<div className="card-slot">
-									<div className="card common">反弹卡（普通）</div>
-								</div>
-							</div>
-						</div>
-
-						<div className="collection-section">
-							<h3>卡牌收藏</h3>
-							<div className="card-collection">
-								<div className="collection-card common">穿透卡 x3</div>
-								<div className="collection-card rare">发育卡 x2</div>
-								<div className="collection-card legendary">反弹卡（传说）x1</div>
-								<div className="collection-card common">穿透卡（普通）x5</div>
-							</div>
-						</div>
-					</div>
-				);
-
-			case 'shop':
-				return (
-					<div className="shop-content">
-						<h2>卡牌商店</h2>
-						<div className="shop-section">
-							<div className="pack-card">
-								<h3>标准卡包</h3>
-								<p>包含各种稀有度的卡牌</p>
-								<div className="pack-price">100 原石</div>
-								<button className="pack-btn">购买卡包</button>
-							</div>
-							<div className="pack-card">
-								<h3>高级卡包</h3>
-								<p>更高概率获得稀有卡牌</p>
-								<div className="pack-price">300 原石</div>
-								<button className="pack-btn">购买卡包</button>
-							</div>
-							<div className="pack-card">
-								<h3>传说卡包</h3>
-								<p>保底一张传说卡牌</p>
-								<div className="pack-price">1000 原石</div>
-								<button className="pack-btn">购买卡包</button>
-							</div>
-						</div>
-					</div>
-				);
-
-			default:
-				return null;
-		}
+	const handleClaimReward = () => {
+		console.log('🎁 [GameHomePage] 领取每日奖励');
+		playClickSound();
+		// 这里可以添加领取奖励的逻辑
+		alert('已领取200原石！');
 	};
 
 	return (
-		<div className="game-home">
-			<header className="game-header">
-				<div className="header-left">
-					<h1>阵面对战</h1>
-				</div>
-				<div className="header-right">
-					<div className="user-info">
-						<span className="username">{user?.username}</span>
-						<span className="coins">💎 {user?.coins}</span>
+		<PageTransition className="game-page">
+			<div className="game-home">
+				{/* 顶部状态栏 */}
+				<header className="game-header">
+					<div className="header-left">
+						<h1>Satintin</h1>
+						<button className="rules-btn" onClick={handleNavigateToRules}>
+							<span className="rules-icon">📖</span>
+							对战规则
+						</button>
 					</div>
-					<button className="logout-btn" onClick={handleLogout}>
-						退出登录
-					</button>
-				</div>
-			</header>
+					<div className="header-right">
+						<div className="user-info">
+							<span className="username">{user?.username}</span>
+							<span className="coins">
+								<img src={primogemIcon} alt="原石" className="primogem-icon small" />
+								{user?.coins}
+							</span>
+						</div>
+						<button className="logout-btn" onClick={handleLogout}>
+							退出登录
+						</button>
+					</div>
+				</header>
 
-			<div className="game-container">
-				<nav className="game-nav">
-					<button
-						className={`nav-btn ${activeTab === 'home' ? 'active' : ''}`}
-						onClick={() => handleTabChange('home')}
-					>
-						🏠 主页
-					</button>
-					<button
-						className={`nav-btn ${activeTab === 'battle' ? 'active' : ''}`}
-						onClick={() => handleTabChange('battle')}
-					>
-						⚔️ 对战
-					</button>
-					<button
-						className={`nav-btn ${activeTab === 'cards' ? 'active' : ''}`}
-						onClick={() => handleTabChange('cards')}
-					>
-						🃏 卡组
-					</button>
-					<button
-						className={`nav-btn ${activeTab === 'shop' ? 'active' : ''}`}
-						onClick={() => handleTabChange('shop')}
-					>
-						🛒 商店
-					</button>
-				</nav>
+				{/* 主内容区域 */}
+				<main className="home-main">
+					{/* 欢迎区域 */}
+					<section className="welcome-section">
+						<div className="welcome-content">
+							<h2 className="welcome-title">欢迎回来，{user?.username}！</h2>
+							<p className="welcome-subtitle">准备好迎接激烈的卡牌对战了吗？</p>
+						</div>
+					</section>
 
-				<main className="game-main">
-					{renderContent()}
+					{/* 用户状态卡片 */}
+					<section className="user-stats-section">
+						<div className="stats-grid">
+							<div className="stat-card rank">
+								<div className="stat-icon">🏆</div>
+								<div className="stat-content">
+									<span className="stat-label">当前段位</span>
+									<span className="stat-value">{user?.rank}</span>
+								</div>
+							</div>
+							<div className="stat-card currency">
+								<div className="stat-icon">
+									<img src={primogemIcon} alt="原石" className="primogem-icon" />
+								</div>
+								<div className="stat-content">
+									<span className="stat-label">原石</span>
+									<span className="stat-value">{user?.coins}</span>
+								</div>
+							</div>
+							<div className="stat-card cards">
+								<div className="stat-icon">🃏</div>
+								<div className="stat-content">
+									<span className="stat-label">卡牌数量</span>
+									<span className="stat-value">45</span>
+								</div>
+							</div>
+							<div className="stat-card wins">
+								<div className="stat-icon">⚔️</div>
+								<div className="stat-content">
+									<span className="stat-label">胜场</span>
+									<span className="stat-value">23</span>
+								</div>
+							</div>
+						</div>
+					</section>
+
+					{/* 主要功能按钮 */}
+					<section className="main-actions-section">
+						<div className="main-actions">
+							<button className="action-btn battle-btn" onClick={handleNavigateToBattle}>
+								<div className="btn-background"></div>
+								<div className="btn-content">
+									<div className="btn-icon">⚔️</div>
+									<div className="btn-text">
+										<h3>开始对战</h3>
+										<p>与其他玩家展开激烈的卡牌对战</p>
+									</div>
+								</div>
+							</button>
+
+							<button className="action-btn cards-btn" onClick={handleNavigateToCards}>
+								<div className="btn-background"></div>
+								<div className="btn-content">
+									<div className="btn-icon">🃏</div>
+									<div className="btn-text">
+										<h3>管理卡组</h3>
+										<p>编辑你的卡组，收集强力卡牌</p>
+									</div>
+								</div>
+							</button>
+
+							<button className="action-btn wish-btn" onClick={handleNavigateToWish}>
+								<div className="btn-background"></div>
+								<div className="btn-content">
+									<div className="btn-icon">✨</div>
+									<div className="btn-text">
+										<h3>卡牌祈愿</h3>
+										<p>获取稀有卡牌，提升战斗实力</p>
+									</div>
+								</div>
+							</button>
+						</div>
+					</section>
+
+					{/* 快速信息 */}
+					<section className="quick-info-section">
+						<div className="info-cards">
+							<div className="info-card">
+								<h4>🎯 今日任务</h4>
+								<p>完成3场对战 (2/3)</p>
+								<div className="progress-bar">
+									<div className="progress-fill" style={{ width: '66%' }}></div>
+								</div>
+							</div>
+							<div className="info-card">
+								<h4>🎁 每日奖励</h4>
+								<p>登录第3天，获得200原石</p>
+								<button className="claim-btn" onClick={handleClaimReward}>领取</button>
+							</div>
+							<div className="info-card">
+								<h4>📈 排行榜</h4>
+								<p>当前排名: #127</p>
+								<span className="rank-change up">↗ +5</span>
+							</div>
+						</div>
+					</section>
 				</main>
 			</div>
-		</div>
+		</PageTransition>
 	);
 };
 

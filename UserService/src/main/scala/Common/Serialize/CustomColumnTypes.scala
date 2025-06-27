@@ -78,7 +78,21 @@ object CustomColumnTypes {
   }
 
   given decodeDateTime: Decoder[DateTime] = Decoder.instance { cursor =>
-    cursor.as[Long].map(new DateTime(_))
+    cursor.value match {
+      case jsonNumber if jsonNumber.isNumber =>
+        cursor.as[Long].map(new DateTime(_))
+      case jsonString if jsonString.isString =>
+        cursor.as[String].flatMap { str =>
+          try {
+            Right(new DateTime(str.toLong))
+          } catch {
+            case _: NumberFormatException =>
+              Left(DecodingFailure(s"Invalid timestamp string: $str", cursor.history))
+          }
+        }
+      case _ =>
+        Left(DecodingFailure("Expected a numeric timestamp or string timestamp", cursor.history))
+    }
   }
 
 }

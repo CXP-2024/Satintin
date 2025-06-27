@@ -94,7 +94,24 @@ class DateTimeSerializer extends JsonSerializer[DateTime] {
 
 class DateTimeDeserializer extends JsonDeserializer[DateTime] {
   override def deserialize(p: com.fasterxml.jackson.core.JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext): DateTime = {
-    new DateTime(p.getLongValue)
+    import com.fasterxml.jackson.core.JsonToken
+    p.getCurrentToken match {
+      case JsonToken.VALUE_NUMBER_INT | JsonToken.VALUE_NUMBER_FLOAT =>
+        new DateTime(p.getLongValue)
+      case JsonToken.VALUE_STRING =>
+        try {
+          new DateTime(p.getText.toLong)
+        } catch {
+          case _: NumberFormatException =>
+            throw new com.fasterxml.jackson.databind.JsonMappingException(
+              p, s"Invalid timestamp string: ${p.getText}"
+            )
+        }
+      case _ =>
+        throw new com.fasterxml.jackson.databind.JsonMappingException(
+          p, s"Expected numeric timestamp or string timestamp, got: ${p.getCurrentToken}"
+        )
+    }
   }
 }
 

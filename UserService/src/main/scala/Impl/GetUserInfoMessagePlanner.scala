@@ -100,13 +100,20 @@ case class GetUserInfoMessagePlanner(
          |FROM ${schemaName}.user_asset_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
-      (
-        decodeField[Int](json, "stone_amount"),
-        decodeField[Int](json, "card_draw_count"),
-        decodeField[String](json, "rank"),
-        decodeField[Int](json, "rank_position")
-      )
+    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
+      jsonOpt match {
+        case Some(json) =>
+          (
+            decodeField[Int](json, "stone_amount"),
+            decodeField[Int](json, "card_draw_count"),
+            decodeField[String](json, "rank"),
+            decodeField[Int](json, "rank_position")
+          )
+        case None =>
+          // Return default values if no asset record exists
+          logger.info(s"[fetchUserAssets] No asset record found for userID: ${userID}, using default values")
+          (0, 0, "Bronze", 0) // Default values: 0 stones, 0 card draws, Bronze rank, position 0
+      }
     }
   }
 
@@ -117,17 +124,24 @@ case class GetUserInfoMessagePlanner(
          |FROM ${schemaName}.user_social_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
-      val friendList = decodeField[List[String]](json, "friend_list").map(FriendEntry)
-      val blackList = decodeField[List[String]](json, "black_list").map(BlackEntry)
-      val messageBox = decodeField[List[Map[String, String]]](json, "message_box").map { msg =>
-        MessageEntry(
-          messageSource = msg("messageSource"),
-          messageContent = msg("messageContent"),
-          messageTime = DateTime.parse(msg("messageTime"))
-        )
+    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
+      jsonOpt match {
+        case Some(json) =>
+          val friendList = decodeField[List[String]](json, "friend_list").map(FriendEntry)
+          val blackList = decodeField[List[String]](json, "black_list").map(BlackEntry)
+          val messageBox = decodeField[List[Map[String, String]]](json, "message_box").map { msg =>
+            MessageEntry(
+              messageSource = msg("messageSource"),
+              messageContent = msg("messageContent"),
+              messageTime = DateTime.parse(msg("messageTime"))
+            )
+          }
+          (friendList, blackList, messageBox)
+        case None =>
+          // Return default empty values if no social record exists
+          logger.info(s"[fetchUserSocial] No social record found for userID: ${userID}, using default empty values")
+          (List.empty[FriendEntry], List.empty[BlackEntry], List.empty[MessageEntry])
       }
-      (friendList, blackList, messageBox)
     }
   }
 

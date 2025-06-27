@@ -1,5 +1,42 @@
 /// <reference types="react-scripts" />
 
+// 添加视频文件类型声明
+declare module '*.mp4' {
+  const src: string;
+  export default src;
+}
+
+declare module '*.avi' {
+  const src: string;
+  export default src;
+}
+
+declare module '*.mov' {
+  const src: string;
+  export default src;
+}
+
+declare module '*.webm' {
+  const src: string;
+  export default src;
+}
+
+// 添加音频文件类型声明
+declare module '*.mp3' {
+  const src: string;
+  export default src;
+}
+
+declare module '*.wav' {
+  const src: string;
+  export default src;
+}
+
+declare module '*.ogg' {
+  const src: string;
+  export default src;
+}
+
 declare namespace NodeJS {
   interface ProcessEnv {
     NODE_ENV: 'development' | 'production' | 'test';

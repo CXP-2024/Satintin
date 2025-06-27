@@ -4,6 +4,11 @@ import { useAuthStore } from '../store/authStore';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import GameHomePage from '../pages/GameHomePage';
+import BattlePage from '../pages/BattlePage';
+import CardCollectionPage from '../pages/CardCollectionPage';
+import WishPage from '../pages/WishPage';
+import WishResultPage from '../pages/WishResultPage';
+import BattleRulesPage from '../pages/BattleRulesPage';
 import ConnectionTestPage from '../pages/ConnectionTestPage';
 import NavMenu from './NavMenu';
 
@@ -17,16 +22,16 @@ const AppRouter: React.FC = () => {
 		<Router>
 			<NavMenu />
 			<Routes>
-					{/* 测试连接路由 - 不需要认证 */}
-					<Route
-						path="/test-connection"
-						element={
-							(() => {
-								console.log('🔌 [AppRouter] 渲染连接测试页面');
-								return <ConnectionTestPage />;
-							})()
-						}
-					/>
+				{/* 测试连接路由 - 不需要认证 */}
+				<Route
+					path="/test-connection"
+					element={
+						(() => {
+							console.log('🔌 [AppRouter] 渲染连接测试页面');
+							return <ConnectionTestPage />;
+						})()
+					}
+				/>
 
 				<Route
 					path="/login"
@@ -67,6 +72,86 @@ const AppRouter: React.FC = () => {
 							(() => {
 								console.log('🎮 [AppRouter] 渲染游戏主页');
 								return <GameHomePage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/battle"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('⚔️ [AppRouter] 渲染战斗页面');
+								return <BattlePage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/cards"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('🃏 [AppRouter] 渲染卡组页面');
+								return <CardCollectionPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/wish"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('✨ [AppRouter] 渲染祈愿页面');
+								return <WishPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/wish-result"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('🎁 [AppRouter] 渲染抽卡结果页面');
+								return <WishResultPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/battle-rules"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('📖 [AppRouter] 渲染对战规则页面');
+								return <BattleRulesPage />;
 							})()
 						) : (
 							(() => {

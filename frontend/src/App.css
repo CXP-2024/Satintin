@@ -1,5 +1,10 @@
+/* 导入全局过渡动画样式 */
+@import './styles/transitions.css';
+
 .App {
   text-align: center;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .App-logo {
@@ -32,6 +37,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

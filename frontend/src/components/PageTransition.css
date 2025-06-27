@@ -1,0 +1,126 @@
+/* 页面过渡动画样式 */
+.page-transition {
+	opacity: 0;
+	transform: translateY(20px) scale(0.98);
+	transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+	will-change: opacity, transform;
+}
+
+.page-transition.visible {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+/* 为不同类型的页面提供不同的过渡效果 */
+.page-transition.slide-in {
+	transform: translateX(-30px);
+	transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.page-transition.slide-in.visible {
+	transform: translateX(0);
+}
+
+.page-transition.fade-scale {
+	transform: scale(0.95);
+	transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition.fade-scale.visible {
+	transform: scale(1);
+}
+
+.page-transition.bounce-in {
+	transform: translateY(30px) scale(0.9);
+	transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.page-transition.bounce-in.visible {
+	transform: translateY(0) scale(1);
+}
+
+/* 游戏相关页面的特殊过渡 */
+.page-transition.game-page {
+	opacity: 0;
+	transform: translateY(40px) scale(0.95);
+	transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition.game-page.visible {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+/* 卡片页面的翻转效果 */
+.page-transition.card-page {
+	opacity: 0;
+	transform: translateY(-15px) scale(0.95);
+	transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition.card-page.visible {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+/* 战斗页面的动态效果 */
+.page-transition.battle-page {
+	opacity: 0;
+	transform: translateX(-50px) scale(0.9);
+	transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.page-transition.battle-page.visible {
+	opacity: 1;
+	transform: translateX(0) scale(1);
+}
+
+/* 祈愿页面的魔法效果 */
+.page-transition.wish-page {
+	opacity: 0;
+	transform: scale(0.8);
+	filter: blur(3px);
+	transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition.wish-page.visible {
+	opacity: 1;
+	transform: scale(1);
+	filter: blur(0px);
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+	.page-transition {
+		transform: translateY(15px) scale(0.99);
+	}
+
+	.page-transition.game-page {
+		transform: translateY(20px);
+	}
+
+	.page-transition.card-page {
+		transform: scale(0.98);
+	}
+
+	.page-transition.battle-page {
+		transform: translateX(-20px) scale(0.95);
+	}
+
+	.page-transition.wish-page {
+		transform: scale(0.9);
+		filter: blur(2px);
+	}
+}
+
+/* 减少动画的用户偏好设置 */
+@media (prefers-reduced-motion: reduce) {
+	.page-transition {
+		transition: opacity 0.3s ease;
+		transform: none;
+	}
+
+	.page-transition.visible {
+		transform: none;
+	}
+}
