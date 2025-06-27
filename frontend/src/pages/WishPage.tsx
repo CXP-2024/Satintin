@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { usePageTransition } from '../hooks/usePageTransition';
+import PageTransition from '../components/PageTransition';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 
 const WishPage: React.FC = () => {
-	const navigate = useNavigate();
 	const { user } = useAuthStore();
+	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured' | 'weapon'>('featured');
 	const [wishHistory, setWishHistory] = useState<any[]>([]);
 
 	const handleBackToHome = () => {
-		navigate('/game');
+		navigateQuick('/game');
 	};
 
 	const handleSingleWish = () => {
@@ -203,25 +204,27 @@ const WishPage: React.FC = () => {
 	);
 
 	return (
-		<div className="wish-page">
-			<header className="page-header">
-				<button className="back-btn" onClick={handleBackToHome}>
-					← 返回主页
-				</button>
-				<h1>卡牌祈愿</h1>
-				<div className="user-currency-header">
-					<img src={primogemIcon} alt="原石" className="currency-icon" />
-					<span className="currency-amount">{user?.coins}</span>
-				</div>
-			</header>
+		<PageTransition className="wish-page">
+			<div className="wish-page">
+				<header className="page-header">
+					<button className="back-btn" onClick={handleBackToHome}>
+						← 返回主页
+					</button>
+					<h1>卡牌祈愿</h1>
+					<div className="user-currency-header">
+						<img src={primogemIcon} alt="原石" className="currency-icon" />
+						<span className="currency-amount">{user?.coins}</span>
+					</div>
+				</header>
 
-			<main className="wish-main">
-				{renderBannerSelector()}
-				{renderBannerInfo()}
-				{renderWishActions()}
-				{renderRateInfo()}
-			</main>
-		</div>
+				<main className="wish-main">
+					{renderBannerSelector()}
+					{renderBannerInfo()}
+					{renderWishActions()}
+					{renderRateInfo()}
+				</main>
+			</div>
+		</PageTransition>
 	);
 };
 

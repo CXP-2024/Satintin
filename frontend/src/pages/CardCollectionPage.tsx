@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { usePageTransition } from '../hooks/usePageTransition';
+import PageTransition from '../components/PageTransition';
 import './CardCollectionPage.css';
 
 const CardCollectionPage: React.FC = () => {
-	const navigate = useNavigate();
 	const { user } = useAuthStore();
+	const { navigateQuick } = usePageTransition();
 	const [activeTab, setActiveTab] = useState<'deck' | 'collection'>('deck');
 
 	const handleBackToHome = () => {
-		navigate('/game');
+		navigateQuick('/game');
 	};
 
 	const renderDeckContent = () => (
@@ -154,40 +155,42 @@ const CardCollectionPage: React.FC = () => {
 	);
 
 	return (
-		<div className="card-collection-page">
-			<header className="page-header">
-				<button className="back-btn" onClick={handleBackToHome}>
-					← 返回主页
-				</button>
-				<h1>卡组管理</h1>
-				<div className="collection-progress">
-					<span className="progress-label">收集进度</span>
-					<div className="progress-bar">
-						<div className="progress-fill" style={{ width: '37.5%' }}></div>
+		<PageTransition className="card-page">
+			<div className="card-collection-page">
+				<header className="page-header">
+					<button className="back-btn" onClick={handleBackToHome}>
+						← 返回主页
+					</button>
+					<h1>卡组管理</h1>
+					<div className="collection-progress">
+						<span className="progress-label">收集进度</span>
+						<div className="progress-bar">
+							<div className="progress-fill" style={{ width: '37.5%' }}></div>
+						</div>
+						<span className="progress-text">45/120</span>
 					</div>
-					<span className="progress-text">45/120</span>
-				</div>
-			</header>
+				</header>
 
-			<nav className="tab-nav">
-				<button
-					className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
-					onClick={() => setActiveTab('deck')}
-				>
-					🃏 卡组编辑
-				</button>
-				<button
-					className={`tab-btn ${activeTab === 'collection' ? 'active' : ''}`}
-					onClick={() => setActiveTab('collection')}
-				>
-					📚 卡牌收藏
-				</button>
-			</nav>
+				<nav className="tab-nav">
+					<button
+						className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
+						onClick={() => setActiveTab('deck')}
+					>
+						🃏 卡组编辑
+					</button>
+					<button
+						className={`tab-btn ${activeTab === 'collection' ? 'active' : ''}`}
+						onClick={() => setActiveTab('collection')}
+					>
+						📚 卡牌收藏
+					</button>
+				</nav>
 
-			<main className="collection-main">
-				{activeTab === 'deck' ? renderDeckContent() : renderCollectionContent()}
-			</main>
-		</div>
+				<main className="collection-main">
+					{activeTab === 'deck' ? renderDeckContent() : renderCollectionContent()}
+				</main>
+			</div>
+		</PageTransition>
 	);
 };
 

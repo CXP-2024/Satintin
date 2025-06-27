@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { usePageTransition } from '../hooks/usePageTransition';
+import PageTransition from '../components/PageTransition';
 import { RegisterRequest, AuthResponse } from '../types/User';
 import { ApiService } from '../services/ApiService';
 import './RegisterPage.css';
@@ -15,8 +17,8 @@ const RegisterPage: React.FC = () => {
 	const [error, setError] = useState<string>('');
 	const [loading, setLoading] = useState<boolean>(false);
 
-	const navigate = useNavigate();
 	const { setUser, setToken } = useAuthStore();
+	const { navigateWithTransition } = usePageTransition();
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -107,7 +109,7 @@ const RegisterPage: React.FC = () => {
 				setUser(user);
 				setToken(token);
 				console.log('🧭 [注册流程] 跳转到游戏主页...');
-				navigate('/game');
+				navigateWithTransition('/game');
 				console.log('✨ [注册流程] 注册和登录流程完成！');
 			} else {
 				console.log('❌ [注册流程] 注册失败: 无效的用户数据或令牌');
@@ -130,80 +132,82 @@ const RegisterPage: React.FC = () => {
 	};
 
 	return (
-		<div className="register-container">
-			<div className="register-card">
-				<div className="register-header">
-					<h1>阵面对战</h1>
-					<h2>创建账号</h2>
-				</div>
-
-				<form onSubmit={handleSubmit} className="register-form">
-					<div className="form-group">
-						<label htmlFor="username">用户名</label>
-						<input
-							type="text"
-							id="username"
-							name="username"
-							value={formData.username}
-							onChange={handleInputChange}
-							placeholder="请输入用户名（至少3个字符）"
-							disabled={loading}
-						/>
+		<PageTransition className="fade-scale">
+			<div className="register-container">
+				<div className="register-card">
+					<div className="register-header">
+						<h1>阵面对战</h1>
+						<h2>创建账号</h2>
 					</div>
 
-					<div className="form-group">
-						<label htmlFor="email">邮箱</label>
-						<input
-							type="email"
-							id="email"
-							name="email"
-							value={formData.email}
-							onChange={handleInputChange}
-							placeholder="请输入邮箱地址"
-							disabled={loading}
-						/>
+					<form onSubmit={handleSubmit} className="register-form">
+						<div className="form-group">
+							<label htmlFor="username">用户名</label>
+							<input
+								type="text"
+								id="username"
+								name="username"
+								value={formData.username}
+								onChange={handleInputChange}
+								placeholder="请输入用户名（至少3个字符）"
+								disabled={loading}
+							/>
+						</div>
+
+						<div className="form-group">
+							<label htmlFor="email">邮箱</label>
+							<input
+								type="email"
+								id="email"
+								name="email"
+								value={formData.email}
+								onChange={handleInputChange}
+								placeholder="请输入邮箱地址"
+								disabled={loading}
+							/>
+						</div>
+
+						<div className="form-group">
+							<label htmlFor="password">密码</label>
+							<input
+								type="password"
+								id="password"
+								name="password"
+								value={formData.password}
+								onChange={handleInputChange}
+								placeholder="请输入密码（至少6个字符）"
+								disabled={loading}
+							/>
+						</div>
+
+						<div className="form-group">
+							<label htmlFor="confirmPassword">确认密码</label>
+							<input
+								type="password"
+								id="confirmPassword"
+								name="confirmPassword"
+								value={formData.confirmPassword}
+								onChange={handleInputChange}
+								placeholder="请再次输入密码"
+								disabled={loading}
+							/>
+						</div>
+
+						{error && <div className="error-message">{error}</div>}
+
+						<button type="submit" className="register-btn" disabled={loading}>
+							{loading ? '注册中...' : '注册'}
+						</button>
+					</form>
+
+					<div className="register-footer">
+						<p>
+							已有账号？ <Link to="/login">立即登录</Link>
+						</p>
 					</div>
-
-					<div className="form-group">
-						<label htmlFor="password">密码</label>
-						<input
-							type="password"
-							id="password"
-							name="password"
-							value={formData.password}
-							onChange={handleInputChange}
-							placeholder="请输入密码（至少6个字符）"
-							disabled={loading}
-						/>
-					</div>
-
-					<div className="form-group">
-						<label htmlFor="confirmPassword">确认密码</label>
-						<input
-							type="password"
-							id="confirmPassword"
-							name="confirmPassword"
-							value={formData.confirmPassword}
-							onChange={handleInputChange}
-							placeholder="请再次输入密码"
-							disabled={loading}
-						/>
-					</div>
-
-					{error && <div className="error-message">{error}</div>}
-
-					<button type="submit" className="register-btn" disabled={loading}>
-						{loading ? '注册中...' : '注册'}
-					</button>
-				</form>
-
-				<div className="register-footer">
-					<p>
-						已有账号？ <Link to="/login">立即登录</Link>
-					</p>
 				</div>
 			</div>
-		</div>
+		</PageTransition>
 	);
 };
 

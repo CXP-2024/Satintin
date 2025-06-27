@@ -1,0 +1,128 @@
+/* 全局页面过渡动画增强 */
+
+/* 全局根元素优化 */
+html,
+body {
+	scroll-behavior: smooth;
+}
+
+/* React应用根容器 */
+.App {
+	position: relative;
+	overflow-x: hidden;
+}
+
+/* 全局页面切换动画容器 */
+.page-container {
+	min-height: 100vh;
+	position: relative;
+}
+
+/* 页面切换时的视觉效果优化 */
+* {
+	/* 为所有元素启用硬件加速 */
+	will-change: auto;
+}
+
+/* 动画元素硬件加速 */
+.page-transition,
+.page-transition * {
+	transform-style: preserve-3d;
+	backface-visibility: hidden;
+}
+
+/* 路由切换时的全局优化 */
+.router-transition-enter {
+	opacity: 0;
+	transform: translateX(20px);
+}
+
+.router-transition-enter-active {
+	opacity: 1;
+	transform: translateX(0);
+	transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.router-transition-exit {
+	opacity: 1;
+	transform: translateX(0);
+}
+
+.router-transition-exit-active {
+	opacity: 0;
+	transform: translateX(-20px);
+	transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+/* 加载状态的全局样式增强 */
+.global-loading-overlay {
+	/* 确保过渡流畅 */
+	transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 页面内容加载状态 */
+.page-loading {
+	opacity: 0.7;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+	.page-transition {
+		transform: translateY(15px) scale(0.99);
+	}
+
+	.page-transition.visible {
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* 高性能设备的增强动画 */
+@media (prefers-reduced-motion: no-preference) and (min-width: 1200px) {
+	.page-transition.game-page {
+		transform: translateY(50px) rotateX(20deg) scale(0.9);
+		perspective: 1200px;
+		transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	}
+
+	.page-transition.card-page {
+		transform: rotateY(-20deg) scale(0.85);
+		perspective: 1200px;
+		transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.page-transition.battle-page {
+		transform: translateX(-60px) rotateZ(-8deg) scale(0.8);
+		transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+	}
+
+	.page-transition.wish-page {
+		transform: scale(0.7) rotateZ(15deg);
+		filter: blur(5px);
+		transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	}
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+	.page-transition {
+		/* 暗色模式下稍微调整过渡效果 */
+		box-shadow: 0 0 20px rgba(255, 255, 255, 0.05);
+	}
+}
+
+/* 高刷新率屏幕优化 */
+@media (update: fast) {
+	.page-transition {
+		transition-duration: 0.4s;
+	}
+
+	.page-transition.game-page {
+		transition-duration: 0.6s;
+	}
+
+	.page-transition.wish-page {
+		transition-duration: 0.8s;
+	}
+}
