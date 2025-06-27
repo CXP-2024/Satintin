@@ -7,6 +7,7 @@ import GameHomePage from '../pages/GameHomePage';
 import BattlePage from '../pages/BattlePage';
 import CardCollectionPage from '../pages/CardCollectionPage';
 import WishPage from '../pages/WishPage';
+import WishResultPage from '../pages/WishResultPage';
 import ConnectionTestPage from '../pages/ConnectionTestPage';
 import NavMenu from './NavMenu';
 
@@ -118,6 +119,22 @@ const AppRouter: React.FC = () => {
 							(() => {
 								console.log('✨ [AppRouter] 渲染祈愿页面');
 								return <WishPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/wish-result"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('🎁 [AppRouter] 渲染抽卡结果页面');
+								return <WishResultPage />;
 							})()
 						) : (
 							(() => {

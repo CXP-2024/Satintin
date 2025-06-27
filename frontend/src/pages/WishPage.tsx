@@ -4,57 +4,59 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
+import gaiyaImage from '../assets/images/gaiya.png';
 
 const WishPage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
-	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured' | 'weapon'>('featured');
-	const [wishHistory, setWishHistory] = useState<any[]>([]);
+	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured'>('featured');
 
 	const handleBackToHome = () => {
 		navigateQuick('/game');
 	};
 
 	const handleSingleWish = () => {
-		// 模拟单次祈愿
-		console.log('单次祈愿');
+		// 检查用户是否有足够的原石
+		if (!user || user.coins < currentBanner.singleCost) {
+			alert('原石不足！');
+			return;
+		}
+
+		// 跳转到抽卡结果页面
+		navigateQuick(`/wish-result?type=single&banner=${selectedBanner}`);
 	};
 
 	const handleTenWish = () => {
-		// 模拟十连祈愿
-		console.log('十连祈愿');
+		// 检查用户是否有足够的原石
+		if (!user || user.coins < currentBanner.tenCost) {
+			alert('原石不足！');
+			return;
+		}
+
+		// 跳转到抽卡结果页面
+		navigateQuick(`/wish-result?type=ten&banner=${selectedBanner}`);
 	};
 
 	const banners = {
 		featured: {
-			name: '限定角色祈愿',
-			subtitle: '「神秘法师」概率UP',
-			image: '🧙‍♂️',
-			description: '限定时间内，5星角色「神秘法师」获得概率大幅提升！',
+			name: '限定卡牌祈愿',
+			subtitle: '「盖亚——！！」概率UP',
+			image: gaiyaImage,
+			description: '限定时间内，5星卡牌「盖亚——！！」获得概率大幅提升！',
 			guaranteed: '90次内必出5星',
 			singleCost: 160,
 			tenCost: 1600,
 			endTime: '2024-12-31 23:59',
 		},
 		standard: {
-			name: '常驻祈愿',
+			name: '常驻卡牌祈愿',
 			subtitle: '永久开放',
 			image: '⭐',
-			description: '常驻祈愿池，包含所有基础角色和武器',
+			description: '常驻祈愿池，包含所有基础卡牌',
 			guaranteed: '90次内必出5星',
 			singleCost: 160,
 			tenCost: 1600,
 			endTime: '永久开放',
-		},
-		weapon: {
-			name: '武器祈愿',
-			subtitle: '「毁灭之刃」概率UP',
-			image: '⚔️',
-			description: '限定时间内，5星武器「毁灭之刃」获得概率大幅提升！',
-			guaranteed: '80次内必出5星',
-			singleCost: 160,
-			tenCost: 1600,
-			endTime: '2024-12-25 23:59',
 		},
 	};
 
@@ -71,7 +73,7 @@ const WishPage: React.FC = () => {
 					<div className="tab-icon">🌟</div>
 					<div className="tab-text">
 						<div className="tab-title">限定祈愿</div>
-						<div className="tab-subtitle">角色UP</div>
+						<div className="tab-subtitle">卡牌UP</div>
 					</div>
 				</button>
 				<button
@@ -84,119 +86,82 @@ const WishPage: React.FC = () => {
 						<div className="tab-subtitle">永久开放</div>
 					</div>
 				</button>
-				<button
-					className={`banner-tab ${selectedBanner === 'weapon' ? 'active' : ''}`}
-					onClick={() => setSelectedBanner('weapon')}
-				>
-					<div className="tab-icon">⚔️</div>
-					<div className="tab-text">
-						<div className="tab-title">武器祈愿</div>
-						<div className="tab-subtitle">武器UP</div>
-					</div>
-				</button>
 			</div>
 		</div>
 	);
 
-	const renderBannerInfo = () => (
-		<div className="banner-info">
-			<div className="banner-display">
-				<div className="banner-image">
-					<div className="featured-character">{currentBanner.image}</div>
-					<div className="banner-effects">
-						<div className="effect-particle"></div>
-						<div className="effect-particle"></div>
-						<div className="effect-particle"></div>
-					</div>
-				</div>
-				<div className="banner-details">
-					<h2 className="banner-name">{currentBanner.name}</h2>
-					<p className="banner-subtitle">{currentBanner.subtitle}</p>
-					<p className="banner-description">{currentBanner.description}</p>
-					<div className="banner-stats">
-						<div className="stat-item">
-							<span className="stat-label">保底机制</span>
-							<span className="stat-value">{currentBanner.guaranteed}</span>
-						</div>
-						<div className="stat-item">
-							<span className="stat-label">活动时间</span>
-							<span className="stat-value">{currentBanner.endTime}</span>
-						</div>
-					</div>
-				</div>
+	// 左侧角色展示
+	const renderCharacterShowcase = () => (
+		<div className="character-showcase">
+			<div className="featured-character-large">
+				{typeof currentBanner.image === 'string' && (currentBanner.image.startsWith('/') || currentBanner.image.includes('.')) ? (
+					<img src={currentBanner.image} alt={currentBanner.subtitle} />
+				) : (
+					<div style={{ fontSize: '300px', textAlign: 'center' }}>{currentBanner.image}</div>
+				)}
 			</div>
+			<h2 className="character-name">{currentBanner.subtitle}</h2>
+			<p className="character-subtitle">限定UP</p>
 		</div>
 	);
 
-	const renderWishActions = () => (
-		<div className="wish-actions">
-			<div className="user-currency">
-				<img src={primogemIcon} alt="原石" className="currency-icon" />
-				<span className="currency-amount">{user?.coins}</span>
+	// 右侧信息面板
+	const renderInfoPanel = () => (
+		<div className="wish-info-panel">
+			{/* Banner详细信息 */}
+			<div className="banner-details-card">
+				<h3 className="banner-title">{currentBanner.name}</h3>
+				<p className="banner-description">{currentBanner.description}</p>
+				<div className="banner-stats">
+					<div className="stat-item">
+						<span className="stat-label">保底机制</span>
+						<span className="stat-value">{currentBanner.guaranteed}</span>
+					</div>
+					<div className="stat-item">
+						<span className="stat-label">活动时间</span>
+						<span className="stat-value">{currentBanner.endTime}</span>
+					</div>
+				</div>
 			</div>
 
-			<div className="wish-buttons">
-				<div className="wish-option">
-					<button className="wish-btn single" onClick={handleSingleWish}>
-						<div className="btn-content">
-							<div className="btn-icon">✨</div>
-							<div className="btn-text">
+			{/* 祈愿操作区域 */}
+			<div className="wish-actions-card">
+				<div className="user-currency">
+					<img src={primogemIcon} alt="原石" className="currency-icon" />
+					<span className="currency-amount">{user?.coins}</span>
+				</div>
+
+				<div className="wish-buttons">
+					<div className="wish-option">
+						<button className="wish-btn single" onClick={handleSingleWish}>
+							<div className="btn-content">
+								<div className="btn-icon">✨</div>
 								<div className="btn-title">单次祈愿</div>
 								<div className="btn-cost">
 									<img src={primogemIcon} alt="原石" className="cost-icon" />
 									{currentBanner.singleCost}
 								</div>
 							</div>
-						</div>
-					</button>
-				</div>
+						</button>
+					</div>
 
-				<div className="wish-option">
-					<button className="wish-btn ten" onClick={handleTenWish}>
-						<div className="btn-content">
-							<div className="btn-icon">💫</div>
-							<div className="btn-text">
+					<div className="wish-option">
+						<button className="wish-btn ten" onClick={handleTenWish}>
+							<div className="btn-content">
+								<div className="btn-icon">💫</div>
 								<div className="btn-title">十连祈愿</div>
 								<div className="btn-cost">
 									<img src={primogemIcon} alt="原石" className="cost-icon" />
 									{currentBanner.tenCost}
 								</div>
 							</div>
-						</div>
-					</button>
+						</button>
+					</div>
 				</div>
-			</div>
 
-			<div className="wish-info">
-				<div className="pity-counter">
-					<span className="pity-label">距离保底还需:</span>
-					<span className="pity-count">73次</span>
-				</div>
-				<button className="history-btn">
-					📜 祈愿记录
-				</button>
-			</div>
-		</div>
-	);
-
-	const renderRateInfo = () => (
-		<div className="rate-info">
-			<h3>获得概率</h3>
-			<div className="rate-table">
-				<div className="rate-row">
-					<span className="rarity legendary">5星</span>
-					<span className="rate">0.6%</span>
-					<span className="description">传说级角色/武器</span>
-				</div>
-				<div className="rate-row">
-					<span className="rarity epic">4星</span>
-					<span className="rate">5.1%</span>
-					<span className="description">稀有角色/武器</span>
-				</div>
-				<div className="rate-row">
-					<span className="rarity rare">3星</span>
-					<span className="rate">94.3%</span>
-					<span className="description">普通武器</span>
+				<div className="pity-info">
+					<div className="pity-label">距离保底还需:</div>
+					<div className="pity-count">73次</div>
 				</div>
 			</div>
 		</div>
@@ -218,9 +183,10 @@ const WishPage: React.FC = () => {
 
 				<main className="wish-main">
 					{renderBannerSelector()}
-					{renderBannerInfo()}
-					{renderWishActions()}
-					{renderRateInfo()}
+					<div className="wish-content">
+						{renderCharacterShowcase()}
+						{renderInfoPanel()}
+					</div>
 				</main>
 			</div>
 		</PageTransition>

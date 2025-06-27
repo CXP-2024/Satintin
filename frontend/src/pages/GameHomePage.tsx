@@ -38,7 +38,7 @@ const GameHomePage: React.FC = () => {
 				{/* 顶部状态栏 */}
 				<header className="game-header">
 					<div className="header-left">
-						<h1>阵面对战</h1>
+						<h1>Satintin</h1>
 					</div>
 					<div className="header-right">
 						<div className="user-info">

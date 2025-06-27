@@ -157,8 +157,7 @@ const LoginPage: React.FC = () => {
 			<div className="login-container">
 				<div className="login-card">
 					<div className="login-header">
-						<h1>阵面对战</h1>
-						<h2>登录游戏</h2>
+						<h1>Satin</h1>
 					</div>
 
 					<form onSubmit={handleSubmit} className="login-form">
