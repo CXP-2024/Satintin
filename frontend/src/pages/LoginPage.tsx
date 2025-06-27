@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useGlobalLoading } from '../store/globalLoadingStore';
 import { LoginRequest } from '../types/User';
 import { ApiService } from '../services/ApiService';
-import loginVideo from '../assets/videos/yslogin.mp4';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -12,10 +12,30 @@ const LoginPage: React.FC = () => {
 		password: '',
 	});
 	const [error, setError] = useState<string>('');
-	const [loading, setLoading] = useState<boolean>(false);
 
 	const navigate = useNavigate();
 	const { setUser, setToken } = useAuthStore();
+	const { showLoading, startExiting, hideLoading } = useGlobalLoading();
+
+	// 带全局淡出动画的导航函数
+	const navigateWithTransition = async (path: string) => {
+		console.log('🎬 [页面过渡] 开始页面切换动画');
+
+		// 开始淡出动画
+		startExiting();
+
+		// 延迟导航，让淡出动画进行一小段时间
+		setTimeout(() => {
+			console.log('🧭 [页面过渡] 执行页面导航');
+			navigate(path);
+
+			// 再延迟一点隐藏加载层，让新页面有时间开始渲染
+			setTimeout(() => {
+				console.log('🎬 [页面过渡] 完成页面切换，隐藏加载层');
+				hideLoading();
+			}, 500); // 给新页面500ms时间开始渲染
+		}, 500); // 淡出动画进行500ms后开始导航
+	};
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -27,7 +47,7 @@ const LoginPage: React.FC = () => {
 	};	// 测试用户登录函数
 	const handleTestLogin = async () => {
 		console.log('🧪 [测试登录] 开始测试用户登录');
-		setLoading(true);
+		showLoading('正在进行测试登录');
 		setError('');
 
 		try {
@@ -54,12 +74,13 @@ const LoginPage: React.FC = () => {
 			setToken(testToken);
 
 			console.log('🧭 [测试登录] 测试登录成功，跳转到游戏主页...');
-			navigate('/game');
+
+			// 开始页面切换动画
+			await navigateWithTransition('/game');
 		} catch (err: any) {
 			console.error('💥 [测试登录] 发生错误:', err);
 			setError('测试登录失败');
-		} finally {
-			setLoading(false);
+			hideLoading();
 		}
 	};
 
@@ -76,7 +97,7 @@ const LoginPage: React.FC = () => {
 		}
 
 		console.log('✅ [登录流程] 表单验证通过');
-		setLoading(true);
+		showLoading('正在验证登录信息');
 		setError('');
 
 		// 记录开始时间，确保视频能播放完整
@@ -93,6 +114,7 @@ const LoginPage: React.FC = () => {
 			if (!response.success) {
 				console.log('❌ [登录流程] 登录失败:', response.message);
 				setError(response.message || '登录失败，请检查用户名和密码');
+				hideLoading();
 				return;
 			}
 
@@ -129,124 +151,92 @@ const LoginPage: React.FC = () => {
 				}
 
 				console.log('🧭 [登录流程] 登录成功，跳转到游戏主页...');
-				navigate('/game');
+
+				// 开始页面切换动画
+				await navigateWithTransition('/game');
 			} else {
 				console.log('❌ [登录流程] 登录失败: 无效的用户数据或令牌');
 				setError('登录失败，服务器返回的数据无效');
+				hideLoading();
 			}
-		} catch (err: any) {
-			console.error('💥 [登录流程] 发生错误:', err);
-			// 尝试从错误对象中提取详细的错误信息
-			if (err.message) {
-				setError(err.message);
-			} else if (typeof err === 'string') {
-				setError(err);
-			} else {
-				setError('网络错误，请重试');
-			}
-		} finally {
-			console.log('🏁 [登录流程] 清理加载状态');
-			setLoading(false);
+		} catch (error: any) {
+			console.error('💥 [登录流程] 发生错误:', error);
+			const errorMessage = error.response?.data?.message || error.message || '登录失败，请稍后重试';
+			console.log('📋 [登录流程] 设置错误信息:', errorMessage);
+			setError(errorMessage);
+			hideLoading();
 		}
 	};
 
+	const { isVisible } = useGlobalLoading();
+
 	return (
-		<>
-			{/* 加载动画覆盖层 */}
-			{loading && (
-				<div className="loading-overlay">
-					<div className="loading-video-container">
-						<video
-							className="loading-video"
-							autoPlay
-							loop
-							muted
-							playsInline
-						>
-							<source src={loginVideo} type="video/mp4" />
-							您的浏览器不支持视频播放。
-						</video>
-
-						{/* 底部文字 */}
-						<div className="loading-text">
-							<h3>正在登录中...</h3>
-							<div className="loading-dots">
-								<span></span>
-								<span></span>
-								<span></span>
-							</div>
-						</div>
-					</div>
+		<div className="login-container">
+			<div className="login-card">
+				<div className="login-header">
+					<h1>阵面对战</h1>
+					<h2>登录游戏</h2>
 				</div>
-			)}
 
-			<div className="login-container">
-				<div className="login-card">
-					<div className="login-header">
-						<h1>阵面对战</h1>
-						<h2>登录游戏</h2>
+				<form onSubmit={handleSubmit} className="login-form">
+					<div className="form-group">
+						<label htmlFor="username">用户名</label>
+						<input
+							type="text"
+							id="username"
+							name="username"
+							value={formData.username}
+							onChange={handleInputChange}
+							placeholder="请输入用户名"
+							disabled={isVisible}
+						/>
 					</div>
 
-					<form onSubmit={handleSubmit} className="login-form">
-						<div className="form-group">
-							<label htmlFor="username">用户名</label>
-							<input
-								type="text"
-								id="username"
-								name="username"
-								value={formData.username}
-								onChange={handleInputChange}
-								placeholder="请输入用户名"
-								disabled={loading}
-							/>
+					<div className="form-group">
+						<label htmlFor="password">密码</label>
+						<input
+							type="password"
+							id="password"
+							name="password"
+							value={formData.password}
+							onChange={handleInputChange}
+							placeholder="请输入密码"
+							disabled={isVisible}
+						/>
+					</div>
+
+					{error && <div className="error-message">{error}</div>}
+
+					<button type="submit" className="login-btn" disabled={isVisible}>
+						{isVisible ? '登录中...' : '登录'}
+					</button>
+
+					<div className="test-login-section">
+						<div className="test-login-divider">
+							<span>或</span>
 						</div>
-
-						<div className="form-group">
-							<label htmlFor="password">密码</label>
-							<input
-								type="password"
-								id="password"
-								name="password"
-								value={formData.password}
-								onChange={handleInputChange}
-								placeholder="请输入密码"
-								disabled={loading}
-							/>
-						</div>
-
-						{error && <div className="error-message">{error}</div>}
-
-						<button type="submit" className="login-btn" disabled={loading}>
-							{loading ? '登录中...' : '登录'}
+						<button
+							type="button"
+							className="test-login-btn"
+							onClick={handleTestLogin}
+							disabled={isVisible}
+							title="跳过后端验证，直接使用测试用户登录"
+						>
+							{isVisible ? '测试登录中...' : '🧪 测试用户登录'}
 						</button>
-
-						<div className="test-login-section">
-							<div className="test-login-divider">
-								<span>或</span>
-							</div>
-							<button
-								type="button"
-								className="test-login-btn"
-								onClick={handleTestLogin}
-								disabled={loading}
-								title="跳过后端验证，直接使用测试用户登录"
-							>
-								{loading ? '测试登录中...' : '🧪 测试用户登录'}
-							</button>
-							<p className="test-login-hint">
-								💡 开发测试专用，无需输入用户名密码
-							</p>
-						</div>
-					</form>
-
-					<div className="login-footer">
-						<p>
-							还没有账号？ <Link to="/register">立即注册</Link>
+						<p className="test-login-hint">
+							💡 开发测试专用，无需输入用户名密码
 						</p>
 					</div>
+				</form>
+
+				<div className="login-footer">
+					<p>
+						还没有账号？ <Link to="/register">立即注册</Link>
+					</p>
 				</div>
 			</div>
-		</>
+		</div>
 	);
 };
 

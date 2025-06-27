@@ -109,3 +109,58 @@ video.addEventListener('loadedmetadata', () => {
 ```
 
 现在您的登录动画将完美匹配5秒的视频内容，确保用户能够欣赏到完整的视觉效果！
+
+## 淡出动画优化
+
+### 问题发现
+之前只有淡入动画（0.3秒），没有淡出动画，导致加载覆盖层突然消失，用户体验不够流畅。
+
+### 解决方案
+
+#### 1. 添加状态管理
+```tsx
+const [isExiting, setIsExiting] = useState<boolean>(false);
+```
+
+#### 2. 创建淡出函数
+```tsx
+const finishLoadingWithFadeOut = async () => {
+  setIsExiting(true);
+  // 等待淡出动画完成 (1秒)
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  setLoading(false);
+  setIsExiting(false);
+};
+```
+
+#### 3. CSS 淡出动画
+```css
+.loading-overlay {
+  animation: fadeIn 1s ease-in;
+}
+
+.loading-overlay.exiting {
+  animation: fadeOut 1s ease-out;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+```
+
+#### 4. 更新登录逻辑
+- 测试登录和真实登录都使用 `finishLoadingWithFadeOut()`
+- 成功和失败情况都有优雅的淡出效果
+
+### 优化效果
+- **流畅过渡**: 加载动画优雅地淡出，而不是突然消失
+- **一致体验**: 淡入和淡出都是 1秒，保持一致的节奏
+- **视觉连贯**: 用户感受到完整的动画周期
+- **更慢节奏**: 1秒的动画时间提供更舒缓的视觉体验
+
+### 时间轴优化
+```
+开始登录 → 淡入(1s) → 视频播放(5s) → 淡出(1s) → 页面跳转
+总时间: 7秒 (比原来增加1.4秒的动画时间)
+```

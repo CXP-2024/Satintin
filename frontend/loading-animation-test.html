@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>登录加载动画测试</title>
+	<style>
+		body {
+			margin: 0;
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+		}
+
+		.test-container {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			padding: 20px;
+		}
+
+		.test-card {
+			background: white;
+			border-radius: 20px;
+			padding: 40px;
+			text-align: center;
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+		}
+
+		.test-btn {
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			color: white;
+			border: none;
+			padding: 15px 30px;
+			border-radius: 10px;
+			font-size: 1.1rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: all 0.3s ease;
+			margin: 10px;
+		}
+
+		.test-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+		}
+
+		/* 模拟加载动画样式 */
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			background: rgba(0, 0, 0, 1);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			animation: fadeIn 1s ease-in;
+		}
+
+		.loading-overlay.exiting {
+			animation: fadeOut 1s ease-out;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+			}
+
+			to {
+				opacity: 1;
+			}
+		}
+
+		@keyframes fadeOut {
+			from {
+				opacity: 1;
+			}
+
+			to {
+				opacity: 0;
+			}
+		}
+
+		.loading-video-container {
+			position: relative;
+			width: 100vw;
+			height: 100vh;
+			overflow: hidden;
+		}
+
+		.loading-video {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.loading-text {
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.3), transparent);
+			padding: 50px 20px 40px;
+			text-align: center;
+			color: white;
+			z-index: 10;
+		}
+
+		.loading-text h3 {
+			margin: 0 0 20px 0;
+			font-size: 2rem;
+			font-weight: 700;
+			text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+			letter-spacing: 1px;
+		}
+
+		.loading-dots {
+			display: flex;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		.loading-dots span {
+			width: 12px;
+			height: 12px;
+			background: #667eea;
+			border-radius: 50%;
+			animation: loadingPulse 1.4s infinite ease-in-out both;
+		}
+
+		.loading-dots span:nth-child(1) {
+			animation-delay: -0.32s;
+		}
+
+		.loading-dots span:nth-child(2) {
+			animation-delay: -0.16s;
+		}
+
+		.loading-dots span:nth-child(3) {
+			animation-delay: 0s;
+		}
+
+		@keyframes loadingPulse {
+
+			0%,
+			80%,
+			100% {
+				transform: scale(0.8);
+				opacity: 0.5;
+			}
+
+			40% {
+				transform: scale(1.2);
+				opacity: 1;
+			}
+		}
+
+		.hidden {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="test-container">
+		<div class="test-card">
+			<h1>登录加载动画测试</h1>
+			<p>点击下面的按钮来测试加载动画效果</p>
+			<button class="test-btn" onclick="showLoading()">开始登录测试</button>
+			<button class="test-btn" onclick="hideLoading()">停止加载</button>
+		</div>
+	</div> <!-- 加载动画覆盖层 -->
+	<div id="loadingOverlay" class="loading-overlay hidden">
+		<div class="loading-video-container">
+			<video class="loading-video" autoplay loop muted>
+				<source src="src/assets/videos/yslogin.mp4" type="video/mp4">
+				您的浏览器不支持视频播放。
+			</video>
+
+			<!-- 底部文字 -->
+			<div class="loading-text">
+				<h3>正在登录中...</h3>
+				<div class="loading-dots">
+					<span></span>
+					<span></span>
+					<span></span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		function showLoading() {
+			const overlay = document.getElementById('loadingOverlay');
+			overlay.classList.remove('hidden');
+			overlay.classList.remove('exiting');
+
+			// 模拟5秒后自动隐藏，匹配视频长度
+			setTimeout(() => {
+				hideLoading();
+			}, 5000);
+		}
+
+		function hideLoading() {
+			const overlay = document.getElementById('loadingOverlay');
+			overlay.classList.add('exiting');
+
+			// 等待淡出动画完成后隐藏 (1秒)
+			setTimeout(() => {
+				overlay.classList.add('hidden');
+				overlay.classList.remove('exiting');
+			}, 1000);
+		}
+	</script>
+</body>
+
+</html>
