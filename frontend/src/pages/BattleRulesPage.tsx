@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './BattleRulesPage.css';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const BattleRulesPage: React.FC = () => {
 	const { navigateWithTransition } = usePageTransition();
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	const handleGoBack = () => {
+		console.log('🔙 [BattleRulesPage] 返回游戏大厅');
+		playClickSound();
 		navigateWithTransition('/game', '返回游戏大厅...');
 	};
 
