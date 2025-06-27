@@ -1,35 +1,64 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const GameHomePage: React.FC = () => {
 	const { user, logout } = useAuthStore();
 	const { navigateWithTransition } = usePageTransition();
+
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
 
 	console.log('🎮 [GameHomePage] 游戏主页组件已挂载');
 	console.log('👤 [GameHomePage] 当前用户信息:', user);
 
 	const handleLogout = () => {
 		console.log('🚪 [GameHomePage] 用户点击退出登录');
+		playClickSound();
 		logout();
 	};
 
 	const handleNavigateToBattle = () => {
 		console.log('⚔️ [GameHomePage] 导航到战斗页面');
+		playClickSound();
 		navigateWithTransition('/battle', '正在进入战斗...');
 	};
 
 	const handleNavigateToCards = () => {
 		console.log('🃏 [GameHomePage] 导航到卡组页面');
+		playClickSound();
 		navigateWithTransition('/cards', '正在加载卡组...');
 	};
 
 	const handleNavigateToWish = () => {
 		console.log('🛒 [GameHomePage] 导航到祈愿页面');
+		playClickSound();
 		navigateWithTransition('/wish', '正在准备祈愿...');
+	};
+
+	const handleNavigateToRules = () => {
+		console.log('📖 [GameHomePage] 导航到对战规则页面');
+		playClickSound();
+		navigateWithTransition('/battle-rules', '正在加载对战规则...');
+	};
+
+	const handleClaimReward = () => {
+		console.log('🎁 [GameHomePage] 领取每日奖励');
+		playClickSound();
+		// 这里可以添加领取奖励的逻辑
+		alert('已领取200原石！');
 	};
 
 	return (
@@ -38,7 +67,11 @@ const GameHomePage: React.FC = () => {
 				{/* 顶部状态栏 */}
 				<header className="game-header">
 					<div className="header-left">
-						<h1>阵面对战</h1>
+						<h1>Satintin</h1>
+						<button className="rules-btn" onClick={handleNavigateToRules}>
+							<span className="rules-icon">📖</span>
+							对战规则
+						</button>
 					</div>
 					<div className="header-right">
 						<div className="user-info">
@@ -151,7 +184,7 @@ const GameHomePage: React.FC = () => {
 							<div className="info-card">
 								<h4>🎁 每日奖励</h4>
 								<p>登录第3天，获得200原石</p>
-								<button className="claim-btn">领取</button>
+								<button className="claim-btn" onClick={handleClaimReward}>领取</button>
 							</div>
 							<div className="info-card">
 								<h4>📈 排行榜</h4>

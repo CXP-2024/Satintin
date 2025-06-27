@@ -190,14 +190,14 @@ const RegisterPage: React.FC = () => {
         }
     };
 
-    return (
-        <PageTransition className="fade-scale">
-            <div className="register-container">
-                <div className="register-card">
-                    <div className="register-header">
-                        <h1>阵面对战</h1>
-                        <h2>创建账号</h2>
-                    </div>
+	return (
+		<PageTransition className="fade-scale">
+			<div className="register-container">
+				<div className="register-card">
+					<div className="register-header">
+						<h1>SaTT</h1>
+						<h2>创建账号</h2>
+					</div>
 
                     <form onSubmit={handleSubmit} className="register-form">
                         <div className="form-group">

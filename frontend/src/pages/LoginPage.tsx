@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
@@ -6,6 +6,8 @@ import { useGlobalLoading } from '../hooks/useGlobalLoading';
 import PageTransition from '../components/PageTransition';
 import { apiService } from '../services/ApiService';
 import './LoginPage.css';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const LoginPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -14,23 +16,33 @@ const LoginPage: React.FC = () => {
     });
     const [error, setError] = useState<string>('');
 
-    const { setUser, setToken } = useAuthStore();
-    const { navigateWithTransition } = usePageTransition();
-    const { showLoading, hideLoading, isVisible } = useGlobalLoading();
+	const { setUser, setToken } = useAuthStore();
+	const { showLoading, hideLoading } = useGlobalLoading();
+	const { navigateWithTransition } = usePageTransition();
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
 
-    // 测试用户登录函数（保留作为开发辅助功能）
-    const handleTestLogin = async () => {
-        console.log('🧪 [测试登录] 开始测试用户登录');
-        showLoading('正在进行测试登录', 'login');
-        setError('');
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
+	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const { name, value } = e.target;
+		setFormData(prev => ({
+			...prev,
+			[name]: value
+		}));
+		setError('');
+	};	// 测试用户登录函数
+	const handleTestLogin = async () => {
+		playClickSound();
+		console.log('🧪 [测试登录] 开始测试用户登录');
+		showLoading('正在进行测试登录', 'login');
+		setError('');
 
         try {
             // 模拟网络延迟
@@ -71,6 +83,7 @@ const LoginPage: React.FC = () => {
     // 主要登录逻辑 - 只使用真实API
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+		playClickSound();
 
         console.log('🚀 [登录流程] 开始真实API登录流程');
         console.log('📝 [登录流程] 表单数据:', { username: formData.username, password: '***' });
@@ -166,6 +179,15 @@ const LoginPage: React.FC = () => {
         }
     };
 
+	const { isVisible } = useGlobalLoading();
+
+	return (
+		<PageTransition className="fade-scale">
+			<div className="login-container">
+				<div className="login-card">
+					<div className="login-header">
+						<h1>Satin</h1>
+					</div>
     return (
         <PageTransition className="fade-scale">
             <div className="login-container">

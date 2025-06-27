@@ -42,52 +42,50 @@
 /* 游戏相关页面的特殊过渡 */
 .page-transition.game-page {
 	opacity: 0;
-	transform: translateY(40px) rotateX(15deg);
-	perspective: 1000px;
+	transform: translateY(40px) scale(0.95);
 	transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-transition.game-page.visible {
 	opacity: 1;
-	transform: translateY(0) rotateX(0deg);
+	transform: translateY(0) scale(1);
 }
 
 /* 卡片页面的翻转效果 */
 .page-transition.card-page {
 	opacity: 0;
-	transform: rotateY(-15deg) scale(0.95);
-	perspective: 1000px;
+	transform: translateY(-15px) scale(0.95);
 	transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-transition.card-page.visible {
 	opacity: 1;
-	transform: rotateY(0deg) scale(1);
+	transform: translateY(0) scale(1);
 }
 
 /* 战斗页面的动态效果 */
 .page-transition.battle-page {
 	opacity: 0;
-	transform: translateX(-50px) rotateZ(-5deg) scale(0.9);
+	transform: translateX(-50px) scale(0.9);
 	transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .page-transition.battle-page.visible {
 	opacity: 1;
-	transform: translateX(0) rotateZ(0deg) scale(1);
+	transform: translateX(0) scale(1);
 }
 
 /* 祈愿页面的魔法效果 */
 .page-transition.wish-page {
 	opacity: 0;
-	transform: scale(0.8) rotateZ(10deg);
+	transform: scale(0.8);
 	filter: blur(3px);
 	transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .page-transition.wish-page.visible {
 	opacity: 1;
-	transform: scale(1) rotateZ(0deg);
+	transform: scale(1);
 	filter: blur(0px);
 }
 
