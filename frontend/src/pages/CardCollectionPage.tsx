@@ -5,7 +5,8 @@ import PageTransition from '../components/PageTransition';
 import './CardCollectionPage.css';
 
 const CardCollectionPage: React.FC = () => {
-	const { user } = useAuthStore();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 	const [activeTab, setActiveTab] = useState<'deck' | 'collection'>('deck');
 

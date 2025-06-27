@@ -45,7 +45,7 @@ const GameHomePage: React.FC = () => {
 							<span className="username">{user?.username}</span>
 							<span className="coins">
 								<img src={primogemIcon} alt="原石" className="primogem-icon small" />
-								{user?.coins}
+								{user?.gems}
 							</span>
 						</div>
 						<button className="logout-btn" onClick={handleLogout}>
@@ -80,7 +80,7 @@ const GameHomePage: React.FC = () => {
 								</div>
 								<div className="stat-content">
 									<span className="stat-label">原石</span>
-									<span className="stat-value">{user?.coins}</span>
+									<span className="stat-value">{user?.gems}</span>
 								</div>
 							</div>
 							<div className="stat-card cards">

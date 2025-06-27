@@ -74,17 +74,22 @@ export class ConnectionTestService {
   static async testAllServices(): Promise<Record<string, { url: string; result: { success: boolean; message: string; responseTime?: number } }>> {
     const results: Record<string, { url: string; result: { success: boolean; message: string; responseTime?: number } }> = {};
 
-    // 测试主API
-    results.main = {
-      url: config.apiBaseUrl,
-      result: await this.testConnection(config.apiBaseUrl)
-    };
+    // 移除主API测试，因为我们使用微服务架构
+    // 直接测试各个微服务
 
     // 测试用户服务
-    results.user = {
-      url: config.userServiceUrl,
-      result: await this.testConnection(config.userServiceUrl)
-    };
+    if (config.userServiceUrl) {
+      results.user = {
+        url: config.userServiceUrl,
+        result: await this.testConnection(config.userServiceUrl)
+      };
+    } else {
+      // 如果 userServiceUrl 为空（使用代理），测试代理端点
+      results.user = {
+        url: 'Proxy to UserService',
+        result: await this.testConnectionToProxy()
+      };
+    }
 
     // 测试卡牌服务
     results.card = {
@@ -111,6 +116,60 @@ export class ConnectionTestService {
     };
 
     return results;
+  }
+
+  /**
+   * 测试代理连接（当 userServiceUrl 为空时）
+   */
+  private static async testConnectionToProxy(): Promise<{ success: boolean; message: string; responseTime?: number }> {
+    const startTime = performance.now();
+
+    try {
+      // 尝试通过代理访问用户服务
+      const testEndpoints = [
+        '/api/health',           // 代理的健康检查
+        '/api/',                 // 代理的根端点
+        '/health'                // 直接健康检查
+      ];
+
+      for (const endpoint of testEndpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(3000)
+          });
+
+          const responseTime = performance.now() - startTime;
+
+          if (response.ok || response.status < 500) {
+            return {
+              success: true,
+              message: `代理连接成功 via ${endpoint} (${Math.round(responseTime)}ms)`,
+              responseTime
+            };
+          }
+        } catch (error) {
+          // 继续尝试下一个端点
+          continue;
+        }
+      }
+
+      // 所有端点都失败
+      const responseTime = performance.now() - startTime;
+      return {
+        success: false,
+        message: `所有代理端点都不可达 (${Math.round(responseTime)}ms)`,
+        responseTime
+      };
+    } catch (error) {
+      const responseTime = performance.now() - startTime;
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : '代理连接测试失败',
+        responseTime
+      };
+    }
   }
 
   /**
@@ -141,7 +200,6 @@ export class ConnectionTestService {
    */
   private static getServiceName(key: string): string {
     const names: Record<string, string> = {
-      main: '主API服务',
       user: '用户服务',
       card: '卡牌服务',
       admin: '管理服务',

@@ -9,6 +9,7 @@ const WishPage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured' | 'weapon'>('featured');
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const [wishHistory, setWishHistory] = useState<any[]>([]);
 
 	const handleBackToHome = () => {
@@ -132,7 +133,7 @@ const WishPage: React.FC = () => {
 		<div className="wish-actions">
 			<div className="user-currency">
 				<img src={primogemIcon} alt="原石" className="currency-icon" />
-				<span className="currency-amount">{user?.coins}</span>
+				<span className="currency-amount">{user?.gems}</span>
 			</div>
 
 			<div className="wish-buttons">
@@ -212,7 +213,7 @@ const WishPage: React.FC = () => {
 					<h1>卡牌祈愿</h1>
 					<div className="user-currency-header">
 						<img src={primogemIcon} alt="原石" className="currency-icon" />
-						<span className="currency-amount">{user?.coins}</span>
+						<span className="currency-amount">{user?.gems}</span>
 					</div>
 				</header>
 
