@@ -13,27 +13,27 @@
 <body>
   <h1>UserService API Testing</h1>
 
+  <!-- Login -->
   <h2>Login</h2>
-  <input id="username" placeholder="Username" /> <br />
-  <input id="password" type="password" placeholder="Password" /> <br />
+  <input id="username" placeholder="Username"/><br/>
+  <input id="password" type="password" placeholder="Password"/><br/>
   <button id="loginBtn">Login</button>
-  <h3>Response:</h3>
-  <pre id="loginOutput"></pre>
+  <h3>Response:</h3><pre id="loginOutput"></pre>
 
+  <!-- Get User Info -->
   <h2>Fetch User Info</h2>
-  <input id="token" placeholder="Auth Token" /> <br />
-  <button id="infoBtn">Get User Info</button>
-  <h3>Response:</h3>
-  <pre id="infoOutput"></pre>
+  <input id="token" placeholder="Auth Token"/><br/>
+  <button id="infoBtn">Get Info</button>
+  <h3>Response:</h3><pre id="infoOutput"></pre>
 
+  <!-- Register -->
   <h2>Register</h2>
-  <input id="regUsername" placeholder="Username" /><br/>
-  <input id="regPassword" type="password" placeholder="Password" /><br/>
-  <input id="regEmail" type="email" placeholder="Email" /><br/>
-  <input id="regPhone" placeholder="Phone Number" /><br/>
+  <input id="regUsername" placeholder="Username"/><br/>
+  <input id="regPassword" type="password" placeholder="Password"/><br/>
+  <input id="regEmail"    type="email"    placeholder="Email"/><br/>
+  <input id="regPhone"    placeholder="Phone Number"/><br/>
   <button id="registerBtn">Register</button>
-  <h3>Response:</h3>
-  <pre id="registerOutput"></pre>
+  <h3>Response:</h3><pre id="registerOutput"></pre>
 
   <script>
     const apiBase = 'http://localhost:10010';
@@ -43,13 +43,19 @@
       const pass = document.getElementById('password').value;
       const out  = document.getElementById('loginOutput');
 
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
       try {
         const resp = await fetch(`${apiBase}/api/LoginUserMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            username:    user,
-            passwordHash: pass     // ← use passwordHash here
+            username:     user,
+            passwordHash: pass,
+            planContext
           })
         });
         const data = await resp.json();
@@ -62,12 +68,20 @@
 
     async function getUserInfo() {
       const userID = document.getElementById('token').value;
-      const out = document.getElementById('infoOutput');
+      const out    = document.getElementById('infoOutput');
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
       try {
         const resp = await fetch(`${apiBase}/api/GetUserInfoMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userID: userID })
+          body: JSON.stringify({
+            userID,
+            planContext
+          })
         });
         const data = await resp.json();
         out.textContent = JSON.stringify(data, null, 2);
@@ -77,27 +91,45 @@
     }
 
     async function doRegister() {
-      const out = document.getElementById('registerOutput');
+      const out         = document.getElementById('registerOutput');
       const username    = document.getElementById('regUsername').value;
-      const passwordHash= document.getElementById('regPassword').value;
+      const password    = document.getElementById('regPassword').value;
       const email       = document.getElementById('regEmail').value;
       const phoneNumber = document.getElementById('regPhone').value;
       out.textContent = '';
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+      const payload = {
+        username,
+        passwordHash: password,
+        email,
+        phoneNumber,
+        planContext
+      };
+
       try {
         const resp = await fetch(`${apiBase}/api/RegisterUserMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, passwordHash, email, phoneNumber })
+          body: JSON.stringify(payload)
         });
+        if (!resp.ok) {
+          const err = await resp.text();
+          out.textContent = `Error ${resp.status}: ${err}`;
+          return;
+        }
         const data = await resp.json();
         out.textContent = JSON.stringify(data, null, 2);
       } catch (e) {
-        out.textContent = 'Error: ' + e.message;
+        out.textContent = `Fetch error: ${e.message}`;
       }
     }
 
-    document.getElementById('loginBtn').onclick = doLogin;
-    document.getElementById('infoBtn').onclick = getUserInfo;
+    document.getElementById('loginBtn').onclick    = doLogin;
+    document.getElementById('infoBtn').onclick     = getUserInfo;
     document.getElementById('registerBtn').onclick = doRegister;
   </script>
 </body>
