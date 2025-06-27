@@ -1,0 +1,598 @@
+/* 祈愿页面样式 */
+.wish-page {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+	color: white;
+	position: relative;
+	overflow-x: hidden;
+}
+
+.wish-page::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+	pointer-events: none;
+}
+
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 30px;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	position: relative;
+	z-index: 10;
+}
+
+.back-btn {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	border-radius: 30px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+}
+
+.back-btn:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: translateX(-3px);
+}
+
+.page-header h1 {
+	margin: 0;
+	font-size: 2.2rem;
+	font-weight: bold;
+	background: linear-gradient(45deg, #ffd700, #ffeb3b);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.user-currency-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(255, 255, 255, 0.15);
+	padding: 10px 20px;
+	border-radius: 25px;
+	backdrop-filter: blur(10px);
+}
+
+.currency-icon {
+	width: 24px;
+	height: 24px;
+}
+
+.currency-amount {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #ffd700;
+}
+
+.wish-main {
+	padding: 30px;
+	max-width: 1400px;
+	margin: 0 auto;
+	position: relative;
+	z-index: 5;
+}
+
+/* 祈愿池选择器 */
+.banner-selector {
+	margin-bottom: 40px;
+}
+
+.banner-selector h3 {
+	text-align: center;
+	font-size: 1.5rem;
+	margin-bottom: 25px;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.banner-tabs {
+	display: flex;
+	justify-content: center;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.banner-tab {
+	background: rgba(255, 255, 255, 0.1);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	padding: 20px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	min-width: 180px;
+	backdrop-filter: blur(15px);
+}
+
+.banner-tab.active {
+	background: linear-gradient(45deg, rgba(255, 215, 0, 0.3), rgba(255, 193, 7, 0.2));
+	border-color: #ffd700;
+	transform: translateY(-5px);
+	box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+}
+
+.banner-tab:hover:not(.active) {
+	background: rgba(255, 255, 255, 0.15);
+	transform: translateY(-2px);
+}
+
+.tab-icon {
+	font-size: 2rem;
+}
+
+.tab-text {
+	text-align: left;
+}
+
+.tab-title {
+	font-weight: bold;
+	font-size: 1.1rem;
+	margin-bottom: 5px;
+}
+
+.tab-subtitle {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+/* 祈愿池信息 */
+.banner-info {
+	margin-bottom: 40px;
+}
+
+.banner-display {
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-radius: 25px;
+	padding: 40px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	position: relative;
+	overflow: hidden;
+}
+
+.banner-image {
+	text-align: center;
+	margin-bottom: 30px;
+	position: relative;
+	height: 200px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.featured-character {
+	font-size: 8rem;
+	z-index: 2;
+	position: relative;
+	animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+	0%,
+	100% {
+		transform: translateY(0px);
+	}
+
+	50% {
+		transform: translateY(-10px);
+	}
+}
+
+.banner-effects {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
+}
+
+.effect-particle {
+	position: absolute;
+	width: 6px;
+	height: 6px;
+	background: radial-gradient(circle, #ffd700 0%, transparent 70%);
+	border-radius: 50%;
+	animation: sparkle 2s ease-in-out infinite;
+}
+
+.effect-particle:nth-child(1) {
+	top: 20%;
+	left: 20%;
+	animation-delay: 0s;
+}
+
+.effect-particle:nth-child(2) {
+	top: 60%;
+	right: 25%;
+	animation-delay: 0.7s;
+}
+
+.effect-particle:nth-child(3) {
+	bottom: 30%;
+	left: 70%;
+	animation-delay: 1.4s;
+}
+
+@keyframes sparkle {
+
+	0%,
+	100% {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+
+	50% {
+		opacity: 1;
+		transform: scale(1.5);
+	}
+}
+
+.banner-details {
+	text-align: center;
+}
+
+.banner-name {
+	font-size: 2.5rem;
+	font-weight: bold;
+	margin-bottom: 10px;
+	background: linear-gradient(45deg, #ffd700, #ff8f00);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.banner-subtitle {
+	font-size: 1.3rem;
+	color: #4facfe;
+	margin-bottom: 20px;
+	font-weight: 500;
+}
+
+.banner-description {
+	font-size: 1.1rem;
+	color: rgba(255, 255, 255, 0.8);
+	margin-bottom: 30px;
+	line-height: 1.6;
+}
+
+.banner-stats {
+	display: flex;
+	justify-content: center;
+	gap: 50px;
+	flex-wrap: wrap;
+}
+
+.stat-item {
+	text-align: center;
+}
+
+.stat-label {
+	display: block;
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+	margin-bottom: 5px;
+}
+
+.stat-value {
+	display: block;
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #4ecdc4;
+}
+
+/* 祈愿操作 */
+.wish-actions {
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-radius: 25px;
+	padding: 40px;
+	margin-bottom: 40px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-currency {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 30px;
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+.wish-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 30px;
+	margin-bottom: 30px;
+	flex-wrap: wrap;
+}
+
+.wish-option {
+	position: relative;
+}
+
+.wish-option.recommended::before {
+	content: '推荐';
+	position: absolute;
+	top: -10px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+	color: white;
+	padding: 5px 15px;
+	border-radius: 15px;
+	font-size: 0.8rem;
+	font-weight: bold;
+	z-index: 10;
+}
+
+.wish-btn {
+	background: rgba(255, 255, 255, 0.15);
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	border-radius: 20px;
+	padding: 25px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	min-width: 200px;
+	backdrop-filter: blur(15px);
+}
+
+.wish-btn.single {
+	border-color: #4facfe;
+}
+
+.wish-btn.ten {
+	border-color: #ffd700;
+	background: linear-gradient(45deg, rgba(255, 215, 0, 0.2), rgba(255, 193, 7, 0.1));
+}
+
+.wish-btn:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.wish-btn.single:hover {
+	border-color: #4facfe;
+	box-shadow: 0 15px 30px rgba(79, 172, 254, 0.4);
+}
+
+.wish-btn.ten:hover {
+	border-color: #ffd700;
+	box-shadow: 0 15px 30px rgba(255, 215, 0, 0.4);
+}
+
+.btn-content {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	color: white;
+}
+
+.btn-icon {
+	font-size: 2rem;
+}
+
+.btn-text {
+	text-align: left;
+}
+
+.btn-title {
+	font-size: 1.2rem;
+	font-weight: bold;
+	margin-bottom: 8px;
+}
+
+.btn-cost {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 1rem;
+	color: #ffd700;
+	font-weight: bold;
+}
+
+.cost-icon {
+	width: 20px;
+	height: 20px;
+}
+
+.wish-info {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 40px;
+	flex-wrap: wrap;
+}
+
+.pity-counter {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+
+.pity-label {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.pity-count {
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: #ff6b6b;
+}
+
+.history-btn {
+	background: rgba(255, 255, 255, 0.1);
+	color: white;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	padding: 12px 25px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-size: 1rem;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+}
+
+.history-btn:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: translateY(-2px);
+}
+
+/* 概率信息 */
+.rate-info {
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-radius: 25px;
+	padding: 30px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.rate-info h3 {
+	text-align: center;
+	font-size: 1.5rem;
+	margin-bottom: 25px;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.rate-table {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.rate-row {
+	display: grid;
+	grid-template-columns: 100px 80px 1fr;
+	align-items: center;
+	gap: 20px;
+	padding: 15px;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 15px;
+	transition: all 0.3s ease;
+}
+
+.rate-row:hover {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.rarity {
+	padding: 8px 15px;
+	border-radius: 20px;
+	font-weight: bold;
+	text-align: center;
+	font-size: 0.9rem;
+}
+
+.rarity.legendary {
+	background: linear-gradient(45deg, #ffd700, #ff8f00);
+	color: #333;
+}
+
+.rarity.epic {
+	background: linear-gradient(45deg, #9b59b6, #8e44ad);
+	color: white;
+}
+
+.rarity.rare {
+	background: linear-gradient(45deg, #3498db, #2980b9);
+	color: white;
+}
+
+.rate {
+	font-weight: bold;
+	font-size: 1.1rem;
+	color: #4ecdc4;
+	text-align: center;
+}
+
+.description {
+	color: rgba(255, 255, 255, 0.8);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+	.page-header {
+		padding: 15px 20px;
+		flex-direction: column;
+		gap: 15px;
+	}
+
+	.wish-main {
+		padding: 20px 15px;
+	}
+
+	.banner-tabs {
+		flex-direction: column;
+		align-items: center;
+		gap: 15px;
+	}
+
+	.banner-tab {
+		min-width: 250px;
+	}
+
+	.banner-display {
+		padding: 25px 20px;
+	}
+
+	.banner-name {
+		font-size: 2rem;
+	}
+
+	.banner-stats {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.wish-actions {
+		padding: 25px 20px;
+	}
+
+	.wish-buttons {
+		flex-direction: column;
+		align-items: center;
+		gap: 20px;
+	}
+
+	.wish-btn {
+		min-width: 250px;
+	}
+
+	.wish-info {
+		flex-direction: column;
+		gap: 20px;
+	}
+
+	.rate-row {
+		grid-template-columns: 1fr;
+		gap: 10px;
+		text-align: center;
+	}
+
+	.featured-character {
+		font-size: 6rem;
+	}
+}
