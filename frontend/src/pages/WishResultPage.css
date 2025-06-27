@@ -52,6 +52,8 @@
 	align-items: center;
 	justify-content: center;
 	position: relative;
+	padding-bottom: 100px;
+	box-sizing: border-box;
 }
 
 .result-background {
@@ -82,7 +84,7 @@
 	transform-origin: 0 0;
 	animation: sparkleAnimation 2s ease-in-out infinite;
 	animation-delay: var(--delay);
-	transform: rotate(var(--angle)) translateX(200px);
+	transform: translateX(200px);
 }
 
 @keyframes sparkleAnimation {
@@ -90,12 +92,12 @@
 	0%,
 	100% {
 		opacity: 0;
-		transform: rotate(var(--angle)) translateX(150px) scale(0);
+		transform: translateX(150px) scale(0);
 	}
 
 	50% {
 		opacity: 1;
-		transform: rotate(var(--angle)) translateX(250px) scale(1);
+		transform: translateX(250px) scale(1);
 	}
 }
 
@@ -313,9 +315,14 @@
 /* 操作按钮 */
 .result-actions {
 	position: absolute;
-	bottom: -100px;
+	bottom: -180px;
 	left: 50%;
 	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+	align-items: center;
+	z-index: 10;
 }
 
 .continue-btn {
@@ -329,12 +336,256 @@
 	cursor: pointer;
 	transition: all 0.3s ease;
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+	white-space: nowrap;
 }
 
 .continue-btn:hover {
 	transform: translateY(-2px);
 	box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
 	background: linear-gradient(45deg, #764ba2, #667eea);
+}
+
+/* 跳过按钮样式 */
+.skip-to-all-btn {
+	background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+	color: white;
+	border: none;
+	padding: 12px 30px;
+	border-radius: 25px;
+	font-size: 16px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+	white-space: nowrap;
+}
+
+.skip-to-all-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+	background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+}
+
+.skip-to-all-btn:active {
+	transform: translateY(0);
+}
+
+/* 进度指示器 */
+.progress-indicator {
+	position: absolute;
+	top: 30px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	z-index: 10;
+}
+
+.progress-text {
+	color: white;
+	font-size: 18px;
+	font-weight: bold;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar {
+	width: 200px;
+	height: 6px;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 3px;
+	overflow: hidden;
+}
+
+.progress-fill {
+	height: 100%;
+	background: linear-gradient(90deg, #FFD700, #FFA500);
+	border-radius: 3px;
+	transition: width 0.3s ease;
+}
+
+/* 十连总览容器 */
+.all-cards-container {
+	width: 100%;
+	height: 100vh;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+	overflow-y: auto;
+	padding: 20px;
+	box-sizing: border-box;
+}
+
+.all-cards-background {
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-radius: 25px;
+	padding: 30px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	max-width: 900px;
+	width: 100%;
+	animation: fadeInScale 0.6s ease-out;
+}
+
+.all-cards-header {
+	text-align: center;
+	margin-bottom: 30px;
+}
+
+.all-cards-header h2 {
+	color: white;
+	font-size: 32px;
+	margin-bottom: 15px;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.summary-stats {
+	display: flex;
+	justify-content: center;
+	gap: 30px;
+	flex-wrap: wrap;
+}
+
+.stat {
+	color: white;
+	font-size: 16px;
+	font-weight: bold;
+	padding: 8px 16px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 卡牌网格 */
+.all-cards-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+	gap: 15px;
+	margin-bottom: 30px;
+}
+
+.mini-card {
+	position: relative;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	padding: 15px;
+	text-align: center;
+	border: 2px solid transparent;
+	transition: all 0.3s ease;
+	animation: cardSlideIn 0.5s ease-out;
+	animation-fill-mode: both;
+}
+
+@keyframes cardSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.mini-card:hover {
+	transform: translateY(-5px);
+	background: rgba(255, 255, 255, 0.2);
+}
+
+.mini-card.legendary {
+	border-color: #FFD700;
+	box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.mini-card.epic {
+	border-color: #9932CC;
+	box-shadow: 0 0 15px rgba(153, 50, 204, 0.3);
+}
+
+.mini-card.rare {
+	border-color: #4169E1;
+	box-shadow: 0 0 10px rgba(65, 105, 225, 0.3);
+}
+
+.mini-card-glow {
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	border-radius: 15px;
+	opacity: 0.3;
+	z-index: -1;
+	filter: blur(10px);
+}
+
+.mini-card-image {
+	margin-bottom: 10px;
+}
+
+.mini-card-img {
+	width: 60px;
+	height: 60px;
+	object-fit: contain;
+	border-radius: 8px;
+}
+
+.mini-card-emoji {
+	font-size: 60px;
+	display: block;
+}
+
+.mini-card-info {
+	color: white;
+}
+
+.mini-card-stars {
+	margin-bottom: 5px;
+}
+
+.mini-star {
+	font-size: 12px;
+	margin: 0 1px;
+}
+
+.mini-card-name {
+	font-size: 14px;
+	margin: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* 操作按钮 */
+.all-cards-actions {
+	text-align: center;
+}
+
+.back-to-wish-btn {
+	background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	border: none;
+	padding: 15px 40px;
+	border-radius: 25px;
+	font-size: 18px;
+	font-weight: bold;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.back-to-wish-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.back-to-wish-btn:active {
+	transform: translateY(0);
 }
 
 .continue-btn:active {

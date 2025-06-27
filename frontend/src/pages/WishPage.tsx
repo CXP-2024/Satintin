@@ -1,21 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import gaiyaImage from '../assets/images/gaiya.png';
+import jiegeImage from '../assets/images/jiege.jpg';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const WishPage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured'>('featured');
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	const handleBackToHome = () => {
+		playClickSound();
 		navigateQuick('/game');
 	};
 
 	const handleSingleWish = () => {
+		// 播放点击音效
+		playClickSound();
+
 		// 检查用户是否有足够的原石
 		if (!user || user.coins < currentBanner.singleCost) {
 			alert('原石不足！');
@@ -27,6 +44,9 @@ const WishPage: React.FC = () => {
 	};
 
 	const handleTenWish = () => {
+		// 播放点击音效
+		playClickSound();
+
 		// 检查用户是否有足够的原石
 		if (!user || user.coins < currentBanner.tenCost) {
 			alert('原石不足！');
@@ -50,8 +70,8 @@ const WishPage: React.FC = () => {
 		},
 		standard: {
 			name: '常驻卡牌祈愿',
-			subtitle: '永久开放',
-			image: '⭐',
+			subtitle: '杰哥 概率UP',
+			image: jiegeImage,
 			description: '常驻祈愿池，包含所有基础卡牌',
 			guaranteed: '90次内必出5星',
 			singleCost: 160,
@@ -68,7 +88,10 @@ const WishPage: React.FC = () => {
 			<div className="banner-tabs">
 				<button
 					className={`banner-tab ${selectedBanner === 'featured' ? 'active' : ''}`}
-					onClick={() => setSelectedBanner('featured')}
+					onClick={() => {
+						playClickSound();
+						setSelectedBanner('featured');
+					}}
 				>
 					<div className="tab-icon">🌟</div>
 					<div className="tab-text">
@@ -78,7 +101,10 @@ const WishPage: React.FC = () => {
 				</button>
 				<button
 					className={`banner-tab ${selectedBanner === 'standard' ? 'active' : ''}`}
-					onClick={() => setSelectedBanner('standard')}
+					onClick={() => {
+						playClickSound();
+						setSelectedBanner('standard');
+					}}
 				>
 					<div className="tab-icon">⭐</div>
 					<div className="tab-text">
@@ -101,7 +127,7 @@ const WishPage: React.FC = () => {
 				)}
 			</div>
 			<h2 className="character-name">{currentBanner.subtitle}</h2>
-			<p className="character-subtitle">限定UP</p>
+			<p className="character-subtitle">{selectedBanner === 'featured' ? '限定UP' : '常驻角色'}</p>
 		</div>
 	);
 
@@ -126,10 +152,6 @@ const WishPage: React.FC = () => {
 
 			{/* 祈愿操作区域 */}
 			<div className="wish-actions-card">
-				<div className="user-currency">
-					<img src={primogemIcon} alt="原石" className="currency-icon" />
-					<span className="currency-amount">{user?.coins}</span>
-				</div>
 
 				<div className="wish-buttons">
 					<div className="wish-option">
@@ -168,7 +190,7 @@ const WishPage: React.FC = () => {
 	);
 
 	return (
-		<PageTransition className="wish-page">
+		<PageTransition className="card-page">
 			<div className="wish-page">
 				<header className="page-header">
 					<button className="back-btn" onClick={handleBackToHome}>

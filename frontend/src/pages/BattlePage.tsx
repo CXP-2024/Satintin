@@ -1,19 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './BattlePage.css';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const BattlePage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	const handleBackToHome = () => {
+		playClickSound();
 		navigateQuick('/game');
 	};
 
 	return (
-		<PageTransition className="battle-page">
+		<PageTransition className="card-page">
 			<div className="battle-page">
 				<header className="page-header">
 					<button className="back-btn" onClick={handleBackToHome}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useGlobalLoading } from '../store/globalLoadingStore';
@@ -7,6 +7,8 @@ import PageTransition from '../components/PageTransition';
 import { LoginRequest } from '../types/User';
 import { ApiService } from '../services/ApiService';
 import './LoginPage.css';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const LoginPage: React.FC = () => {
 	const [formData, setFormData] = useState<LoginRequest>({
@@ -19,6 +21,16 @@ const LoginPage: React.FC = () => {
 	const { showLoading, hideLoading } = useGlobalLoading();
 	const { navigateWithTransition } = usePageTransition();
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
 		setFormData(prev => ({
@@ -28,6 +40,7 @@ const LoginPage: React.FC = () => {
 		setError('');
 	};	// 测试用户登录函数
 	const handleTestLogin = async () => {
+		playClickSound();
 		console.log('🧪 [测试登录] 开始测试用户登录');
 		showLoading('正在进行测试登录', 'login');
 		setError('');
@@ -68,6 +81,7 @@ const LoginPage: React.FC = () => {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		playClickSound();
 
 		console.log('🚀 [登录流程] 开始登录流程');
 		console.log('📝 [登录流程] 表单数据:', formData);

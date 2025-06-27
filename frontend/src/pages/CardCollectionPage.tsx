@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './CardCollectionPage.css';
+import clickSound from '../assets/sound/yingxiao.mp3';
+import { SoundUtils } from '../utils/soundUtils';
 
 const CardCollectionPage: React.FC = () => {
 	const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 	const [activeTab, setActiveTab] = useState<'deck' | 'collection'>('deck');
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	const handleBackToHome = () => {
+		playClickSound();
 		navigateQuick('/game');
 	};
 
@@ -174,13 +187,19 @@ const CardCollectionPage: React.FC = () => {
 				<nav className="tab-nav">
 					<button
 						className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
-						onClick={() => setActiveTab('deck')}
+						onClick={() => {
+							playClickSound();
+							setActiveTab('deck');
+						}}
 					>
 						🃏 卡组编辑
 					</button>
 					<button
 						className={`tab-btn ${activeTab === 'collection' ? 'active' : ''}`}
-						onClick={() => setActiveTab('collection')}
+						onClick={() => {
+							playClickSound();
+							setActiveTab('collection');
+						}}
 					>
 						📚 卡牌收藏
 					</button>
