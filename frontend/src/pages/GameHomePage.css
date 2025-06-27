@@ -14,7 +14,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: 
+	background:
 		radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
 		radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
 		radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
@@ -80,8 +80,8 @@
 }
 
 .primogem-icon {
-	width: 24px;
-	height: 24px;
+	width: 70px;
+	height: 80px;
 }
 
 .logout-btn {
@@ -141,8 +141,15 @@
 }
 
 @keyframes gradientShift {
-	0%, 100% { background-position: 0% 50%; }
-	50% { background-position: 100% 50%; }
+
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+
+	50% {
+		background-position: 100% 50%;
+	}
 }
 
 .welcome-title {

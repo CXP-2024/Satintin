@@ -151,8 +151,7 @@ const WishPage: React.FC = () => {
 					</button>
 				</div>
 
-				<div className="wish-option recommended">
-					<div className="recommendation-tag">推荐</div>
+				<div className="wish-option">
 					<button className="wish-btn ten" onClick={handleTenWish}>
 						<div className="btn-content">
 							<div className="btn-icon">💫</div>
