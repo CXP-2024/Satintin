@@ -1,8 +1,5 @@
 import React from 'react'
 import { create } from 'zustand'
-import { Dialog } from '@mui/material'
-import { wrapStore } from '../Components/DialogStack'
-import { Alert } from 'antd'
 
 export type AlertType = 'error' | 'warning' | 'info' | 'success'
 
@@ -26,17 +23,10 @@ const alertStore = create(() => ({
 }))
 
 export const useAlertOpenState = () => alertStore(s => s.openState)
-export const initAlertStore = () => {
-    alertStore.setState({ openState: false, infoStack: [] })
-}
-
-const { closeDialog, openDialog } = wrapStore(alertStore)
 
 export function closeAlert() {
     const stack = alertStore.getState().infoStack
     alertStore.setState({ infoStack: stack.slice(0, stack.length > 0 ? stack.length - 1 : 0) })
-    closeDialog()
-    // TODO closeDialog方法有问题，导致没法正常关闭dialog，可能需要修改dialogStack的逻辑
     alertStore.setState({ openState: false })
 }
 
@@ -45,56 +35,51 @@ export function AlertGadget() {
 
     const info = infoStack.length > 0 ? infoStack[infoStack.length - 1].info : ''
     const alertType = infoStack.length > 0 ? infoStack[infoStack.length - 1].type : 'warning'
-    /** 可以自定义message */
     const message = infoStack.length > 0 ? infoStack[infoStack.length - 1].message : ''
-    const onClose = infoStack.length > 0 ? infoStack[infoStack.length - 1].onClose : () => { }
 
-    const handleClose = () => {
-        onClose()
-        closeAlert()
-    }
-    // infoStack没有内容就不显示，否则会有一个空的dialog，关闭的时候有两个弹窗，影响体验
-    if (infoStack.length > 0) {
+    if (infoStack.length > 0 && openState) {
         return (
-            <Dialog
-                open={openState}
-                maxWidth="xl"
-                onKeyDown={e => {
-                    e.stopPropagation()
-                    if (e.key === 'q' || e.key === 'Escape') {
-                        e.preventDefault()
-                        handleClose()
-                    }
-                }}
+            <div
                 style={{
-                    position: 'absolute',
-                    left: infoStack.length.toString() + '%',
-                    top: infoStack.length.toString() + '%',
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'white',
+                    padding: '20px',
+                    border: '1px solid #ccc',
+                    borderRadius: '8px',
+                    zIndex: 9999,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                 }}
             >
-                <Alert
-                    message={message ? message : AlertTypeTranslate.get(alertType)}
-                    description={<pre style={{ whiteSpace: 'pre-wrap' }}>{info.toString()}</pre>}
-                    type={alertType}
-                    style={{ minWidth: '40rem' }}
-                    closable
-                    showIcon
-                    afterClose={handleClose}
-                    onClose={handleClose}
-                />
-            </Dialog>
+                <div style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+                    {message || AlertTypeTranslate.get(alertType)}
+                </div>
+                <div style={{ marginBottom: '15px' }}>{info}</div>
+                <button
+                    onClick={closeAlert}
+                    style={{
+                        padding: '8px 16px',
+                        background: '#1976d2',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    确定
+                </button>
+            </div>
         )
-    } else {
-        return <div></div>
     }
+    return null
 }
 
-/**
- * @param info 提示信息
- * @param type alert类型
- * @param message 额外的提示信息
- * @author 李啟隆
- */
+const openDialog = () => {
+    alertStore.setState({ openState: true })
+}
+
 export const materialAlert = (
     info: string,
     type: AlertType = 'info',
@@ -109,18 +94,6 @@ export const materialAlertSuccess = (info: string, message: string = '', onClose
     openDialog()
     alertStore.setState({
         infoStack: alertStore.getState().infoStack.concat({ info, type: 'success', message, onClose }),
-    })
-}
-
-export const materialAlertInfo = (info: string, message: string = '', onClose: () => void = () => { }) => {
-    openDialog()
-    alertStore.setState({ infoStack: alertStore.getState().infoStack.concat({ info, type: 'info', message, onClose }) })
-}
-
-export const materialAlertWarning = (info: string, message: string = '', onClose: () => void = () => { }) => {
-    openDialog()
-    alertStore.setState({
-        infoStack: alertStore.getState().infoStack.concat({ info, type: 'warning', message, onClose }),
     })
 }
 

@@ -1,10 +1,10 @@
-import { closeAlert, materialAlert, materialAlertError } from '@/plugins/CommonUtils/Gadgets/AlertGadget'
-import { closeBackdropGadget } from '@/plugins/CommonUtils/Gadgets/BackdropGadget'
-import { getNextTestMessage } from '@/plugins/CommonUtils/Send/MockTest'
-import { sendMessage } from '@/plugins/CommonUtils/Send/SendMessage'
-import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from '@/plugins/CommonUtils/Store/CommonSendStore'
-import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from '@/plugins/CommonUtils/Store/UserInfoStore'
-import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from '@/plugins/CommonUtils/Send/API'
+import { closeAlert, materialAlert, materialAlertError } from '../Gadgets/AlertGadget'
+import { closeBackdropGadget } from '../Gadgets/BackdropGadget'
+import { getNextTestMessage } from './MockTest'
+import { sendMessage } from './SendMessage_New'
+import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from '../Store/CommonSendStore'
+import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from '../Store/UserInfoStore'
+import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from './API'
 
 /**
  * -1 白名单： 处理 patientToken失效，不要退掉当前的医生的账号，
@@ -44,14 +44,14 @@ export async function commonSend(
             setUserToken('')
             setUserInfo(new UserInfo())
             setAutoRedirectTimer(null)
-        }, 3000)
+        }, 3000) as unknown as number
         setAutoRedirectTimer(timer)
     }
 
     const checkIsOnRedirecting = () => getAutoRedirectTimerSnap()
     const res = mock
         ? getNextTestMessage(infoMessage.getURL())
-        : await sendMessage(infoMessage, timeout, isEncrypt).catch(e => {
+        : await sendMessage(infoMessage, timeout, isEncrypt).catch((e: any) => {
             materialAlertError(e)
             // return stringToResponse('')
         })
