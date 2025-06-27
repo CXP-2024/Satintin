@@ -127,7 +127,7 @@ const WishPage: React.FC = () => {
 				)}
 			</div>
 			<h2 className="character-name">{currentBanner.subtitle}</h2>
-			<p className="character-subtitle">{selectedBanner === 'featured' ? '限定UP' : '常驻角色'}</p>
+			<p className="character-subtitle">{selectedBanner === 'featured' ? '限定UP' : '常驻卡牌'}</p>
 		</div>
 	);
 
