@@ -17,7 +17,7 @@ import scala.concurrent.duration.*
 object Server extends IOApp:
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
-  given Slf4jFactory[IO] = Slf4jFactory.create[IO]  
+  given Slf4jFactory[IO] = Slf4jFactory.create[IO]
 
   def httpApp: HttpApp[IO] = service.orNotFound
 

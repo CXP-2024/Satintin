@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UserService API Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { margin: 5px 0; padding: 8px; width: 300px; }
+    pre { background: #f4f4f4; padding: 10px; }
+    .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; }
+    .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>UserService API Testing</h1>
+
+  <!-- Login -->
+  <h2>Login</h2>
+  <input id="username" placeholder="Username" value="zzz"/><br/>
+  <input id="password" type="password" placeholder="Password" value="zhengyang815"/><br/>
+  <button id="loginBtn">Login</button>
+  <h3>Response:</h3><pre id="loginOutput"></pre>
+
+  <!-- Get User Info -->
+  <h2>Fetch User Info</h2>
+  <input id="userID" placeholder="User ID (from login)"/><br/>
+  <button id="infoBtn">Get Info</button>
+  <h3>Response:</h3><pre id="infoOutput"></pre>
+
+  <!-- Register -->
+  <h2>Register</h2>
+  <input id="regUsername" placeholder="Username"/><br/>
+  <input id="regPassword" type="password" placeholder="Password"/><br/>
+  <input id="regEmail" type="email" placeholder="Email"/><br/>
+  <input id="regPhone" placeholder="Phone Number"/><br/>
+  <button id="registerBtn">Register</button>
+  <h3>Response:</h3><pre id="registerOutput"></pre>
+
+  <!-- Additional Operations -->
+  <h2>User Operations</h2>
+  <input id="opUserToken" placeholder="User Token (userID)"/><br/>
+  <input id="actionType" placeholder="Action Type" value="LOGIN"/><br/>
+  <input id="actionDetail" placeholder="Action Detail" value="User logged in via web"/><br/>
+  <button id="logOpBtn">Log Operation</button>
+  <button id="logoutBtn">Logout</button>
+  <h3>Response:</h3><pre id="operationOutput"></pre>
+
+  <script>
+    const apiBase = 'http://localhost:10010';
+
+    async function doLogin() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      const out = document.getElementById('loginOutput');
+
+      if (!user || !pass) {
+        out.textContent = 'Please enter username and password';
+        out.className = 'error';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/LoginUserMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: user,
+            passwordHash: pass, // Send as plain text, your backend handles hashing
+            planContext
+          })
+        });
+        
+        const responseText = await resp.text();
+        console.log('Login response:', responseText);
+        
+        if (!resp.ok) {
+          out.textContent = `Error ${resp.status}: ${responseText}`;
+          out.className = 'error';
+          return;
+        }
+
+        // Parse the response
+        let loginResult;
+        try {
+          loginResult = JSON.parse(responseText);
+        } catch {
+          loginResult = responseText;
+        }
+
+        out.textContent = JSON.stringify(loginResult, null, 2);
+        
+        if (loginResult === true || loginResult === "true") {
+          out.className = 'success';
+          // For subsequent operations, use the username as userToken
+          // or set userID field if available
+          document.getElementById('userID').value = user; // Use username as userID for now
+          document.getElementById('opUserToken').value = user;
+          out.textContent += '\n\n✅ Login successful! You can now use other operations.';
+        } else {
+          out.className = 'error';
+          out.textContent += '\n\n❌ Login failed - check credentials';
+        }
+        
+      } catch (e) {
+        out.textContent = 'Network Error: ' + e.message;
+        out.className = 'error';
+      }
+    }
+
+    async function getUserInfo() {
+      const userID = document.getElementById('userID').value;
+      const out = document.getElementById('infoOutput');
+      
+      if (!userID) {
+        out.textContent = 'Please login first or enter userID';
+        out.className = 'error';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/GetUserInfoMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userID, // Using userID as token
+            userID: userID,
+            planContext
+          })
+        });
+        
+        const responseText = await resp.text();
+        
+        if (!resp.ok) {
+          out.textContent = `Error ${resp.status}: ${responseText}`;
+          out.className = 'error';
+          return;
+        }
+
+        try {
+          const data = JSON.parse(responseText);
+          out.textContent = JSON.stringify(data, null, 2);
+          out.className = 'success';
+        } catch {
+          out.textContent = responseText;
+          out.className = 'success';
+        }
+        
+      } catch (e) {
+        out.textContent = 'Network Error: ' + e.message;
+        out.className = 'error';
+      }
+    }
+
+    async function doRegister() {
+      const out = document.getElementById('registerOutput');
+      const username = document.getElementById('regUsername').value;
+      const password = document.getElementById('regPassword').value;
+      const email = document.getElementById('regEmail').value;
+      const phoneNumber = document.getElementById('regPhone').value;
+      
+      if (!username || !password || !email || !phoneNumber) {
+        out.textContent = 'Please fill all fields';
+        out.className = 'error';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      const payload = {
+        username,
+        passwordHash: password,
+        email,
+        phoneNumber,
+        planContext
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/RegisterUserMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        const responseText = await resp.text();
+        
+        if (!resp.ok) {
+          out.textContent = `Error ${resp.status}: ${responseText}`;
+          out.className = 'error';
+          return;
+        }
+
+        try {
+          const data = JSON.parse(responseText);
+          out.textContent = JSON.stringify(data, null, 2);
+          out.className = 'success';
+        } catch {
+          out.textContent = responseText;
+          out.className = 'success';
+        }
+        
+      } catch (e) {
+        out.textContent = `Network Error: ${e.message}`;
+        out.className = 'error';
+      }
+    }
+
+    async function logUserOperation() {
+      const userToken = document.getElementById('opUserToken').value;
+      const actionType = document.getElementById('actionType').value;
+      const actionDetail = document.getElementById('actionDetail').value;
+      const out = document.getElementById('operationOutput');
+
+      if (!userToken || !actionType || !actionDetail) {
+        out.textContent = 'Please fill all operation fields';
+        out.className = 'error';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/LogUserOperationMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken,
+            actionType,
+            actionDetail,
+            planContext
+          })
+        });
+        
+        const responseText = await resp.text();
+        
+        if (!resp.ok) {
+          out.textContent = `Error ${resp.status}: ${responseText}`;
+          out.className = 'error';
+          return;
+        }
+
+        try {
+          const data = JSON.parse(responseText);
+          out.textContent = JSON.stringify(data, null, 2);
+          out.className = 'success';
+        } catch {
+          out.textContent = responseText;
+          out.className = 'success';
+        }
+        
+      } catch (e) {
+        out.textContent = `Network Error: ${e.message}`;
+        out.className = 'error';
+      }
+    }
+
+    async function logoutUser() {
+      const userToken = document.getElementById('opUserToken').value;
+      const out = document.getElementById('operationOutput');
+
+      if (!userToken) {
+        out.textContent = 'Please enter user token';
+        out.className = 'error';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/LogoutUserMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken,
+            planContext
+          })
+        });
+        
+        const responseText = await resp.text();
+        
+        if (!resp.ok) {
+          out.textContent = `Error ${resp.status}: ${responseText}`;
+          out.className = 'error';
+          return;
+        }
+
+        try {
+          const data = JSON.parse(responseText);
+          out.textContent = JSON.stringify(data, null, 2);
+          out.className = 'success';
+        } catch {
+          out.textContent = responseText;
+          out.className = 'success';
+        }
+        
+      } catch (e) {
+        out.textContent = `Network Error: ${e.message}`;
+        out.className = 'error';
+      }
+    }
+
+    // Event listeners
+    document.getElementById('loginBtn').onclick = doLogin;
+    document.getElementById('infoBtn').onclick = getUserInfo;
+    document.getElementById('registerBtn').onclick = doRegister;
+    document.getElementById('logOpBtn').onclick = logUserOperation;
+    document.getElementById('logoutBtn').onclick = logoutUser;
+  </script>
+</body>
+</html>
