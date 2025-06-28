@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
-import { RegisterRequest } from '../types/User';
+import { RegisterFormData } from '../types/User';  // 使用专门的表单类型
 import { apiService } from '../services/ApiService';
 import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
-    const [formData, setFormData] = useState<RegisterRequest>({
+    const [formData, setFormData] = useState<RegisterFormData>({  // 使用正确的类型
         username: '',
         email: '',
         password: '',
@@ -110,16 +110,19 @@ const RegisterPage: React.FC = () => {
         setLoading(true);
         setError('');
 
+        // 记录开始时间
+        const startTime = Date.now();
+
         try {
             console.log('🔄 [注册流程] 调用注册API...');
 
-            // 只调用真实API，完全匹配后端期望的格式
+            // 只调用真实API，不发送 confirmPassword 到后端
             const response = await apiService.register({
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
-                phoneNumber: formData.phoneNumber,
-                confirmPassword: formData.confirmPassword
+                phoneNumber: formData.phoneNumber
+                // 注意：不包含 confirmPassword
             });
 
             console.log('📡 [注册流程] API响应:', response);
@@ -127,48 +130,38 @@ const RegisterPage: React.FC = () => {
             if (response.success && response.data) {
                 console.log('✅ [注册流程] 注册成功');
 
-                // 注册成功后自动登录
-                console.log('🔄 [注册流程] 开始自动登录...');
-                const loginResponse = await apiService.login({
-                    username: formData.username,
-                    password: formData.password
-                });
+                // 设置完整的用户信息
+                const userData = {
+                    id: response.data.id,
+                    username: response.data.username,
+                    email: response.data.email,
+                    phoneNumber: response.data.phoneNumber || formData.phoneNumber,
+                    rank: response.data.rank || '青铜',
+                    coins: response.data.coins || 1000,
+                    status: response.data.status || 'online' as 'online' | 'offline' | 'in_battle',
+                    registrationTime: response.data.registrationTime,
+                    lastLoginTime: response.data.lastLoginTime,
+                    rankPosition: response.data.rankPosition || 0,
+                    cardDrawCount: response.data.cardDrawCount || 0
+                };
 
-                if (loginResponse.success && loginResponse.data) {
-                    const { user, token } = loginResponse.data;
+                setUser(userData);
 
-                    // 设置完整的用户信息
-                    const userData = {
-                        id: user.id,
-                        username: user.username,
-                        email: user.email,
-                        phoneNumber: user.phoneNumber || formData.phoneNumber,
-                        rank: user.rank || '青铜',
-                        gems: user.gems || 1000,
-                        status: user.status || 'online' as 'online' | 'offline' | 'in_battle',
-                        registrationTime: user.registrationTime,
-                        lastLoginTime: user.lastLoginTime,
-                        rankPosition: user.rankPosition || 0,
-                        cardDrawCount: user.cardDrawCount || 0
-                    };
-
-                    setUser(userData);
-                    setToken(token);
-
-                    console.log('🧭 [注册流程] 注册成功，跳转到游戏主页...');
-                    await navigateWithTransition('/game');
-                    console.log('✨ [注册流程] 注册和登录流程完成！');
-                } else {
-                    console.error('❌ [注册流程] 自动登录失败');
-                    setError('注册成功！请手动登录');
-                    // 3秒后跳转到登录页面
-                    setTimeout(() => {
-                        navigateWithTransition('/login');
-                    }, 3000);
+                // 确保加载动画至少显示3秒
+                const elapsedTime = Date.now() - startTime;
+                const minDisplayTime = 3000;
+                if (elapsedTime < minDisplayTime) {
+                    console.log(`⏰ [注册流程] 等待动画完成，还需 ${minDisplayTime - elapsedTime}ms`);
+                    await new Promise(resolve =>
+                        setTimeout(resolve, minDisplayTime - elapsedTime)
+                    );
                 }
+
+                console.log('🧭 [注册流程] 跳转到游戏主页...');
+                await navigateWithTransition('/game');
             } else {
-                console.error('❌ [注册流程] 注册失败:', response.message || response.error);
-                setError(response.message || response.error || '注册失败，请检查输入信息');
+                console.error('❌ [注册流程] 注册失败:', response.message);
+                setError(response.message || '注册失败，请检查输入信息');
             }
         } catch (err: any) {
             console.error('💥 [注册流程] 发生错误:', err);

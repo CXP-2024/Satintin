@@ -16,33 +16,35 @@ const LoginPage: React.FC = () => {
     });
     const [error, setError] = useState<string>('');
 
-	const { setUser, setToken } = useAuthStore();
-	const { showLoading, hideLoading } = useGlobalLoading();
-	const { navigateWithTransition } = usePageTransition();
+    const { setUser, setToken } = useAuthStore();
+    const { showLoading, hideLoading } = useGlobalLoading();
+    const { navigateWithTransition } = usePageTransition();
 
-	// 初始化音效
-	useEffect(() => {
-		SoundUtils.setClickSoundSource(clickSound);
-	}, []);
+    // 初始化音效
+    useEffect(() => {
+        SoundUtils.setClickSoundSource(clickSound);
+    }, []);
 
-	// 播放按钮点击音效
-	const playClickSound = () => {
-		SoundUtils.playClickSound(0.5);
-	};
+    // 播放按钮点击音效
+    const playClickSound = () => {
+        SoundUtils.playClickSound(0.5);
+    };
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormData(prev => ({
-			...prev,
-			[name]: value
-		}));
-		setError('');
-	};	// 测试用户登录函数
-	const handleTestLogin = async () => {
-		playClickSound();
-		console.log('🧪 [测试登录] 开始测试用户登录');
-		showLoading('正在进行测试登录', 'login');
-		setError('');
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+        setError('');
+    };
+
+    // 测试用户登录函数
+    const handleTestLogin = async () => {
+        playClickSound();
+        console.log('🧪 [测试登录] 开始测试用户登录');
+        showLoading('正在进行测试登录', 'login');
+        setError('');
 
         try {
             // 模拟网络延迟
@@ -55,7 +57,7 @@ const LoginPage: React.FC = () => {
                 email: 'testuser@example.com',
                 phoneNumber: '13800138000',
                 rank: '黄金',
-                gems: 5000,
+                coins: 5000,
                 status: 'online' as const,
                 registrationTime: new Date().toISOString(),
                 lastLoginTime: new Date().toISOString(),
@@ -83,7 +85,7 @@ const LoginPage: React.FC = () => {
     // 主要登录逻辑 - 只使用真实API
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-		playClickSound();
+        playClickSound();
 
         console.log('🚀 [登录流程] 开始真实API登录流程');
         console.log('📝 [登录流程] 表单数据:', { username: formData.username, password: '***' });
@@ -137,7 +139,7 @@ const LoginPage: React.FC = () => {
                         email: user.email,
                         phoneNumber: user.phoneNumber || '',
                         rank: user.rank || '青铜',
-                        gems: user.gems || 1000,
+                        coins: user.coins || 1000,
                         status: user.status || 'online' as 'online' | 'offline' | 'in_battle',
                         registrationTime: user.registrationTime,
                         lastLoginTime: user.lastLoginTime,
@@ -165,8 +167,8 @@ const LoginPage: React.FC = () => {
                     setError('服务器响应数据异常，请稍后重试');
                 }
             } else {
-                console.error('❌ [登录流程] 登录失败:', response.message || response.error);
-                setError(response.message || response.error || '登录失败，请检查用户名和密码');
+                console.error('❌ [登录流程] 登录失败:', response.message);
+                setError(response.message || '登录失败，请检查用户名和密码');
             }
 
             hideLoading();
@@ -179,15 +181,8 @@ const LoginPage: React.FC = () => {
         }
     };
 
-	const { isVisible } = useGlobalLoading();
+    const { isVisible } = useGlobalLoading();
 
-	return (
-		<PageTransition className="fade-scale">
-			<div className="login-container">
-				<div className="login-card">
-					<div className="login-header">
-						<h1>Satin</h1>
-					</div>
     return (
         <PageTransition className="fade-scale">
             <div className="login-container">

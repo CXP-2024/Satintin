@@ -4,7 +4,7 @@ export interface User {
     email: string;
     phoneNumber?: string; // 后端有这个字段
     rank: string;
-    gems: number;         // 对应后端的 stoneAmount
+    coins: number;         // 对应后端的 stoneAmount (修改：gems -> coins)
     status: 'online' | 'offline' | 'in_battle';  // 对应后端的 isOnline 和 matchStatus
     registrationTime: string;
     lastLoginTime?: string;
@@ -19,10 +19,19 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
     username: string;
-    email: string;
     password: string;
-    phoneNumber?: string;  // 根据后端，这个字段是必需的
-    confirmPassword: string;
+    email: string;
+    phoneNumber?: string;
+    // confirmPassword 只用于前端验证，不发送到后端
+}
+
+// 为前端表单创建专门的类型
+export interface RegisterFormData {
+    username: string;
+    password: string;
+    email: string;
+    phoneNumber: string;
+    confirmPassword: string;  // 只在前端使用
 }
 
 export interface AuthResponse {

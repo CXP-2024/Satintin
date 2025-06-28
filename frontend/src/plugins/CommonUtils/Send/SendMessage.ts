@@ -85,30 +85,3 @@ export async function getMessage(url: string, timeout: number): Promise<any> {
             .catch(error => reject(error))
     })
 }
-
-export async function sendMessage(infoMessage: API, timeout: number, isEncrypt: boolean): Promise<any> {
-    try {
-        const url = infoMessage.getURL()
-        console.log('📡 [SendMessage] 发送请求到:', url)
-
-        const requestBody = JSON.stringify(infoMessage)
-        console.log('📝 [SendMessage] 请求体:', requestBody)
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: requestBody,
-            signal: AbortSignal.timeout(timeout),
-        })
-
-        return {
-            status: response.status,
-            text: () => response.text(),
-        }
-    } catch (error) {
-        console.error('❌ [SendMessage] 发送失败:', error)
-        throw error
-    }
-}

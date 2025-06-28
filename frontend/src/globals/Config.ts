@@ -20,25 +20,38 @@ export interface ServiceConfig {
  * 根据环境获取配置
  */
 function getEnvironmentConfig(): ServiceConfig {
-  const env = process.env.NODE_ENV || 'development';
-  
-  const baseConfig: ServiceConfig = {
-    protocol: 'http',
-    // 如果使用代理，userServiceUrl 应该为空或相对路径
-    userServiceUrl: process.env.REACT_APP_USER_SERVICE_URL || '', // 代理模式下为空
-    battleServiceUrl: process.env.REACT_APP_BATTLE_SERVICE_URL || 'http://localhost:10011',
-    cardServiceUrl: process.env.REACT_APP_CARD_SERVICE_URL || 'http://localhost:10012',
-    adminServiceUrl: process.env.REACT_APP_ADMIN_SERVICE_URL || 'http://localhost:10013',
-    assetServiceUrl: process.env.REACT_APP_ASSET_SERVICE_URL || 'http://localhost:10014',
-    wsBaseUrl: process.env.REACT_APP_WS_BASE_URL || 'ws://localhost:10015',
-    environment: env as 'development' | 'production' | 'test',
-    serviceName: 'satintin-frontend',
-    version: '1.0.0',
-    hubURL: process.env.REACT_APP_HUB_URL || 'localhost:10016',
-    wsProtocol: process.env.REACT_APP_WS_PROTOCOL || 'ws'
-  };
-
-  return baseConfig;
+  if (process.env.NODE_ENV === 'production') {
+    return {
+      protocol: 'https',
+      userServiceUrl: 'your-production-domain.com:10010',
+      battleServiceUrl: 'your-production-domain.com:10011', 
+      cardServiceUrl: 'your-production-domain.com:10012',
+      adminServiceUrl: 'your-production-domain.com:10013',
+      assetServiceUrl: 'your-production-domain.com:10014',
+      wsBaseUrl: 'wss://your-production-domain.com:10015',
+      environment: 'production',
+      serviceName: 'Satintin',
+      version: '1.0.0',
+      hubURL: 'https://your-production-domain.com:10016',
+      wsProtocol: 'wss'
+    };
+  } else {
+    // 开发环境配置
+    return {
+      protocol: 'http',
+      userServiceUrl: 'localhost:10010',
+      battleServiceUrl: 'localhost:10011',
+      cardServiceUrl: 'localhost:10012', 
+      adminServiceUrl: 'localhost:10013',
+      assetServiceUrl: 'localhost:10014',
+      wsBaseUrl: 'ws://localhost:10015',
+      environment: 'development',
+      serviceName: 'Satintin',
+      version: '1.0.0-dev',
+      hubURL: 'http://localhost:10016',
+      wsProtocol: 'ws'
+    };
+  }
 }
 
 /**

@@ -272,14 +272,18 @@ const BackendConnectionTest: React.FC = () => {
               console.log('🔍 测试真实注册流程...');
               
               const response = await apiService.register({
-                username: 'test_user_' + Date.now(),
+                username: 'testuser_' + Date.now(),
+                password: 'testpass123',
                 email: 'test@example.com',
-                password: 'test123',
-                phoneNumber: '15300559913',
-                confirmPassword: 'test123'
+                phoneNumber: '13800138000'
               });
-              
-              alert(`注册测试结果:\n成功: ${response.success}\n消息: ${response.message}\n数据: ${JSON.stringify(response.data, null, 2)}`);
+
+              // 类型安全的处理方式
+              if (response.success) {
+                alert(`注册测试结果:\n 成功: ${response.success}\n消息: ${response.message || '注册成功'}\n数据: ${JSON.stringify(response.data, null, 2)}`);
+              } else {
+                alert(`注册测试结果:\n 成功: ${response.success}\n消息: ${response.message}`);
+              }
             } catch (error) {
               alert('注册测试失败: ' + (error instanceof Error ? error.message : '未知错误'));
             }

@@ -1,16 +1,61 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { config } from '../globals/Config';
-import { User, LoginRequest, RegisterRequest } from '../types/User';
-// 导入后端的CommonSend系统
+import { MD5 } from 'crypto-js';
+import { User, LoginRequest, RegisterRequest, AuthResponse } from '../types/User';
 import { commonSend } from '../plugins/CommonUtils/Send/CommonSend';
 import { API } from '../plugins/CommonUtils/Send/API';
+import { config } from '../globals/Config';
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  message?: string;
-  error?: string;
+// 类型安全的响应类型定义
+interface LoginSuccess {
+    success: true;
+    data: { user: User; token: string };
+    message?: string;
 }
+
+interface LoginFailure {
+    success: false;
+    message: string;
+    error?: string;
+}
+
+type LoginResponse = LoginSuccess | LoginFailure;
+
+interface RegisterSuccess {
+    success: true;
+    data: User;
+    message?: string;
+}
+
+interface RegisterFailure {
+    success: false;
+    message: string;
+    error?: string;
+}
+
+type RegisterResponse = RegisterSuccess | RegisterFailure;
+
+interface GetUserInfoSuccess {
+    success: true;
+    data: User;
+}
+
+interface GetUserInfoFailure {
+    success: false;
+    message: string;
+}
+
+type GetUserInfoResponse = GetUserInfoSuccess | GetUserInfoFailure;
+
+interface LogoutSuccess {
+    success: true;
+    message?: string;
+}
+
+interface LogoutFailure {
+    success: false;
+    message: string;
+}
+
+type LogoutResponse = LogoutSuccess | LogoutFailure;
 
 // 重新定义消息类，匹配后端期望的格式
 class LoginUserMessage extends API {
@@ -18,10 +63,19 @@ class LoginUserMessage extends API {
   
   constructor(
     public username: string,
-    public passwordHash: string  // 注意：后端期望的是passwordHash，不是password
+    public passwordHash: string
   ) {
     super();
     this.serviceName = 'UserService';
+  }
+  
+  getURL(): string {
+    // 在开发环境使用代理，生产环境使用完整URL
+    if (process.env.NODE_ENV === 'development') {
+      return `/api/LoginUserMessage`;  // 使用代理
+    } else {
+      return `${config.protocol}://${config.userServiceUrl}/api/LoginUserMessage`;
+    }
   }
 }
 
@@ -30,164 +84,93 @@ class RegisterUserMessage extends API {
   
   constructor(
     public username: string,
-    public passwordHash: string,  // 注意：后端期望的是passwordHash
+    public passwordHash: string,
     public email: string,
     public phoneNumber: string
   ) {
     super();
     this.serviceName = 'UserService';
   }
+  
+  getURL(): string {
+    // 在开发环境使用代理，生产环境使用完整URL
+    if (process.env.NODE_ENV === 'development') {
+      return `/api/RegisterUserMessage`;  // 使用代理
+    } else {
+      return `${config.protocol}://${config.userServiceUrl}/api/RegisterUserMessage`;
+    }
+  }
 }
 
-// 定义获取用户信息消息类
 class GetUserInfoMessage extends API {
+  public readonly type = "GetUserInfoMessage";
+  
   constructor(public userToken: string) {
     super();
     this.serviceName = 'UserService';
+  }
+  
+  getURL(): string {
+    if (process.env.NODE_ENV === 'development') {
+      return `/api/GetUserInfoMessage`;
+    } else {
+      return `${config.protocol}://${config.userServiceUrl}/api/GetUserInfoMessage`;
+    }
   }
 }
 
 // 定义登出消息类
 class LogoutUserMessage extends API {
+  public readonly type = "LogoutUserMessage";
+  
   constructor(public userToken: string) {
     super();
     this.serviceName = 'UserService';
   }
+  
+  getURL(): string {
+    if (process.env.NODE_ENV === 'development') {
+      return `/api/LogoutUserMessage`;
+    } else {
+      return `${config.protocol}://${config.userServiceUrl}/api/LogoutUserMessage`;
+    }
+  }
 }
 
 export class ApiService {
-  private userServiceURL: string;
   private token: string | null = null;
 
   constructor() {
-    this.userServiceURL = config.userServiceUrl || '';
+    console.log('🔧 [ApiService] 初始化，使用配置:', {
+      protocol: config.protocol,
+      userServiceUrl: config.userServiceUrl,
+      environment: config.environment
+    });
   }
 
   setToken(token: string) {
     this.token = token;
+    console.log('🔑 [ApiService] 设置认证令牌');
   }
 
-  private getRequestConfig(requestConfig?: AxiosRequestConfig): AxiosRequestConfig {
-    const headers: any = {
-      'Content-Type': 'application/json',
-      ...requestConfig?.headers,
-    };
-
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
-    }
-
-    return {
-      ...requestConfig,
-      headers,
-    };
-  }
-
-  // 保留原有的request方法作为备用
-  private async request<T>(
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
-    url: string,
-    data?: any,
-    config?: AxiosRequestConfig
-  ): Promise<ApiResponse<T>> {
-    try {
-      const requestConfig = this.getRequestConfig(config);
-      console.log('🔍 [ApiService] 发送请求:', {
-        method,
-        url,
-        data,
-        headers: requestConfig.headers
-      });
-      
-      const response: AxiosResponse<T> = await axios({
-        method,
-        url,
-        data,
-        ...requestConfig,
-      });
-
-      console.log('✅ [ApiService] 请求成功:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: response.data,
-        dataType: typeof response.data
-      });
-
-      return {
-        success: true,
-        data: response.data,
-      };
-    } catch (error) {
-      const axiosError = error as AxiosError<any>;
-      console.error('❌ [ApiService] 请求失败:', axiosError);
-      
-      return {
-        success: false,
-        error: axiosError.message,
-        message: axiosError.response?.data || axiosError.message || '请求失败',
-      };
-    }
-  }
-
-  // GET请求
-  async get<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>('GET', url, undefined, config);
-  }
-
-  // POST请求
-  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>('POST', url, data, config);
-  }
-
-  // PUT请求
-  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>('PUT', url, data, config);
-  }
-
-  // DELETE请求
-  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
-    return this.request<T>('DELETE', url, undefined, config);
-  }
-
-  // 测试后端健康状态
-  async testBackendHealth(): Promise<ApiResponse<string>> {
-    try {
-      console.log('🔍 [ApiService] 测试后端健康状态...');
-      const response = await this.request<any>('GET', '/health');
-      
-      if (response.success) {
-        console.log('✅ [ApiService] 后端健康检查通过');
-        return {
-          success: true,
-          data: '后端服务正常',
-          message: '后端服务正常运行'
-        };
-      } else {
-        return {
-          success: false,
-          message: '后端服务健康检查失败'
-        };
-      }
-    } catch (error) {
-      console.error('💥 [ApiService] 后端健康检查异常:', error);
-      return {
-        success: false,
-        message: '无法连接到后端服务'
-      };
-    }
+  // 🔑 密码处理方法 - 根据后端测试文件，直接发送原始密码
+  private preparePassword(password: string): string {
+    // 根据后端测试文件的注释：Send as plain text, your backend handles hashing
+    console.log('🔍 [密码处理] 发送原始密码给后端处理哈希');
+    return password; // 直接返回原始密码
   }
 
   // 用户登录 - 使用CommonSend系统
-  async login(credentials: LoginRequest): Promise<ApiResponse<{ user: User; token: string }>> {
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
     return new Promise((resolve) => {
-      console.log(`🔍 [ApiService] 开始登录请求 - 使用CommonSend系统`);
+      console.log(`🔍 [ApiService] 开始登录请求`);
       console.log('📋 [ApiService] 登录参数:', {
         username: credentials.username,
         password: credentials.password ? '***' : 'null'
       });
 
-      // 🔑 计算密码哈希
-      const passwordHash = this.calculatePasswordHash(credentials.password);
+      // 🔑 准备密码 - 直接发送原始密码
+      const passwordHash = this.preparePassword(credentials.password);
 
       // 创建登录消息
       const loginMessage = new LoginUserMessage(
@@ -196,7 +179,8 @@ export class ApiService {
       );
 
       console.log('📤 [ApiService] 发送登录消息:', loginMessage);
-      console.log('🔑 [ApiService] 密码哈希:', passwordHash);
+      console.log('🔑 [ApiService] 密码字段:', passwordHash ? '***' : 'empty');
+      console.log('🌐 [ApiService] 请求URL:', loginMessage.getURL());
 
       // 使用CommonSend发送请求
       commonSend(
@@ -205,14 +189,11 @@ export class ApiService {
         (response: any) => {
           console.log('✅ [ApiService] 登录成功回调:', response);
           console.log('🔍 [ApiService] 响应类型:', typeof response);
-          console.log('🔍 [ApiService] 响应内容:', JSON.stringify(response));
           
-          // 🆕 根据后端实际响应格式处理
+          // 处理布尔值响应
           if (typeof response === 'boolean') {
             if (response === true) {
               console.log('🎉 [ApiService] 登录成功 - 后端返回true');
-              
-              // 生成前端用户令牌
               const userToken = 'auth-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
               
               const frontendUser: User = {
@@ -221,7 +202,7 @@ export class ApiService {
                 email: `${credentials.username}@example.com`,
                 phoneNumber: '',
                 rank: '青铜',
-                gems: 1000,
+                coins: 1000,
                 status: 'online',
                 registrationTime: new Date().toISOString(),
                 lastLoginTime: new Date().toISOString(),
@@ -230,7 +211,6 @@ export class ApiService {
               };
 
               this.setToken(userToken);
-
               resolve({
                 success: true,
                 data: { user: frontendUser, token: userToken },
@@ -249,24 +229,18 @@ export class ApiService {
           
           // 处理字符串响应
           if (typeof response === 'string') {
-            // 🔧 清理响应字符串 - 移除转义引号和多余空格
             let responseText = response.trim();
             
-            // 移除字符串开头和结尾的转义引号
+            // 移除多余的引号
             if (responseText.startsWith('"') && responseText.endsWith('"')) {
               responseText = responseText.slice(1, -1);
             }
             
-            // 再次清理
-            responseText = responseText.trim();
-            
             console.log('🧹 [ApiService] 清理后的响应:', responseText);
             
-            // 🆕 特殊处理布尔值字符串
+            // 处理字符串形式的布尔值
             if (responseText === 'true') {
               console.log('🎉 [ApiService] 登录成功 - 后端返回字符串"true"');
-              
-              // 生成前端用户令牌
               const userToken = 'auth-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
               
               const frontendUser: User = {
@@ -275,7 +249,7 @@ export class ApiService {
                 email: `${credentials.username}@example.com`,
                 phoneNumber: '',
                 rank: '青铜',
-                gems: 1000,
+                coins: 1000,
                 status: 'online',
                 registrationTime: new Date().toISOString(),
                 lastLoginTime: new Date().toISOString(),
@@ -284,7 +258,6 @@ export class ApiService {
               };
 
               this.setToken(userToken);
-
               resolve({
                 success: true,
                 data: { user: frontendUser, token: userToken },
@@ -302,7 +275,7 @@ export class ApiService {
               return;
             }
             
-            // 检查是否是UUID格式的token（某些情况下后端可能返回token）
+            // 检查UUID格式的token
             const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
             if (uuidRegex.test(responseText)) {
               console.log('🎉 [ApiService] 检测到UUID token:', responseText);
@@ -314,7 +287,7 @@ export class ApiService {
                 email: `${credentials.username}@example.com`,
                 phoneNumber: '',
                 rank: '青铜',
-                gems: 1000,
+                coins: 1000,
                 status: 'online',
                 registrationTime: new Date().toISOString(),
                 lastLoginTime: new Date().toISOString(),
@@ -323,7 +296,6 @@ export class ApiService {
               };
 
               this.setToken(userToken);
-
               resolve({
                 success: true,
                 data: { user: frontendUser, token: userToken },
@@ -332,10 +304,11 @@ export class ApiService {
               return;
             }
             
-            // 检查是否是错误消息
-            if (responseText.includes('错误') || responseText.includes('失败') || 
-                responseText.includes('不存在') || responseText.includes('密码') ||
-                responseText.includes('Invalid') || responseText.includes('Error')) {
+            // 检查错误消息
+            const errorKeywords = ['错误', '失败', '不存在', '密码', 'Invalid', 'Error'];
+            const isError = errorKeywords.some(keyword => responseText.includes(keyword));
+            
+            if (isError) {
               console.log('❌ [ApiService] 登录失败 - 错误消息:', responseText);
               resolve({
                 success: false,
@@ -344,36 +317,7 @@ export class ApiService {
               return;
             }
             
-            // 🆕 对于其他合理长度的字符串，当作成功处理
-            if (responseText.length >= 5 && !responseText.includes('异常') && !responseText.includes('Exception')) {
-              console.log('🎉 [ApiService] 其他格式的成功响应，当作登录成功');
-              const userToken = 'auth-token-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-              
-              const frontendUser: User = {
-                id: responseText, // 使用响应文本作为用户ID
-                username: credentials.username,
-                email: `${credentials.username}@example.com`,
-                phoneNumber: '',
-                rank: '青铜',
-                gems: 1000,
-                status: 'online',
-                registrationTime: new Date().toISOString(),
-                lastLoginTime: new Date().toISOString(),
-                rankPosition: 0,
-                cardDrawCount: 0
-              };
-
-              this.setToken(userToken);
-
-              resolve({
-                success: true,
-                data: { user: frontendUser, token: userToken },
-                message: '登录成功'
-              });
-              return;
-            }
-            
-            // 🆕 对于其他字符串，当作错误处理（更安全）
+            // 其他情况当作失败处理
             console.log('⚠️ [ApiService] 未知字符串响应，当作失败处理:', responseText);
             resolve({
               success: false,
@@ -382,7 +326,7 @@ export class ApiService {
             return;
           }
           
-          // 🆕 对于其他类型的响应，当作失败处理（更安全）
+          // 其他类型当作失败处理
           console.log('⚠️ [ApiService] 未知响应类型，当作失败处理:', typeof response);
           resolve({
             success: false,
@@ -408,9 +352,9 @@ export class ApiService {
   }
 
   // 用户注册 - 使用CommonSend系统
-  async register(userData: RegisterRequest): Promise<ApiResponse<User>> {
+  async register(userData: RegisterRequest): Promise<RegisterResponse> {
     return new Promise((resolve) => {
-      console.log(`🔍 [ApiService] 开始注册请求 - 使用CommonSend系统`);
+      console.log(`🔍 [ApiService] 开始注册请求`);
       console.log('📋 [ApiService] 注册参数:', {
         username: userData.username,
         email: userData.email,
@@ -418,10 +362,8 @@ export class ApiService {
         password: userData.password ? '***' : 'null'
       });
 
-      // 🔑 计算密码哈希
-      const passwordHash = this.calculatePasswordHash(userData.password);
-
-      // 创建注册消息
+      // 注册也发送原始密码
+      const passwordHash = this.preparePassword(userData.password);
       const registerMessage = new RegisterUserMessage(
         userData.username,
         passwordHash,
@@ -430,45 +372,35 @@ export class ApiService {
       );
 
       console.log('📤 [ApiService] 发送注册消息:', registerMessage);
-      console.log('🔑 [ApiService] 密码哈希:', passwordHash);
+      console.log('🌐 [ApiService] 请求URL:', registerMessage.getURL());
 
-      // 使用CommonSend发送请求
       commonSend(
         registerMessage,
         // 成功回调
         (response: any) => {
           console.log('✅ [ApiService] 注册成功回调:', response);
-          console.log('🔍 [ApiService] 响应类型:', typeof response);
-          console.log('🔍 [ApiService] 响应内容:', JSON.stringify(response));
           
-          // 🆕 根据后端实际响应格式处理
           if (typeof response === 'string') {
-            // 🔧 清理响应字符串 - 移除转义引号和多余空格
             let responseText = response.trim();
             
-            // 移除字符串开头和结尾的转义引号
             if (responseText.startsWith('"') && responseText.endsWith('"')) {
               responseText = responseText.slice(1, -1);
             }
             
-            // 再次清理
-            responseText = responseText.trim();
-            
             console.log('🧹 [ApiService] 清理后的响应:', responseText);
             
-            // 检查是否是UUID格式的userID（注册成功）
+            // 检查UUID格式的userID
             const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
             if (uuidRegex.test(responseText)) {
               console.log('🎉 [ApiService] 注册成功 - 检测到UUID:', responseText);
-              const userID = responseText;
               
               const frontendUser: User = {
-                id: userID,
+                id: responseText,
                 username: userData.username,
                 email: userData.email,
                 phoneNumber: userData.phoneNumber || '',
                 rank: '青铜',
-                gems: 1000,
+                coins: 1000,
                 status: 'online',
                 registrationTime: new Date().toISOString(),
                 lastLoginTime: new Date().toISOString(),
@@ -484,11 +416,10 @@ export class ApiService {
               return;
             }
             
-            // 🆕 检查常见的错误消息
+            // 检查错误消息
             const errorKeywords = [
               '错误', '失败', '已存在', '不能为空', '格式错误', '非法',
-              'Error', 'Invalid', 'exists', 'failed', 'duplicate',
-              '用户名', '邮箱', '密码', '手机号'
+              'Error', 'Invalid', 'exists', 'failed', 'duplicate'
             ];
             
             const isError = errorKeywords.some(keyword => responseText.includes(keyword));
@@ -502,32 +433,7 @@ export class ApiService {
               return;
             }
             
-            // 🆕 对于其他字符串，如果长度合理且不包含明显错误标识，当作成功处理
-            if (responseText.length >= 10 && !responseText.includes('异常') && !responseText.includes('Exception')) {
-              console.log('🎉 [ApiService] 其他格式的成功响应:', responseText);
-              const frontendUser: User = {
-                id: responseText, // 使用响应文本作为用户ID
-                username: userData.username,
-                email: userData.email,
-                phoneNumber: userData.phoneNumber || '',
-                rank: '青铜',
-                gems: 1000,
-                status: 'online',
-                registrationTime: new Date().toISOString(),
-                lastLoginTime: new Date().toISOString(),
-                rankPosition: 0,
-                cardDrawCount: 0
-              };
-
-              resolve({
-                success: true,
-                data: frontendUser,
-                message: '注册成功'
-              });
-              return;
-            }
-            
-            // 最后当作错误处理
+            // 其他情况当作失败处理
             console.log('⚠️ [ApiService] 未知字符串响应，当作失败处理:', responseText);
             resolve({
               success: false,
@@ -536,7 +442,6 @@ export class ApiService {
             return;
           }
           
-          // 🆕 对于非字符串响应，当作失败处理（更安全）
           console.log('⚠️ [ApiService] 非字符串响应，当作失败处理:', typeof response);
           resolve({
             success: false,
@@ -546,35 +451,19 @@ export class ApiService {
         // 失败回调
         (error: any) => {
           console.error('❌ [ApiService] 注册失败回调:', error);
-          
-          // 🆕 处理中文编码问题
-          let errorMessage = error;
-          if (typeof error === 'string') {
-            // 检查是否是乱码
-            if (error.includes('锟') || error.includes('�')) {
-              // 常见的用户名已存在错误
-              errorMessage = '用户名已存在，请更换用户名';
-            } else {
-              errorMessage = error;
-            }
-          }
-          
           resolve({
             success: false,
-            message: errorMessage || '注册失败'
+            message: error || '注册失败'
           });
         }
       );
     });
   }
 
-  // 获取用户信息 - 使用CommonSend系统
-  async getUserInfo(): Promise<ApiResponse<User>> {
+  // 获取用户信息
+  async getUserInfo(): Promise<GetUserInfoResponse> {
     if (!this.token) {
-      return {
-        success: false,
-        message: '未登录'
-      };
+      return { success: false, message: '未登录' };
     }
 
     return new Promise((resolve) => {
@@ -594,7 +483,7 @@ export class ApiService {
                 email: userData.email || 'user@example.com',
                 phoneNumber: userData.phoneNumber || '',
                 rank: userData.rank || '青铜',
-                gems: userData.stoneAmount || userData.gems || 1000,
+                coins: userData.stoneAmount || userData.coins || 1000,
                 status: userData.isOnline ? 'online' : 'offline',
                 registrationTime: userData.registrationTime || new Date().toISOString(),
                 lastLoginTime: userData.lastLoginTime,
@@ -602,36 +491,24 @@ export class ApiService {
                 cardDrawCount: userData.cardDrawCount || 0
               };
 
-              resolve({
-                success: true,
-                data: frontendUser
-              });
+              resolve({ success: true, data: frontendUser });
             } catch (e) {
-              resolve({
-                success: false,
-                message: '无法解析用户信息'
-              });
+              resolve({ success: false, message: '无法解析用户信息' });
             }
           } else {
-            resolve({
-              success: false,
-              message: '获取用户信息失败'
-            });
+            resolve({ success: false, message: '获取用户信息失败' });
           }
         },
         (error: any) => {
           console.error('❌ [ApiService] 获取用户信息失败:', error);
-          resolve({
-            success: false,
-            message: '获取用户信息失败'
-          });
+          resolve({ success: false, message: '获取用户信息失败' });
         }
       );
     });
   }
 
-  // 用户登出 - 使用CommonSend系统
-  async logout(): Promise<ApiResponse<void>> {
+  // 用户登出
+  async logout(): Promise<LogoutResponse> {
     if (!this.token) {
       return { success: true };
     }
@@ -651,30 +528,6 @@ export class ApiService {
         }
       );
     });
-  }
-
-  // 🔑 添加密码哈希计算方法
-  private calculatePasswordHash(password: string): string {
-    // 根据test.html，使用MD5哈希
-    // 注意：这里应该使用真正的MD5库，比如crypto-js
-    // 临时使用简单的哈希方法
-    
-    // 如果是测试密码"testpassword123"，直接返回已知的MD5值
-    if (password === 'testpassword123') {
-      return '482c811da5d5b4bc6d497ffa98491e38';
-    }
-    
-    // 对于其他密码，使用简单的哈希算法
-    let hash = 0;
-    if (password.length === 0) return hash.toString(16).padStart(32, '0');
-    
-    for (let i = 0; i < password.length; i++) {
-      const char = password.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    return Math.abs(hash).toString(16).padStart(32, '0');
   }
 }
 
