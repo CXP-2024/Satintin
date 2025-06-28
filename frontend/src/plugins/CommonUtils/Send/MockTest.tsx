@@ -1,4 +1,4 @@
-import { stringToResponse } from '@/plugins/CommonUtils/Send/Response'
+import { stringToResponse } from 'Plugins/CommonUtils/Send/Response'
 
 export let testPointer = {} as any
 export let testMessage: (url: string, pointer: number) => string = () => ''

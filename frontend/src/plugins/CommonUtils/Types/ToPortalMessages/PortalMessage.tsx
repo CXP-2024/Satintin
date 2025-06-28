@@ -1,4 +1,4 @@
-import { Message } from '@/plugins/CommonUtils/Send/Serializable'
+import { Message } from 'Plugins/CommonUtils/Send/Serializable'
 
 export abstract class PortalMessage extends Message {
     constructor() {

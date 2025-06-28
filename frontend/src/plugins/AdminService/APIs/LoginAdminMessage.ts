@@ -4,7 +4,7 @@
  * @param accountName: string 管理员账号
  * @param passwordHash: string 管理员密码哈希
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 export class LoginAdminMessage extends TongWenMessage {
     constructor(

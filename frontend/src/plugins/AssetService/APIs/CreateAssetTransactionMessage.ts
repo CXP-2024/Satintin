@@ -7,16 +7,16 @@
  * @param changeReason: String (资产变动原因，例如购买物品或活动奖励。)
  * @return result: String (表示资产交易记录成功的信息。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class CreateAssetTransactionMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public transactionType: string,
-        public changeAmount: number,
-        public changeReason: string
+        public  userToken: string,
+        public  transactionType: string,
+        public  changeAmount: number,
+        public  changeReason: string
     ) {
         super()
     }

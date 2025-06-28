@@ -1,6 +1,6 @@
-import { randomString } from '@/plugins/CommonUtils/Functions/StringUtils'
+import { randomString } from 'Plugins/CommonUtils/Functions/StringUtils'
 import { AES, enc } from 'crypto-js'
-import { getPrivateKeySnap } from '@/plugins/CommonUtils/Encryption/EncryptionStore'
+import { getPrivateKeySnap } from 'Plugins/CommonUtils/Encryption/EncryptionStore'
 
 const serverPublic =
     '-----BEGIN PUBLIC KEY-----\n' +

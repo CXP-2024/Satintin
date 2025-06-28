@@ -5,14 +5,14 @@
  * @param friendID: String (好友的唯一标识ID)
  * @return result: String (操作结果信息，例如“好友已移除！”)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class RemoveFriendMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public friendID: string
+        public  userToken: string,
+        public  friendID: string
     ) {
         super()
     }

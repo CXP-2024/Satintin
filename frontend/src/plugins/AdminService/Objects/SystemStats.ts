@@ -7,18 +7,18 @@
  * @param totalReports: Int (总举报次数)
  * @param snapshotTime: DateTime (统计数据快照时间)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class SystemStats extends Serializable {
     constructor(
-        public activeUserCount: number,
-        public totalMatches: number,
-        public totalCardDraws: number,
-        public totalReports: number,
-        public snapshotTime: number
+        public  activeUserCount: number,
+        public  totalMatches: number,
+        public  totalCardDraws: number,
+        public  totalReports: number,
+        public  snapshotTime: number
     ) {
         super()
     }

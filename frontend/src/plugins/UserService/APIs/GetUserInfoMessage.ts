@@ -5,14 +5,14 @@
  * @param userID: String (目标用户的唯一标识ID)
  * @return user: User:1049 (完整的用户信息，包括基本信息、资产状态及好友/黑名单等补充信息)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class GetUserInfoMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public userID: string
+        public  userToken: string,
+        public  userID: string
     ) {
         super()
     }

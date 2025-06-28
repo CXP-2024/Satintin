@@ -8,19 +8,19 @@
  * @param changeReason: String (交易变化的原因说明)
  * @param timestamp: DateTime (交易发生的时间戳)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class AssetTransaction extends Serializable {
     constructor(
-        public transactionID: string,
-        public userID: string,
-        public transactionType: string,
-        public changeAmount: number,
-        public changeReason: string,
-        public timestamp: number
+        public  transactionID: string,
+        public  userID: string,
+        public  transactionType: string,
+        public  changeAmount: number,
+        public  changeReason: string,
+        public  timestamp: number
     ) {
         super()
     }

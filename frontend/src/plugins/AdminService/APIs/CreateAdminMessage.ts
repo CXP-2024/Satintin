@@ -6,7 +6,7 @@
  * @param passwordHash: String 新管理员密码哈希
  * @return newAdminID: String 新管理员 ID
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 export class CreateAdminMessage extends TongWenMessage {
     constructor(

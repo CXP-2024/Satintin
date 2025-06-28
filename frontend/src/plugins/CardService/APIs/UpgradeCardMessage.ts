@@ -5,14 +5,14 @@
  * @param cardID: String (需要进行升级的卡牌ID)
  * @return result: String (卡牌升级完成后的提示信息)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class UpgradeCardMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public cardID: string
+        public  userToken: string,
+        public  cardID: string
     ) {
         super()
     }

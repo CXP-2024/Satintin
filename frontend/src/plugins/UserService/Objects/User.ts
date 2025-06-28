@@ -19,32 +19,32 @@
  * @param blackList: BlackEntry (用户的黑名单列表)
  * @param messageBox: MessageEntry:1022 (用户的消息盒子)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
-import { FriendEntry } from '@/plugins/UserService/Objects/FriendEntry';
-import { BlackEntry } from '@/plugins/UserService/Objects/BlackEntry';
-import { MessageEntry } from '@/plugins/UserService/Objects/MessageEntry';
+import { FriendEntry } from 'Plugins/UserService/Objects/FriendEntry';
+import { BlackEntry } from 'Plugins/UserService/Objects/BlackEntry';
+import { MessageEntry } from 'Plugins/UserService/Objects/MessageEntry';
 
 
 export class User extends Serializable {
     constructor(
-        public userID: string,
-        public userName: string,
-        public passwordHash: string,
-        public email: string,
-        public phoneNumber: string,
-        public registerTime: number,
-        public permissionLevel: number,
-        public banDays: number,
-        public isOnline: boolean,
-        public matchStatus: string,
-        public stoneAmount: number,
-        public cardDrawCount: number,
-        public rank: string,
-        public rankPosition: number,
-        public friendList: FriendEntry[],
-        public blackList: BlackEntry[],
-        public messageBox: MessageEntry[]
+        public  userID: string,
+        public  userName: string,
+        public  passwordHash: string,
+        public  email: string,
+        public  phoneNumber: string,
+        public  registerTime: number,
+        public  permissionLevel: number,
+        public  banDays: number,
+        public  isOnline: boolean,
+        public  matchStatus: string,
+        public  stoneAmount: number,
+        public  cardDrawCount: number,
+        public  rank: string,
+        public  rankPosition: number,
+        public  friendList: FriendEntry[],
+        public  blackList: BlackEntry[],
+        public  messageBox: MessageEntry[]
     ) {
         super()
     }

@@ -1,5 +1,5 @@
-import { FeishuMessage } from '@/plugins/CommonUtils/Types/FeishuHooksMessage'
-import { plainSendMessage } from '@/plugins/CommonUtils/Send/PlainSendMessage'
+import { FeishuMessage } from 'Plugins/CommonUtils/Types/FeishuHooksMessage'
+import { plainSendMessage } from 'Plugins/CommonUtils/Send/PlainSendMessage'
 
 export const reportFeishuMessage = (message: FeishuMessage) => {
     plainSendMessage(

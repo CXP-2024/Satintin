@@ -5,14 +5,14 @@
  * @param drawCount: Int (抽取卡牌的次数)
  * @return drawResult: DrawResult:1062 (抽卡结果数据，包含抽到的卡牌信息和是否有新卡)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class DrawCardMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public drawCount: number
+        public  userToken: string,
+        public  drawCount: number
     ) {
         super()
     }

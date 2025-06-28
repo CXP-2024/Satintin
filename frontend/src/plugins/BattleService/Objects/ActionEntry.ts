@@ -6,17 +6,17 @@
  * @param actionType: String (动作的类型)
  * @param targetID: String (动作作用目标的ID)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class ActionEntry extends Serializable {
     constructor(
-        public actionID: string,
-        public playerID: string,
-        public actionType: string,
-        public targetID: string | null
+        public  actionID: string,
+        public  playerID: string,
+        public  actionType: string,
+        public  targetID: string | null
     ) {
         super()
     }

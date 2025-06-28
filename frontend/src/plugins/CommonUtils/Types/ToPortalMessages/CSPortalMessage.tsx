@@ -1,7 +1,7 @@
-import { getPublicKeySnap } from '@/plugins/CommonUtils/Encryption/EncryptionStore'
-import { getMacAddressIDSnap } from '@/plugins/CommonUtils/Store/GetMacAddressStore'
-import { getUserTokenSnap } from '@/plugins/CommonUtils/Store/UserInfoStore'
-import { PortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
+import { getPublicKeySnap } from 'Plugins/CommonUtils/Encryption/EncryptionStore'
+import { getMacAddressIDSnap } from 'Plugins/CommonUtils/Store/GetMacAddressStore'
+import { getUserTokenSnap } from 'Plugins/CommonUtils/Store/UserInfoStore'
+import { PortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
 
 export class CSPortalMessage extends PortalMessage {
     userToken: string

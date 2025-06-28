@@ -4,13 +4,13 @@
  * @param userToken: String (用户的身份令牌，用于验证用户的合法性。)
  * @return cardEntries: CardEntry:1124 (用户所拥有的卡牌列表，包含卡牌的基础信息与稀有度等数据。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class GetPlayerCardsMessage extends TongWenMessage {
     constructor(
-        public userToken: string
+        public  userToken: string
     ) {
         super()
     }

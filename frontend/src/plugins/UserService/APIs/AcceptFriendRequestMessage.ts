@@ -5,14 +5,14 @@
  * @param friendID: String (好友的用户ID，用于标识请求的目标用户。)
  * @return result: String (操作结果的返回信息，例如'好友请求已接受！')
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class AcceptFriendRequestMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public friendID: string
+        public  userToken: string,
+        public  friendID: string
     ) {
         super()
     }

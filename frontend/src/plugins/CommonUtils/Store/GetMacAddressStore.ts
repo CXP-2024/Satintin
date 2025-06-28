@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 
 import create from 'zustand'
 import { persist } from 'zustand/middleware'
-import { encryptionLocalStorage } from '@/plugins/CommonUtils/Functions/DefaultStorage'
+import { encryptionLocalStorage } from 'Plugins/CommonUtils/Functions/DefaultStorage'
 
 const macAddressIDStore = create(
     persist(

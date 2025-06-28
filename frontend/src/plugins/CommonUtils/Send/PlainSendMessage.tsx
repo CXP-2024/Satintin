@@ -1,8 +1,8 @@
-import { requireEncryption } from '@/plugins/CommonUtils/Encryption/EncryptionUtils'
-import { encrypt } from '@/plugins/CommonUtils/Encryption/Encryption'
-import { replacer } from '@/plugins/CommonUtils/Functions/DeepCopy'
+import { requireEncryption } from 'Plugins/CommonUtils/Encryption/EncryptionUtils'
+import { encrypt } from 'Plugins/CommonUtils/Encryption/Encryption'
+import { replacer } from 'Plugins/CommonUtils/Functions/DeepCopy'
 import { MD5 } from 'crypto-js'
-import { Message } from '@/plugins/CommonUtils/Send/Serializable'
+import { Message } from 'Plugins/CommonUtils/Send/Serializable'
 
 /** 以普通的方式发送消息 **/
 export async function plainSendMessage(

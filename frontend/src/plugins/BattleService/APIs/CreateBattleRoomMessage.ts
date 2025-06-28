@@ -4,13 +4,13 @@
  * @param userToken: String (用户认证令牌，用于验证用户合法性。)
  * @return roomID: String (生成的对战房间ID。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class CreateBattleRoomMessage extends TongWenMessage {
     constructor(
-        public userToken: string
+        public  userToken: string
     ) {
         super()
     }

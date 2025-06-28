@@ -4,13 +4,13 @@
  * @param userToken: String (用户凭证，用于验证用户身份的合法性)
  * @return stoneAmount: Int (用户当前的原石数量)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class QueryAssetStatusMessage extends TongWenMessage {
     constructor(
-        public userToken: string
+        public  userToken: string
     ) {
         super()
     }

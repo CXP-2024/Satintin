@@ -5,14 +5,14 @@
  * @param userID: String (需要解封的用户ID)
  * @return result: String (解封操作的结果信息，固定为'用户解封成功！')
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class UnbanUserMessage extends TongWenMessage {
     constructor(
-        public adminToken: string,
-        public userID: string
+        public  adminToken: string,
+        public  userID: string
     ) {
         super()
     }

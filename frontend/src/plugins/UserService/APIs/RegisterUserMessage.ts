@@ -7,16 +7,16 @@
  * @param phoneNumber: String (用户的手机号码。)
  * @return userID: String (生成的新用户ID。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class RegisterUserMessage extends TongWenMessage {
     constructor(
-        public username: string,
-        public passwordHash: string,
-        public email: string,
-        public phoneNumber: string
+        public  username: string,
+        public  passwordHash: string,
+        public  email: string,
+        public  phoneNumber: string
     ) {
         super()
     }

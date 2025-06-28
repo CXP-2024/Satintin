@@ -5,14 +5,14 @@
  * @param rewardAmount: Int (奖励的资产数量。)
  * @return result: String (操作结果的描述信息，例如“奖励发放成功！”。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class RewardAssetMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public rewardAmount: number
+        public  userToken: string,
+        public  rewardAmount: number
     ) {
         super()
     }

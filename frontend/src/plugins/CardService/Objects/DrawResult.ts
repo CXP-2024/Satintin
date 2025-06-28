@@ -4,15 +4,15 @@
  * @param cardList: CardEntry:1124 (抽中卡牌的列表)
  * @param isNewCard: Boolean (是否是新抽到的卡牌)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
-import { CardEntry } from '@/plugins/CardService/Objects/CardEntry';
+import { CardEntry } from 'Plugins/CardService/Objects/CardEntry';
 
 
 export class DrawResult extends Serializable {
     constructor(
-        public cardList: CardEntry[],
-        public isNewCard: boolean
+        public  cardList: CardEntry[],
+        public  isNewCard: boolean
     ) {
         super()
     }

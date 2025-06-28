@@ -1,6 +1,6 @@
-import { getUserTokenSnap } from '@/plugins/CommonUtils/Store/UserInfoStore'
-import { getMacAddressIDSnap } from '@/plugins/CommonUtils/Store/GetMacAddressStore'
-import { PortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
+import { getUserTokenSnap } from 'Plugins/CommonUtils/Store/UserInfoStore'
+import { getMacAddressIDSnap } from 'Plugins/CommonUtils/Store/GetMacAddressStore'
+import { PortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
 
 export class DashboardMessage extends PortalMessage {
     userToken: string

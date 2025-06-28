@@ -6,15 +6,15 @@
  * @param actionDetail: String (详细描述用户操作行为的信息。)
  * @return result: String (结果提示字符串，例如'操作记录成功！'。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class LogUserOperationMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public actionType: string,
-        public actionDetail: string
+        public  userToken: string,
+        public  actionType: string,
+        public  actionDetail: string
     ) {
         super()
     }

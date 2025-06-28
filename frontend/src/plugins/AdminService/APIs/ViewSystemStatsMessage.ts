@@ -4,13 +4,13 @@
  * @param adminToken: String (管理员的身份令牌，用于鉴权操作。)
  * @return systemStats: SystemStats:1039 (系统统计数据，包括活跃用户数、对战次数、抽卡次数、举报总数等。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class ViewSystemStatsMessage extends TongWenMessage {
     constructor(
-        public adminToken: string
+        public  adminToken: string
     ) {
         super()
     }

@@ -7,18 +7,18 @@
  * @param playerOneStatus: PlayerStatus (一号玩家的状态信息)
  * @param playerTwoStatus: PlayerStatus:1092 (二号玩家的状态信息)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
-import { PlayerStatus } from '@/plugins/BattleService/Objects/PlayerStatus';
+import { PlayerStatus } from 'Plugins/BattleService/Objects/PlayerStatus';
 
 
 export class BattleState extends Serializable {
     constructor(
-        public currentRound: number,
-        public roundPhase: string,
-        public remainingTime: number,
-        public playerOneStatus: PlayerStatus,
-        public playerTwoStatus: PlayerStatus
+        public  currentRound: number,
+        public  roundPhase: string,
+        public  remainingTime: number,
+        public  playerOneStatus: PlayerStatus,
+        public  playerTwoStatus: PlayerStatus
     ) {
         super()
     }

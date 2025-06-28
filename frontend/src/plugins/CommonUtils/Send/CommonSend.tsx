@@ -1,10 +1,10 @@
-import { closeAlert, materialAlert, materialAlertError } from '../Gadgets/AlertGadget'
-import { closeBackdropGadget } from '../Gadgets/BackdropGadget'
-import { getNextTestMessage } from './MockTest'
-import { sendMessage } from './SendMessage_New'
-import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from '../Store/CommonSendStore'
-import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from '../Store/UserInfoStore'
-import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from './API'
+import { closeAlert, materialAlert, materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget'
+import { closeBackdropGadget } from 'Plugins/CommonUtils/Gadgets/BackdropGadget'
+import { getNextTestMessage } from 'Plugins/CommonUtils/Send/MockTest'
+import { sendMessage } from 'Plugins/CommonUtils/Send/SendMessage'
+import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from 'Plugins/CommonUtils/Store/CommonSendStore'
+import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore'
+import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from 'Plugins/CommonUtils/Send/API'
 
 /**
  * -1 白名单： 处理 patientToken失效，不要退掉当前的医生的账号，
@@ -44,17 +44,17 @@ export async function commonSend(
             setUserToken('')
             setUserInfo(new UserInfo())
             setAutoRedirectTimer(null)
-        }, 3000) as unknown as number
+        }, 3000)
         setAutoRedirectTimer(timer)
     }
 
     const checkIsOnRedirecting = () => getAutoRedirectTimerSnap()
     const res = mock
         ? getNextTestMessage(infoMessage.getURL())
-        : await sendMessage(infoMessage, timeout, isEncrypt).catch((e: any) => {
-            materialAlertError(e)
-            // return stringToResponse('')
-        })
+        : await sendMessage(infoMessage, timeout, isEncrypt).catch(e => {
+              materialAlertError(e)
+              // return stringToResponse('')
+          })
 
     if (backdropCall) closeBackdropGadget()
 
@@ -72,67 +72,6 @@ export async function commonSend(
     const responseText = await res.text()
     console.log('http got: ' + responseText)
     console.log('status= ' + res.status)
-    
-    // 修复：处理500等HTTP错误状态码
-    if (res.status >= 400) {
-        console.error(`HTTP错误 ${res.status}:`, responseText);
-        
-        // 特殊处理用户名已存在的500错误
-        if (res.status === 500) {
-            // 增强乱码检测逻辑 - 检测更多乱码模式
-            const garbledPatterns = [
-                '锟', '矫', '斤拷', '锟斤拷', '锟矫', '伙拷', '窖达', '锟窖', '达拷',
-                'ï¿½', '�', '\uFFFD', // Unicode 替换字符
-                'IllegalArgumentException', // 异常类型
-                'DidRollbackException' // 回滚异常
-            ];
-            
-            // 检查用户名冲突的关键词
-            const usernameConflictKeywords = [
-                '用户名已存在', '用户名', 'username', 'already exists', 'duplicate',
-                'USERNAME_ALREADY_EXISTS', 'user already exists'
-            ];
-            
-            // 更强的乱码检测
-            const hasGarbledText = garbledPatterns.some(pattern => 
-                responseText.includes(pattern) || responseText.toLowerCase().includes(pattern.toLowerCase())
-            );
-            
-            // 检测用户名冲突关键词
-            const hasUsernameConflict = usernameConflictKeywords.some(keyword =>
-                responseText.toLowerCase().includes(keyword.toLowerCase())
-            );
-            
-            // 特殊处理：如果是500错误且包含IllegalArgumentException，很可能是用户名冲突
-            const isLikelyUsernameConflict = responseText.includes('IllegalArgumentException') || 
-                                           responseText.includes('DidRollbackException') ||
-                                           hasGarbledText;
-            
-            console.log('🔍 [CommonSend] 500错误分析:', {
-                hasGarbledText,
-                hasUsernameConflict,
-                isLikelyUsernameConflict,
-                responseText: responseText.substring(0, 200) // 只打印前200个字符
-            });
-            
-            if (hasGarbledText || hasUsernameConflict || isLikelyUsernameConflict) {
-                failureCall('用户名已存在，请选择其他用户名');
-            } else {
-                failureCall(`服务器内部错误：${responseText || '请稍后重试'}`);
-            }
-        } else if (res.status === 400) {
-            // 处理400错误，可能也包含用户名冲突
-            if (responseText.includes('用户名') || responseText.includes('username') || responseText.includes('已存在')) {
-                failureCall('用户名已存在，请选择其他用户名');
-            } else {
-                failureCall(`请求错误：${responseText || '请检查输入信息'}`);
-            }
-        } else {
-            failureCall(`HTTP ${res.status}: ${responseText || res.statusText || '请求失败'}`);
-        }
-        return;
-    }
-    
     if (res.status === -1 || res.status === -2) {
         for (const substring of retrySubstrings) {
             if (responseText.includes(substring) && tryTimes === 1) {
@@ -169,6 +108,7 @@ export async function commonSend(
                 '错误信息:' + responseText + '\n',
                 '用户ID是:' + getUserIDSnap()
             )
+            // console.error('接口错误' + url.split('/')[url.split('/').length - 1]+ '\n', res.info)
             /****************** 连接错误 *****************/
             failureCall('连接错误，请稍后重试！')
             break
@@ -202,9 +142,7 @@ export async function commonSend(
             failureCall(responseText)
             break
         default:
-            // 修复：确保所有未处理的状态码都调用失败回调
-            console.error('未处理的状态码:', res.status, responseText);
-            failureCall(`未知错误 (${res.status}): ${responseText || '请稍后重试'}`);
+            materialAlert('返回状态码错误！', 'error')
             break
     }
 }

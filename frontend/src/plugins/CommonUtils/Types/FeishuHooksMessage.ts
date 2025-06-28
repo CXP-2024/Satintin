@@ -1,10 +1,10 @@
-import { Message } from '../Send/Serializable'
+import { Message } from 'Plugins/CommonUtils/Send/Serializable'
 
 class FeishuContent {
-    text: string = ''
+    text: string
 }
 
-export abstract class FeishuCardConfigBase { }
+export abstract class FeishuCardConfigBase {}
 
 export class FeishuBugReportCardVariable extends FeishuCardConfigBase {
     constructor(
@@ -36,13 +36,13 @@ export class FeishuCardConfig {
 }
 
 export class FeishuCard {
-    constructor(
+   constructor (
         public type: string,
         public data: FeishuCardConfig
-    ) { }
+   ){}
 }
 
-export abstract class FeishuMessage extends Message { }
+export abstract class FeishuMessage extends Message {}
 
 export class FeishuCardMessageBody extends FeishuMessage {
     constructor(public msg_type: string, public card: FeishuCard) {

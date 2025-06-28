@@ -5,16 +5,16 @@
  * @param rarityLevel: String (卡片稀有度评级)
  * @param cardLevel: Int (卡片等级)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class CardEntry extends Serializable {
     constructor(
-        public cardID: string,
-        public rarityLevel: string,
-        public cardLevel: number
+        public  cardID: string,
+        public  rarityLevel: string,
+        public  cardLevel: number
     ) {
         super()
     }

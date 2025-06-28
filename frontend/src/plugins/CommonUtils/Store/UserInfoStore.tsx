@@ -1,6 +1,6 @@
 import create from 'zustand'
 import { persist } from 'zustand/middleware'
-import { encryptionSessionStorage } from '@/plugins/CommonUtils/Store/DefaultStorage'
+import { encryptionSessionStorage } from 'Plugins/CommonUtils/Store/DefaultStorage'
 
 export class UserInfo {
     nationalID: string = ''

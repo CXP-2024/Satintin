@@ -5,14 +5,14 @@
  * @param deductAmount: Int (需要扣减的资产数量)
  * @return result: String (操作结果信息，例如‘资产扣减成功！’)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class DeductAssetMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public deductAmount: number
+        public  userToken: string,
+        public  deductAmount: number
     ) {
         super()
     }

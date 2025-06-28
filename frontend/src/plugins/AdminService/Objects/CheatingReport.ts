@@ -8,19 +8,19 @@
  * @param isResolved: Boolean (举报是否已经解决)
  * @param reportTime: DateTime (举报提交的时间)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class CheatingReport extends Serializable {
     constructor(
-        public reportID: string,
-        public reportingUserID: string,
-        public reportedUserID: string,
-        public reportReason: string,
-        public isResolved: boolean,
-        public reportTime: number
+        public  reportID: string,
+        public  reportingUserID: string,
+        public  reportedUserID: string,
+        public  reportReason: string,
+        public  isResolved: boolean,
+        public  reportTime: number
     ) {
         super()
     }

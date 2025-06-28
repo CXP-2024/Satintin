@@ -5,14 +5,14 @@
  * @param passwordHash: String (用户密码的哈希值，用于与数据库中的存储值进行比对。)
  * @return isAuthenticated: Boolean (标记用户是否成功登录验证。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class LoginUserMessage extends TongWenMessage {
     constructor(
-        public username: string,
-        public passwordHash: string
+        public  username: string,
+        public  passwordHash: string
     ) {
         super()
     }

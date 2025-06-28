@@ -5,14 +5,14 @@
  * @param userID: String (目标用户的唯一标识符。)
  * @return onlineStatus: Boolean (目标用户的在线状态。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class GetUserStatusMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public userID: string
+        public  userToken: string,
+        public  userID: string
     ) {
         super()
     }

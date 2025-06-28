@@ -1,10 +1,10 @@
-import { CSPortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/CSPortalMessage'
-import { ClinicPortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/ClinicPortalMessage'
-import { WechatPortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/WechatPortalMessage'
-import { AppPortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/AppPortalMessage'
-import { TongWenPortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/TongWenPortalMessage'
-import { DashboardMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/DashboardMessage'
-import { PortalMessage } from '@/plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
+import { CSPortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/CSPortalMessage'
+import { ClinicPortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/ClinicPortalMessage'
+import { WechatPortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/WechatPortalMessage'
+import { AppPortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/AppPortalMessage'
+import { TongWenPortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/TongWenPortalMessage'
+import { DashboardMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/DashboardMessage'
+import { PortalMessage } from 'Plugins/CommonUtils/Types/ToPortalMessages/PortalMessage'
 
 export enum ToPortalType {
     toDashboard = 'toDashboard',

@@ -4,13 +4,13 @@
  * @param userToken: String (用户凭证，用于验证用户身份。)
  * @return messages: MessageEntry:1022 (用户的消息记录列表，包含消息来源、内容及时间。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class ReceiveMessagesMessage extends TongWenMessage {
     constructor(
-        public userToken: string
+        public  userToken: string
     ) {
         super()
     }

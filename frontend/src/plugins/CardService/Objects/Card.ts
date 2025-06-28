@@ -7,18 +7,18 @@
  * @param description: String (卡片的描述信息)
  * @param creationTime: DateTime (卡片创建的时间)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class Card extends Serializable {
     constructor(
-        public cardID: string,
-        public cardName: string,
-        public rarity: string,
-        public description: string,
-        public creationTime: number
+        public  cardID: string,
+        public  cardName: string,
+        public  rarity: string,
+        public  description: string,
+        public  creationTime: number
     ) {
         super()
     }

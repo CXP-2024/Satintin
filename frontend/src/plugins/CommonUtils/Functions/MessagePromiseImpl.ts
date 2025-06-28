@@ -1,4 +1,4 @@
-import { API, SimpleCallBackType } from '@/plugins/CommonUtils/Send/API'
+import { API, SimpleCallBackType } from 'Plugins/CommonUtils/Send/API'
 
 /**
  * 把请求包裹在Promise里面

@@ -7,18 +7,18 @@
  * @param actionDetail: String (具体的行为详细描述)
  * @param actionTime: DateTime (行为的时间戳)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
 
 
 
 export class UserActionLog extends Serializable {
     constructor(
-        public actionLogID: string,
-        public userID: string,
-        public actionType: string,
-        public actionDetail: string,
-        public actionTime: number
+        public  actionLogID: string,
+        public  userID: string,
+        public  actionType: string,
+        public  actionDetail: string,
+        public  actionTime: number
     ) {
         super()
     }

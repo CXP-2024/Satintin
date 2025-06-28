@@ -5,14 +5,14 @@
  * @param blackUserID: String (需要加入黑名单的目标用户ID。)
  * @return result: String (操作结果字符串，指示黑名单加入操作是否成功。)
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 
 
 export class BlockUserMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
-        public blackUserID: string
+        public  userToken: string,
+        public  blackUserID: string
     ) {
         super()
     }

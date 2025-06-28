@@ -1,9 +1,9 @@
 import { StateStorage } from 'zustand/middleware'
-import { aesDecrypt, aesEncrypt } from '@/plugins/CommonUtils/Encryption/AesCrypter'
+import { aesDecrypt, aesEncrypt } from 'Plugins/CommonUtils/Encryption/AesCrypter'
 import { del, get, set } from 'idb-keyval'
-import { requireEncryption } from '@/plugins/CommonUtils/Encryption/EncryptionUtils'
-import { FeishuHooksMessageBody } from '@/plugins/CommonUtils/Types/FeishuHooksMessage'
-import { reportFeishuMessage } from '@/plugins/CommonUtils/Functions/TriggerFeishuHooks'
+import { requireEncryption } from 'Plugins/CommonUtils/Encryption/EncryptionUtils'
+import { FeishuHooksMessageBody } from 'Plugins/CommonUtils/Types/FeishuHooksMessage'
+import { reportFeishuMessage } from 'Plugins/CommonUtils/Functions/TriggerFeishuHooks'
 
 const aesLocalStorage: StateStorage = {
     getItem: (key: string) => {

@@ -1,8 +1,9 @@
-import { replacer } from '@/plugins/CommonUtils/Functions/DeepCopy'
+import { replacer } from 'Plugins/CommonUtils/Functions/DeepCopy'
+
 import { MD5 } from 'crypto-js'
-import { requireEncryption } from '@/plugins/CommonUtils/Encryption/EncryptionUtils'
-import { encrypt } from '@/plugins/CommonUtils/Encryption/Encryption'
-import { API } from '@/plugins/CommonUtils/Send/API'
+import { requireEncryption } from 'Plugins/CommonUtils/Encryption/EncryptionUtils'
+import { encrypt } from 'Plugins/CommonUtils/Encryption/Encryption'
+import { API } from 'Plugins/CommonUtils/Send/API'
 
 export async function sendMessage(
     msg: API,

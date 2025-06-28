@@ -10,21 +10,21 @@
  * @param winnerID: String (获胜玩家的唯一标识)
  * @param createTime: DateTime (房间的创建时间)
  */
-import { Serializable } from '@/plugins/CommonUtils/Send/Serializable'
+import { Serializable } from 'Plugins/CommonUtils/Send/Serializable'
 
-import { BattleState } from '@/plugins/BattleService/Objects/BattleState';
+import { BattleState } from 'Plugins/BattleService/Objects/BattleState';
 
 
 export class BattleRoom extends Serializable {
     constructor(
-        public roomID: string,
-        public playerOneID: string,
-        public playerTwoID: string,
-        public ownerID: string,
-        public currentTurnPlayer: string,
-        public battleState: BattleState,
-        public winnerID: string,
-        public createTime: number
+        public  roomID: string,
+        public  playerOneID: string,
+        public  playerTwoID: string,
+        public  ownerID: string,
+        public  currentTurnPlayer: string,
+        public  battleState: BattleState,
+        public  winnerID: string,
+        public  createTime: number
     ) {
         super()
     }
