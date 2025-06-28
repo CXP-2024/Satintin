@@ -222,3 +222,28 @@
 		grid-template-columns: repeat(2, 1fr);
 	}
 }
+
+/* 匹配状态样式 */
+.mode-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.7;
+}
+
+.mode-btn.matching {
+	animation: matching-pulse 1.5s infinite;
+	background: linear-gradient(45deg, #f39c12, #e67e22) !important;
+}
+
+@keyframes matching-pulse {
+
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 0.8;
+		transform: scale(1.02);
+	}
+}

@@ -1,0 +1,417 @@
+/* GameBoard.css */
+.game-board {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 500px;
+	/* 确保最小高度 */
+	padding: 20px;
+	gap: 20px;
+	overflow: hidden;
+	/* 防止内容溢出 */
+}
+
+/* 玩家区域布局 */
+.player-area {
+	display: grid;
+	grid-template-columns: auto 1fr auto auto;
+	gap: 20px;
+	align-items: center;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(10px);
+	padding: 20px;
+	border-radius: 15px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	transition: all 0.3s ease;
+}
+
+.player-area:hover {
+	background: rgba(255, 255, 255, 0.15);
+	transform: translateY(-2px);
+}
+
+.opponent-area {
+	border-top: 3px solid #e74c3c;
+}
+
+.current-player-area {
+	border-bottom: 3px solid #27ae60;
+}
+
+/* 玩家信息 */
+.player-info {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.player-avatar {
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	background: linear-gradient(45deg, #3498db, #2980b9);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 1.5rem;
+	font-weight: bold;
+	color: white;
+	box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.player-details h3 {
+	margin: 0;
+	font-size: 1.2rem;
+	color: white;
+}
+
+.player-rank {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+	margin-top: 5px;
+}
+
+/* 玩家状态 */
+.player-stats {
+	display: flex;
+	gap: 20px;
+}
+
+.stat-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: rgba(0, 0, 0, 0.3);
+	padding: 10px 15px;
+	border-radius: 20px;
+	font-weight: 600;
+}
+
+.stat-item.health {
+	color: #e74c3c;
+}
+
+.stat-item.energy {
+	color: #f39c12;
+}
+
+.stat-icon {
+	font-size: 1.2rem;
+}
+
+.stat-value {
+	font-size: 1.1rem;
+	min-width: 20px;
+	text-align: center;
+}
+
+/* 玩家行动 */
+.player-action {
+	min-width: 120px;
+}
+
+.action-display {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 15px;
+	border-radius: 12px;
+	font-weight: 600;
+	transition: all 0.3s ease;
+}
+
+.action-display.revealed {
+	background: rgba(46, 204, 113, 0.3);
+	border: 1px solid #27ae60;
+}
+
+.action-display.hidden {
+	background: rgba(149, 165, 166, 0.3);
+	border: 1px solid #95a5a6;
+	color: rgba(255, 255, 255, 0.6);
+}
+
+.action-display.submitted {
+	background: rgba(52, 152, 219, 0.3);
+	border: 1px solid #3498db;
+}
+
+.action-display.waiting {
+	background: rgba(241, 196, 15, 0.3);
+	border: 1px solid #f1c40f;
+}
+
+.action-icon {
+	font-size: 2rem;
+}
+
+.action-text {
+	font-size: 0.9rem;
+}
+
+.submitted-label {
+	font-size: 0.8rem;
+	color: rgba(255, 255, 255, 0.8);
+	margin-top: 5px;
+}
+
+/* 玩家卡牌 */
+.player-cards {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.card {
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 8px;
+	padding: 10px;
+	min-width: 80px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	transition: all 0.3s ease;
+}
+
+.card:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card.penetrate {
+	border-left: 3px solid #e74c3c;
+}
+
+.card.develop {
+	border-left: 3px solid #27ae60;
+}
+
+.card.reflect {
+	border-left: 3px solid #9b59b6;
+}
+
+.card.common {
+	background: rgba(149, 165, 166, 0.2);
+}
+
+.card.rare {
+	background: rgba(52, 152, 219, 0.2);
+}
+
+.card.legendary {
+	background: rgba(243, 156, 18, 0.2);
+}
+
+.card-name {
+	font-size: 0.8rem;
+	font-weight: 600;
+	margin-bottom: 5px;
+	color: white;
+}
+
+.card-effect {
+	font-size: 0.7rem;
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.no-cards {
+	color: rgba(255, 255, 255, 0.5);
+	font-style: italic;
+	padding: 20px;
+}
+
+/* 游戏中央区域 */
+.game-center {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 30px;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 20px;
+	padding: 40px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.round-info {
+	text-align: center;
+}
+
+.round-number {
+	font-size: 2rem;
+	font-weight: bold;
+	color: white;
+	margin-bottom: 10px;
+}
+
+.round-phase {
+	font-size: 1.2rem;
+	color: rgba(255, 255, 255, 0.8);
+	padding: 8px 16px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 20px;
+}
+
+/* 计时器 */
+.timer {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+}
+
+.timer-circle {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	background: conic-gradient(#e74c3c 0deg, rgba(231, 76, 60, 0.3) 360deg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	animation: countdown 1s infinite;
+}
+
+.timer-text {
+	font-size: 2rem;
+	font-weight: bold;
+	color: white;
+	background: rgba(0, 0, 0, 0.8);
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.timer-label {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+/* 游戏规则提示 */
+.game-rules-hint {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.rule-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: rgba(255, 255, 255, 0.1);
+	padding: 10px 15px;
+	border-radius: 20px;
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.rule-icon {
+	font-size: 1.2rem;
+}
+
+/* 动画 */
+@keyframes countdown {
+
+	0%,
+	100% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.05);
+	}
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+	.player-area {
+		grid-template-columns: 1fr;
+		gap: 15px;
+		text-align: center;
+	}
+
+	.player-stats {
+		justify-content: center;
+	}
+
+	.player-cards {
+		justify-content: center;
+	}
+
+	.game-board {
+		gap: 15px;
+		padding: 15px;
+	}
+}
+
+@media (max-width: 768px) {
+	.game-board {
+		padding: 10px;
+		gap: 10px;
+		min-height: auto;
+		/* 小屏幕允许自适应高度 */
+	}
+
+	.player-area {
+		padding: 15px;
+		margin-bottom: 10px;
+	}
+
+	.game-center {
+		padding: 15px;
+		gap: 20px;
+	}
+
+	.round-number {
+		font-size: 1.5rem;
+	}
+
+	.timer-circle {
+		width: 80px;
+		height: 80px;
+	}
+
+	.timer-text {
+		width: 60px;
+		height: 60px;
+		font-size: 1.5rem;
+	}
+
+	.game-rules-hint {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.rule-item {
+		justify-content: center;
+		padding: 8px 12px;
+		font-size: 0.8rem;
+	}
+
+	/* 优化玩家卡牌在小屏幕的显示 */
+	.player-cards {
+		max-height: 80px;
+		overflow-x: auto;
+		overflow-y: hidden;
+		padding: 5px 0;
+	}
+
+	.card {
+		flex-shrink: 0;
+		min-width: 70px;
+		padding: 8px;
+	}
+
+	.card-name {
+		font-size: 0.7rem;
+	}
+
+	.card-effect {
+		font-size: 0.6rem;
+	}
+}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
@@ -8,7 +8,9 @@ import { SoundUtils } from '../utils/soundUtils';
 
 const BattlePage: React.FC = () => {
 	const { user } = useAuthStore();
-	const { navigateQuick } = usePageTransition();
+	const { navigateQuick, navigateWithTransition } = usePageTransition();
+	const [isMatching, setIsMatching] = useState(false);
+	const [matchingMode, setMatchingMode] = useState<'quick' | 'ranked' | null>(null);
 
 	// 初始化音效
 	useEffect(() => {
@@ -23,6 +25,29 @@ const BattlePage: React.FC = () => {
 	const handleBackToHome = () => {
 		playClickSound();
 		navigateQuick('/game');
+	};
+
+	// 开始匹配
+	const handleStartMatch = (mode: 'quick' | 'ranked') => {
+		playClickSound();
+		setIsMatching(true);
+		setMatchingMode(mode);
+
+		// 模拟匹配过程
+		const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
+
+		// 模拟匹配成功后跳转到对战房间
+		setTimeout(() => {
+			setIsMatching(false);
+			setMatchingMode(null);
+			navigateWithTransition('/battle-room', '进入对战房间...');
+		}, 3000); // 3秒后匹配成功
+	};
+
+	// 创建房间
+	const handleCreateRoom = () => {
+		playClickSound();
+		navigateWithTransition('/battle-room', '创建房间中...');
 	};
 
 	return (
@@ -48,7 +73,13 @@ const BattlePage: React.FC = () => {
 							<div className="mode-rewards">
 								<span>胜利奖励: +20 原石</span>
 							</div>
-							<button className="mode-btn primary">开始匹配</button>
+							<button
+								className={`mode-btn primary ${isMatching && matchingMode === 'quick' ? 'matching' : ''}`}
+								onClick={() => handleStartMatch('quick')}
+								disabled={isMatching}
+							>
+								{isMatching && matchingMode === 'quick' ? '匹配中...' : '开始匹配'}
+							</button>
 						</div>
 
 						<div className="mode-card ranked-mode">
@@ -58,7 +89,13 @@ const BattlePage: React.FC = () => {
 							<div className="mode-rewards">
 								<span>胜利奖励: +50 原石 + 段位积分</span>
 							</div>
-							<button className="mode-btn ranked">排位匹配</button>
+							<button
+								className={`mode-btn ranked ${isMatching && matchingMode === 'ranked' ? 'matching' : ''}`}
+								onClick={() => handleStartMatch('ranked')}
+								disabled={isMatching}
+							>
+								{isMatching && matchingMode === 'ranked' ? '匹配中...' : '排位匹配'}
+							</button>
 						</div>
 
 						<div className="mode-card friend-mode">
@@ -68,7 +105,13 @@ const BattlePage: React.FC = () => {
 							<div className="mode-rewards">
 								<span>无奖励，纯粹的友谊切磋</span>
 							</div>
-							<button className="mode-btn friend">创建房间</button>
+							<button
+								className="mode-btn friend"
+								onClick={handleCreateRoom}
+								disabled={isMatching}
+							>
+								创建房间
+							</button>
 						</div>
 					</div>
 
