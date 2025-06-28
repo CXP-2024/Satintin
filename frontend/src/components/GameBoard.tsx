@@ -2,6 +2,17 @@ import React from 'react';
 import { GameState, PlayerState } from '../services/WebSocketService';
 import './GameBoard.css';
 
+// 导入卡牌图片
+import nailongImg from '../assets/images/nailong.png';
+import gaiyaImg from '../assets/images/gaiya.png';
+import mygoImg from '../assets/images/mygo.png';
+import jiegeImg from '../assets/images/jiege.png';
+import paimengImg from '../assets/images/paimeng.png';
+import kunImg from '../assets/images/kun.png';
+import manImg from '../assets/images/man.png';
+import bingbingImg from '../assets/images/bingbing.png';
+import wlmImg from '../assets/images/wlm.png';
+
 interface GameBoardProps {
 	gameState: GameState;
 	currentPlayer: PlayerState | null;
@@ -26,11 +37,33 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 	// 获取卡牌效果显示
 	const getCardEffectText = (card: any) => {
 		const effectMap = {
-			'penetrate': `${card.effectChance}%穿透`,
-			'develop': `${card.effectChance}%发育`,
-			'reflect': `${card.effectChance}%反弹`
+			'penetrate': '穿透防御',
+			'develop': '获得能量',
+			'reflect': '反弹攻击'
 		};
 		return effectMap[card.type as keyof typeof effectMap] || '';
+	};
+
+	// 获取效果概率显示
+	const getCardChanceText = (card: any) => {
+		const percentage = Math.round(card.effectChance * 100);
+		return `${percentage}%`;
+	};
+
+	// 获取卡牌图片
+	const getCardImage = (cardId: string) => {
+		const imageMap: { [key: string]: string } = {
+			'nailong': nailongImg,
+			'gaiya': gaiyaImg,
+			'mygo': mygoImg,
+			'jiege': jiegeImg,
+			'paimeng': paimengImg,
+			'kun': kunImg,
+			'man': manImg,
+			'bingbing': bingbingImg,
+			'wlm': wlmImg
+		};
+		return imageMap[cardId] || null;
 	};
 
 	return (
@@ -78,12 +111,27 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 
 				{/* 对手卡牌 */}
 				<div className="player-cards">
-					{opponent?.cards?.map((card, index) => (
-						<div key={card.cardId} className={`card ${card.type} ${card.rarity}`}>
-							<div className="card-name">{card.name}</div>
-							<div className="card-effect">{getCardEffectText(card)}</div>
-						</div>
-					)) || (
+					{opponent?.cards?.map((card, index) => {
+						const cardImage = getCardImage(card.cardId);
+						return (
+							<div key={card.cardId} className={`card ${card.type} ${card.rarity}`}>
+								{cardImage && (
+									<div className="card-image">
+										<img
+											src={cardImage}
+											alt={card.name}
+											className="card-img"
+										/>
+									</div>
+								)}
+								<div className="card-name">{card.name}</div>
+								<div className="card-effect">{getCardEffectText(card)}</div>
+								<div className={`card-chance ${card.rarity}`}>
+									{getCardChanceText(card)}
+								</div>
+							</div>
+						);
+					}) || (
 							<div className="no-cards">未知卡组</div>
 						)}
 				</div>
@@ -132,12 +180,27 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 			{/* 当前玩家信息区域 */}
 			<div className="player-area current-player-area">
 				<div className="player-cards">
-					{currentPlayer?.cards?.map((card, index) => (
-						<div key={card.cardId} className={`card ${card.type} ${card.rarity}`}>
-							<div className="card-name">{card.name}</div>
-							<div className="card-effect">{getCardEffectText(card)}</div>
-						</div>
-					)) || (
+					{currentPlayer?.cards?.map((card, index) => {
+						const cardImage = getCardImage(card.cardId);
+						return (
+							<div key={card.cardId} className={`card ${card.type} ${card.rarity}`}>
+								{cardImage && (
+									<div className="card-image">
+										<img
+											src={cardImage}
+											alt={card.name}
+											className="card-img"
+										/>
+									</div>
+								)}
+								<div className="card-name">{card.name}</div>
+								<div className="card-effect">{getCardEffectText(card)}</div>
+								<div className={`card-chance ${card.rarity}`}>
+									{getCardChanceText(card)}
+								</div>
+							</div>
+						);
+					}) || (
 							<div className="no-cards">无卡牌</div>
 						)}
 				</div>

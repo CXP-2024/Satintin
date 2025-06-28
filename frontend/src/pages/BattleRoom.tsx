@@ -158,19 +158,40 @@ const BattleRoom: React.FC = () => {
 		setRoomStatus('ready');
 		setConnectionStatus(true);
 
-		// 创建模拟游戏状态
+		// 创建模拟游戏状态 - 使用真实卡牌数据
 		const mockGameState: GameState = {
 			roomId: roomId || 'test_room',
 			player1: {
 				playerId: user?.id || 'test_player_1',
 				username: user?.username || '测试玩家1',
-				health: 100,
-				energy: 50,
+				health: 6, // 根据游戏规则，初始6血
+				energy: 0, // 初始0能量
 				rank: user?.rank || 'Bronze',
 				cards: [
-					{ cardId: 'card_1', name: '甜心蛋糕', type: 'develop', rarity: 'common', effectChance: 0.8 },
-					{ cardId: 'card_2', name: '防护盾', type: 'reflect', rarity: 'rare', effectChance: 0.6 },
-					{ cardId: 'card_3', name: '水枪攻击', type: 'penetrate', rarity: 'common', effectChance: 0.7 }
+					// 5星传说卡牌 - Dragon Nai (反弹)
+					{
+						cardId: 'nailong',
+						name: 'Dragon Nai',
+						type: 'reflect',
+						rarity: 'legendary',
+						effectChance: 0.33 // 33% 概率反弹撒攻击
+					},
+					// 4星稀有卡牌 - 坤 (穿透)
+					{
+						cardId: 'kun',
+						name: '坤',
+						type: 'penetrate',
+						rarity: 'rare',
+						effectChance: 0.15 // 15% 概率穿透防御
+					},
+					// 3星普通卡牌 - wlm (发育)
+					{
+						cardId: 'wlm',
+						name: 'wlm',
+						type: 'develop',
+						rarity: 'common',
+						effectChance: 0.05 // 5% 概率获得2点能量
+					}
 				],
 				isReady: true,
 				isConnected: true
@@ -178,13 +199,34 @@ const BattleRoom: React.FC = () => {
 			player2: {
 				playerId: 'test_opponent',
 				username: '模拟对手',
-				health: 100,
-				energy: 50,
+				health: 6, // 根据游戏规则，初始6血
+				energy: 0, // 初始0能量
 				rank: 'Bronze',
 				cards: [
-					{ cardId: 'card_4', name: '巧克力蛋糕', type: 'develop', rarity: 'common', effectChance: 0.8 },
-					{ cardId: 'card_5', name: '钢铁防御', type: 'reflect', rarity: 'rare', effectChance: 0.6 },
-					{ cardId: 'card_6', name: '强力喷射', type: 'penetrate', rarity: 'legendary', effectChance: 0.9 }
+					// 5星传说卡牌 - 盖亚 (穿透)
+					{
+						cardId: 'gaiya',
+						name: '盖亚',
+						type: 'penetrate',
+						rarity: 'legendary',
+						effectChance: 0.33 // 33% 概率穿透防御
+					},
+					// 4星稀有卡牌 - Paimon (反弹)
+					{
+						cardId: 'paimeng',
+						name: 'Paimon',
+						type: 'reflect',
+						rarity: 'rare',
+						effectChance: 0.15 // 15% 概率反弹撒攻击
+					},
+					// 5星传说卡牌 - Go (发育)
+					{
+						cardId: 'mygo',
+						name: 'Go',
+						type: 'develop',
+						rarity: 'legendary',
+						effectChance: 0.33 // 33% 概率获得2点能量
+					}
 				],
 				isReady: true,
 				isConnected: true
@@ -195,7 +237,7 @@ const BattleRoom: React.FC = () => {
 		};
 
 		setGameState(mockGameState);
-		console.log('🧪 [BattleRoom] 进入测试模式，模拟游戏状态:', mockGameState);
+		console.log('🧪 [BattleRoom] 进入测试模式，使用真实卡牌数据:', mockGameState);
 	};
 
 	// 渲染连接状态
