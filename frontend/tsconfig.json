@@ -20,7 +20,28 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "downlevelIteration": true // 添加这个选项支持迭代器
+    "baseUrl": "src", // 设置基础路径为 src 目录
+    "paths": {
+      "globals/*": [
+        "globals/*"
+      ], // Globals/* → src/Globals/*
+      "Images/*": [
+        "Images/*"
+      ], // Images/* → src/Images/*
+      "Pages/*": [
+        "Pages/*"
+      ], // Pages/* → src/Pages/*
+      "Plugins/*": [
+        "Plugins/*"
+      ], // Plugins/* → src/Plugins/*
+      "Styles/*": [
+        "Styles/*"
+      ], // Styles/* → src/Styles/*
+      "Utils/*": [
+        "Utils/*"
+      ] // Utils/* → src/Utils/*
+    }
+    //"downlevelIteration": true // 添加这个选项支持迭代器
   },
   "include": [
     "src"
