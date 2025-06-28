@@ -1,7 +1,7 @@
 import { MD5 } from 'crypto-js';
 import { User, LoginRequest, RegisterRequest, AuthResponse } from '../types/User';
-import { commonSend } from '../plugins/CommonUtils/Send/CommonSend';
-import { API } from '../plugins/CommonUtils/Send/API';
+import { commonSend } from '../Plugins/CommonUtils/Send/CommonSend';
+import { API } from '../Plugins/CommonUtils/Send/API';
 import { config } from '../globals/Config';
 
 // 类型安全的响应类型定义

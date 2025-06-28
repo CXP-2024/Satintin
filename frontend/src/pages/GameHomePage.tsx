@@ -3,6 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/UserProfile';
+import RewardModal from '../components/RewardModal';
 import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
@@ -12,6 +13,7 @@ const GameHomePage: React.FC = () => {
 	const { user, logout } = useAuthStore();
 	const { navigateWithTransition } = usePageTransition();
 	const [showUserProfile, setShowUserProfile] = useState(false);
+	const [showRewardModal, setShowRewardModal] = useState(false);
 
 	// 初始化音效
 	useEffect(() => {
@@ -59,8 +61,8 @@ const GameHomePage: React.FC = () => {
 	const handleClaimReward = () => {
 		console.log('🎁 [GameHomePage] 领取每日奖励');
 		playClickSound();
-		// 这里可以添加领取奖励的逻辑
-		alert('已领取200原石！');
+		// 显示奖励弹窗而不是浏览器 alert
+		setShowRewardModal(true);
 	};
 
 	const handleShowUserProfile = () => {
@@ -72,6 +74,11 @@ const GameHomePage: React.FC = () => {
 	const handleCloseUserProfile = () => {
 		console.log('👤 [GameHomePage] 关闭用户详情页面');
 		setShowUserProfile(false);
+	};
+
+	const handleCloseRewardModal = () => {
+		console.log('🎁 [GameHomePage] 关闭奖励弹窗');
+		setShowRewardModal(false);
 	};
 
 	return (
@@ -212,6 +219,16 @@ const GameHomePage: React.FC = () => {
 				<UserProfile
 					isOpen={showUserProfile}
 					onClose={handleCloseUserProfile}
+				/>
+
+				{/* 奖励弹窗 */}
+				<RewardModal
+					isOpen={showRewardModal}
+					onClose={handleCloseRewardModal}
+					rewardType="daily"
+					rewardAmount={200}
+					rewardTitle="每日奖励"
+					rewardDescription="恭喜您获得每日登录奖励！"
 				/>
 			</div>
 		</PageTransition>
