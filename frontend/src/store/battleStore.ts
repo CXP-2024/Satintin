@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { GameState, PlayerState, BattleAction, RoundResult } from '../services/WebSocketService';
+import { GameState, PlayerState, BattleAction, RoundResult, GameOverResult } from '../services/WebSocketService';
 
 interface BattleState {
 	// 房间状态
@@ -21,6 +21,8 @@ interface BattleState {
 	showActionSelector: boolean;
 	showRoundResult: boolean;
 	currentRoundResult: RoundResult | null;
+	showGameOver: boolean;
+	currentGameOverResult: GameOverResult | null;
 
 	// Actions
 	setRoomId: (roomId: string) => void;
@@ -32,6 +34,8 @@ interface BattleState {
 	addRoundResult: (result: RoundResult) => void;
 	showRoundResultModal: (result: RoundResult) => void;
 	hideRoundResultModal: () => void;
+	showGameOverModal: (result: GameOverResult) => void;
+	hideGameOverModal: () => void;
 	resetBattle: () => void;
 }
 
@@ -52,6 +56,8 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 	showActionSelector: false,
 	showRoundResult: false,
 	currentRoundResult: null,
+	showGameOver: false,
+	currentGameOverResult: null,
 
 	// Actions
 	setRoomId: (roomId: string) => {
@@ -148,6 +154,22 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 		});
 	},
 
+	showGameOverModal: (result: GameOverResult) => {
+		console.log('📝 [BattleStore] 显示游戏结束:', result);
+		set({
+			showGameOver: true,
+			currentGameOverResult: result
+		});
+	},
+
+	hideGameOverModal: () => {
+		console.log('📝 [BattleStore] 隐藏游戏结束弹窗');
+		set({
+			showGameOver: false,
+			currentGameOverResult: null
+		});
+	},
+
 	resetBattle: () => {
 		console.log('📝 [BattleStore] 重置对战状态');
 		set({
@@ -162,7 +184,9 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 			roundHistory: [],
 			showActionSelector: false,
 			showRoundResult: false,
-			currentRoundResult: null
+			currentRoundResult: null,
+			showGameOver: false,
+			currentGameOverResult: null
 		});
 	}
 }));

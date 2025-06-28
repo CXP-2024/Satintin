@@ -21,7 +21,7 @@ const ActionSelector: React.FC = () => {
 			type: 'cake' as const,
 			icon: '🍰',
 			name: '饼',
-			description: '+1能量\n若对方出撒，对方-1血',
+			description: '+1能量\n若对方出撒，我方-1血',
 			color: '#f39c12',
 			requirements: '无消耗'
 		},

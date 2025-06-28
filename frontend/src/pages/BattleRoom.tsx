@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useBattleStore } from '../store/battleStore';
 import { webSocketService, GameState } from '../services/WebSocketService';
+import { battleTestSimulator } from '../services/BattleTestSimulator';
 import PageTransition from '../components/PageTransition';
 import GameBoard from '../components/GameBoard';
 import ActionSelector from '../components/ActionSelector';
 import RoundResultModal from '../components/RoundResultModal';
+import { GameOverModal } from '../components/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
@@ -24,12 +26,15 @@ const BattleRoom: React.FC = () => {
 		showActionSelector,
 		showRoundResult,
 		currentRoundResult,
+		showGameOver,
+		currentGameOverResult,
 		setRoomId,
 		setGameState,
 		setConnectionStatus,
 		addRoundResult,
 		showRoundResultModal,
 		hideRoundResultModal,
+		hideGameOverModal,
 		resetBattle
 	} = useBattleStore();
 
@@ -81,6 +86,8 @@ const BattleRoom: React.FC = () => {
 		return () => {
 			webSocketService.disconnect();
 			resetBattle();
+			// 停止测试模式
+			battleTestSimulator.stopTestMode();
 		};
 	}, [user, token, navigate, setRoomId, setConnectionStatus, resetBattle]);
 
@@ -137,6 +144,21 @@ const BattleRoom: React.FC = () => {
 		});
 	};
 
+	// 重新开始测试游戏
+	const handleRestartTestGame = () => {
+		SoundUtils.playClickSound(0.5);
+		hideGameOverModal();
+
+		// 重新创建测试游戏状态
+		const mockGameState = battleTestSimulator.createTestGameState(user, roomId || 'test_room');
+		setGameState(mockGameState);
+
+		// 重新启动测试模式模拟器
+		battleTestSimulator.startTestMode();
+
+		console.log('🔄 [BattleRoom] 重新开始测试游戏');
+	};
+
 	// 离开房间
 	const handleLeaveRoom = () => {
 		SoundUtils.playClickSound(0.5);
@@ -158,86 +180,14 @@ const BattleRoom: React.FC = () => {
 		setRoomStatus('ready');
 		setConnectionStatus(true);
 
-		// 创建模拟游戏状态 - 使用真实卡牌数据
-		const mockGameState: GameState = {
-			roomId: roomId || 'test_room',
-			player1: {
-				playerId: user?.id || 'test_player_1',
-				username: user?.username || '测试玩家1',
-				health: 6, // 根据游戏规则，初始6血
-				energy: 0, // 初始0能量
-				rank: user?.rank || 'Bronze',
-				cards: [
-					// 5星传说卡牌 - Dragon Nai (反弹)
-					{
-						cardId: 'nailong',
-						name: 'Dragon Nai',
-						type: 'reflect',
-						rarity: 'legendary',
-						effectChance: 0.33 // 33% 概率反弹撒攻击
-					},
-					// 4星稀有卡牌 - 坤 (穿透)
-					{
-						cardId: 'kun',
-						name: '坤',
-						type: 'penetrate',
-						rarity: 'rare',
-						effectChance: 0.15 // 15% 概率穿透防御
-					},
-					// 3星普通卡牌 - wlm (发育)
-					{
-						cardId: 'wlm',
-						name: 'wlm',
-						type: 'develop',
-						rarity: 'common',
-						effectChance: 0.05 // 5% 概率获得2点能量
-					}
-				],
-				isReady: true,
-				isConnected: true
-			},
-			player2: {
-				playerId: 'test_opponent',
-				username: '模拟对手',
-				health: 6, // 根据游戏规则，初始6血
-				energy: 0, // 初始0能量
-				rank: 'Bronze',
-				cards: [
-					// 5星传说卡牌 - 盖亚 (穿透)
-					{
-						cardId: 'gaiya',
-						name: '盖亚',
-						type: 'penetrate',
-						rarity: 'legendary',
-						effectChance: 0.33 // 33% 概率穿透防御
-					},
-					// 4星稀有卡牌 - Paimon (反弹)
-					{
-						cardId: 'paimeng',
-						name: 'Paimon',
-						type: 'reflect',
-						rarity: 'rare',
-						effectChance: 0.15 // 15% 概率反弹撒攻击
-					},
-					// 5星传说卡牌 - Go (发育)
-					{
-						cardId: 'mygo',
-						name: 'Go',
-						type: 'develop',
-						rarity: 'legendary',
-						effectChance: 0.33 // 33% 概率获得2点能量
-					}
-				],
-				isReady: true,
-				isConnected: true
-			},
-			currentRound: 1,
-			roundPhase: 'action',
-			remainingTime: 30
-		};
-
+		// 创建测试游戏状态
+		const mockGameState = battleTestSimulator.createTestGameState(user, roomId || 'test_room');
 		setGameState(mockGameState);
-		console.log('🧪 [BattleRoom] 进入测试模式，使用真实卡牌数据:', mockGameState);
+
+		// 启动测试模式模拟器
+		battleTestSimulator.startTestMode();
+
+		console.log('🧪 [BattleRoom] 进入测试模式，对手AI将一直使用饼:', mockGameState);
 	};
 
 	// 渲染连接状态
@@ -351,6 +301,19 @@ const BattleRoom: React.FC = () => {
 					<RoundResultModal
 						result={currentRoundResult}
 						onClose={hideRoundResultModal}
+					/>
+				)}
+
+				{/* 游戏结束模态框 */}
+				{showGameOver && currentGameOverResult && (
+					<GameOverModal
+						open={showGameOver}
+						gameOverResult={currentGameOverResult}
+						onClose={() => {
+							hideGameOverModal();
+							handleLeaveRoom();
+						}}
+						onRestart={testMode ? handleRestartTestGame : undefined}
 					/>
 				)}
 			</div>
