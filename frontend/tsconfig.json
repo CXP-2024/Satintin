@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015", // 更新为 es2015 以支持迭代器
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "es6",
+      "es2015"
     ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "module": "esnext",
     "moduleResolution": "node",
@@ -19,42 +20,13 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "src",
-    "paths": {
-      "@/*": [
-        "*"
-      ],
-      "@/plugins/*": [
-        "plugins/*"
-      ],
-      "@/components/*": [
-        "components/*"
-      ],
-      "@/services/*": [
-        "services/*"
-      ],
-      "Globals/*": [
-        "globals/*"
-      ],
-      "Plugins/*": [
-        "../Plugins/*"
-      ]
-    }
+    "downlevelIteration": true // 添加这个选项支持迭代器
   },
   "include": [
-    "src/components/**/*",
-    "src/pages/**/*",
-    "src/store/**/*",
-    "src/types/**/*",
-    "src/globals/**/*",
-    "src/App.tsx",
-    "src/index.tsx",
-    "src/index.css",
-    "src/App.css",
-    "src/react-app-env.d.ts",
-    "src/setupTests.ts",
-    "src/reportWebVitals.ts",
-    "../Plugins/**/*"
+    "src"
   ],
-  "exclude": []
+  "exclude": [
+    "src/plugins",
+    "../Plugins/**/*"
+  ]
 }

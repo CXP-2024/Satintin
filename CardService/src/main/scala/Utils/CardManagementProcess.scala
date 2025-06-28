@@ -19,6 +19,7 @@ import Objects.CardService.CardEntry
 import Objects.UserService.BlackEntry
 import Objects.UserService.FriendEntry
 import APIs.AssetService.QueryAssetStatusMessage
+import APIs.UserService.GetUserInfoMessage
 import Objects.UserService.User
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
@@ -27,26 +28,23 @@ import Objects.CardService.{DrawResult, CardEntry}
 import Common.Object.{ParameterList, SqlParameter}
 import java.util.UUID
 import APIs.UserService.LogUserOperationMessage // Add missing import for the logging API message
+import APIs.AssetService.DeductAssetMessage
 
 case object CardManagementProcess {
   private val logger = LoggerFactory.getLogger(getClass)
   //process plan code 预留标志位，不要删除
   
-  def upgradeCard(userID: String, cardID: String)(using PlanContext): IO[String] = {
+  def upgradeCard(userToken: String, userID: String, cardID: String)(using PlanContext): IO[String] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
   
     for {
       // Step 1.1: Verify userID exists
-      _ <- IO(logger.info(s"验证用户ID: ${userID}是否存在"))
-      userExists <- readDBBoolean(
-        s"SELECT EXISTS(SELECT 1 FROM ${schemaName}.user WHERE user_id = ?);",
-        List(SqlParameter("String", userID))
-      )
-      _ <- if (!userExists) {
-             IO.raiseError(new IllegalStateException(s"用户ID ${userID}不存在"))
-           } else {
-             IO(logger.info(s"用户ID ${userID}存在"))
-           }
+      _ <- IO(logger.info(s"调用 UserService 验证用户 ID: ${userID}"))
+      _ <- GetUserInfoMessage(userToken, userID)
+            .send
+            .handleErrorWith(_ =>
+              IO.raiseError(new IllegalStateException(s"用户 ID ${userID} 不存在或 Token 非法"))
+            )
   
       // Step 1.2: Verify cardID belongs to the user
       _ <- IO(logger.info(s"验证卡片ID: ${cardID}是否属于用户 ${userID}"))
@@ -169,7 +167,7 @@ case object CardManagementProcess {
     } yield cardEntries
   }
   
-  def drawCards(userID: String, drawCount: Int)(using PlanContext): IO[DrawResult] = {
+  def drawCards(userToken: String, userID: String, drawCount: Int)(using PlanContext): IO[DrawResult] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
     val MAX_DRAW_COUNT = 10
     val STONE_COST_PER_DRAW = 100
@@ -186,14 +184,14 @@ case object CardManagementProcess {
   
       // Step 2: Fetch and validate user's stone count
       _ <- IO(logger.info(s"校验用户[userID=${userID}]的原石数量"))
-      userStoneQuery <- IO(s"SELECT stone_amount FROM ${schemaName}.user_table WHERE user_id = ?")
-      userStone <- readDBInt(userStoneQuery, List(SqlParameter("String", userID)))
+      _ <- IO(logger.info(s"调用 AssetService 查询原石数量 userID=${userID}"))
+      userStone <- QueryAssetStatusMessage(userToken).send
       _ <- if (userStone < drawCount * STONE_COST_PER_DRAW) {
         IO.raiseError(new IllegalStateException(s"原石数量不足，本次抽卡需要消耗 ${drawCount * STONE_COST_PER_DRAW} 原石，但当前仅有 ${userStone} 原石"))
       } else IO.unit
   
-      // Step 3: Fetch user's existing card inventory
-      _ <- IO(logger.info(s"获取用户[userID=${userID}]已拥有的卡牌信息"))
+      // Step 3: Fetch user's card inventory
+      _ <- IO(logger.info(s"获取用户[userID=${userID}]的卡牌库存"))
       userCardInventory <- fetchUserCardInventory(userID)
       userOwnedCardIDs = userCardInventory.map(_.cardID)
       _ <- IO(logger.info(s"用户已有卡牌 cardIDs=${userOwnedCardIDs.mkString(", ")}"))
@@ -216,12 +214,8 @@ case object CardManagementProcess {
   
       // Step 6: Deduct stones from the user's account
       stonesToDeduct = drawCount * STONE_COST_PER_DRAW
-      _ <- IO(logger.info(s"扣减用户[userID=${userID}]的原石数量，扣除数量=${stonesToDeduct}"))
-      updateStonesQuery <- IO(s"UPDATE ${schemaName}.user_table SET stone_amount = stone_amount - ? WHERE user_id = ?")
-      _ <- writeDB(updateStonesQuery, List(
-        SqlParameter("Int", stonesToDeduct.toString),
-        SqlParameter("String", userID)
-      ))
+      _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))
+      _ <- DeductAssetMessage(userToken, stonesToDeduct).send
   
       // Step 7: Log the draw results in CardDrawLogTable
       _ <- IO(logger.info(s"记录本次抽卡信息到CardDrawLogTable"))

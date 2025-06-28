@@ -1,11 +1,6 @@
 import { materialAlertError } from '../Gadgets/AlertGadget'
 import { openBackdropGadget } from '../Gadgets/BackdropGadget'
-import { commonSend } from './CommonSend'
-
-// 临时配置对象
-const config = {
-    protocol: 'http'
-}
+import { config } from '../../../globals/Config'
 
 export type InfoCallBackType = (info: any) => void
 export const backdropInitCallBack = openBackdropGadget
@@ -19,12 +14,13 @@ export const alertCallBack = (info: string) => {
 export abstract class API {
     serviceName: string = ''
     public readonly type = this.getName()
+    
     public getURL(): string {
         return `${config.protocol ? config.protocol : 'http'}://${this.getAddress()}/api/${this.getRoute()}`
     }
 
     getAddress(): string {
-        return "0.0.0.0"
+        return "localhost:3002"
     }
 
     getRoute(): string {
@@ -33,17 +29,5 @@ export abstract class API {
 
     private getName() {
         return this.constructor.name
-    }
-    send(
-        successCall: InfoCallBackType,
-        failureCall: InfoCallBackType = alertCallBack,
-        backdropCall: SimpleCallBackType | null = backdropInitCallBack,
-        timeout: number = 1000 * 50,
-        timeoutCall: SimpleCallBackType | null = null,
-        isEncrypt: boolean = true
-    ): void {
-        commonSend(this, successCall, failureCall, backdropCall, timeoutCall, timeout, false, isEncrypt).catch(e =>
-            console.error(e)
-        )
     }
 }

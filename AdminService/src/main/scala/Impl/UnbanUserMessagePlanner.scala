@@ -68,8 +68,8 @@ case class UnbanUserMessagePlanner(
     val validationSql =
       s"""
         SELECT COUNT(*) > 0
-        FROM ${schemaName}.admin_table
-        WHERE admin_token = ?
+        FROM ${schemaName}.admin_account_table
+        WHERE token = ?
       """
     val parameters = List(SqlParameter("String", token))
     for {

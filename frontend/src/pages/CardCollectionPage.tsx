@@ -72,7 +72,8 @@ const RARITIES = [
 const userCards = CARDS_DATA;
 
 const CardCollectionPage: React.FC = () => {
-	const { user } = useAuthStore();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { user } = useAuthStore();
 	const { navigateQuick } = usePageTransition();
 	const [selected, setSelected] = useState<typeof CARDS_DATA[0][]>([
 		CARDS_DATA.find(c => c.id === 'jiege')!,

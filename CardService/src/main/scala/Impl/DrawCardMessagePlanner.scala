@@ -4,6 +4,7 @@ package Impl
 import Common.API.{PlanContext, Planner}
 import APIs.AssetService.QueryAssetStatusMessage
 import APIs.AssetService.DeductAssetMessage
+import APIs.UserService.GetUserInfoMessage
 import Utils.CardManagementProcess.{fetchUserCardInventory, drawCards}
 import Objects.CardService.{DrawResult, CardEntry}
 import org.slf4j.LoggerFactory
@@ -74,7 +75,7 @@ case class DrawCardMessagePlanner(
 
       // Step 4: Execute card draw
       _ <- IO(logger.info("[Step 4] 执行抽卡操作，数量=${drawCount}"))
-      drawResult <- drawCards(getUserIDFromToken(userToken), drawCount)
+      drawResult <- drawCards(userToken, getUserIDFromToken(userToken), drawCount)
 
       // Step 5: Log the draw results into the CardDrawLogTable
       _ <- IO(logger.info("[Step 5] 记录抽卡日志到CardDrawLogTable"))
@@ -86,15 +87,10 @@ case class DrawCardMessagePlanner(
 
   // Method to validate user token
   private def validateUserToken(userToken: String)(using PlanContext): IO[Boolean] = {
-    val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_validateUserToken")
-    for {
-      _ <- IO(logger.info(s"开始验证用户Token: ${userToken}"))
-      sqlQuery <- IO {
-        s"SELECT EXISTS(SELECT 1 FROM ${schemaName}.user_table WHERE token = ?)"
-      }
-      isValid <- readDBBoolean(sqlQuery, List(SqlParameter("String", userToken)))
-      _ <- IO(logger.info(s"用户Token验证结束，合法性=$isValid"))
-    } yield isValid
+    // Use GetUserInfoMessage to verify token and retrieve user info
+    GetUserInfoMessage(userToken, getUserIDFromToken(userToken))
+      .send
+      .map(_ => true)
   }
 
   // Method to log card draw results
@@ -144,9 +140,7 @@ case class DrawCardMessagePlanner(
     } yield ()
   }
 
-  // Extract userID from the user token
-  private def getUserIDFromToken(userToken: String): String = {
-    // 假设我们可以通过Token字符串直接解析用户ID，实际实现可能需要修改
-    userToken.split("-").headOption.getOrElse("unknown_user")
-  }
+  // Extract userID from userToken.
+  // 假设在 DB 里存的是完整的 UUID，就直接返回 token 本身。
+  private def getUserIDFromToken(userToken: String): String = userToken
 }

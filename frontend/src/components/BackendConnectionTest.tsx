@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ApiService } from '../services/ApiService';
 import { config } from '../globals/Config';
+import { apiService } from '../services/ApiService';
 
 interface ServiceStatus {
   name: string;
@@ -11,53 +11,80 @@ interface ServiceStatus {
 
 const BackendConnectionTest: React.FC = () => {
   const [services, setServices] = useState<ServiceStatus[]>([
-    { name: '主API', url: config.apiBaseUrl, status: 'loading' },
-    { name: '用户服务', url: config.userServiceUrl, status: 'loading' },
+    { name: '用户服务', url: config.userServiceUrl || 'via Proxy', status: 'loading' },
     { name: '卡牌服务', url: config.cardServiceUrl, status: 'loading' },
     { name: '管理服务', url: config.adminServiceUrl, status: 'loading' },
     { name: '资产服务', url: config.assetServiceUrl, status: 'loading' },
     { name: '战斗服务', url: config.battleServiceUrl, status: 'loading' },
-  ]);
+  ]);  
 
   useEffect(() => {
     const testConnection = async () => {
-      const updatedServices = [...services];
+      const updatedServices: ServiceStatus[] = [
+        { name: '用户服务', url: config.userServiceUrl || 'via Proxy', status: 'loading' },
+        { name: '卡牌服务', url: config.cardServiceUrl, status: 'loading' },
+        { name: '管理服务', url: config.adminServiceUrl, status: 'loading' },
+        { name: '资产服务', url: config.assetServiceUrl, status: 'loading' },
+        { name: '战斗服务', url: config.battleServiceUrl, status: 'loading' },
+      ];
 
       for (let i = 0; i < updatedServices.length; i++) {
         const service = updatedServices[i];
         try {
-          // 尝试连接到服务
-          try {
-            // 先尝试健康检查端点
-            await fetch(`${service.url}/health`, { 
-              method: 'GET',
-              mode: 'cors',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              // 设置短超时，避免等待太久
-              signal: AbortSignal.timeout(5000) 
-            });
-          } catch (healthError) {
-            // 如果健康检查失败，尝试根端点
-            await fetch(service.url, { 
-              method: 'GET',
-              mode: 'cors',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              signal: AbortSignal.timeout(5000) 
-            });
+          let connected = false;
+          let lastError = null;
+
+          if (service.name === '用户服务' && !config.userServiceUrl) {
+            // 用户服务使用代理，测试代理端点
+            const proxyEndpoints = ['/api/health', '/api/', '/health'];
+            for (const endpoint of proxyEndpoints) {
+              try {
+                await fetch(endpoint, { 
+                  method: 'GET',
+                  headers: { 'Content-Type': 'application/json' },
+                  signal: AbortSignal.timeout(3000) 
+                });
+                connected = true;
+                break;
+              } catch (error) {
+                lastError = error;
+                continue;
+              }
+            }
+          } else if (service.url && service.url !== 'via Proxy') {
+            // 其他服务，测试直接连接
+            const testEndpoints = [`${service.url}/health`, service.url];
+            for (const endpoint of testEndpoints) {
+              try {
+                await fetch(endpoint, { 
+                  method: 'GET',
+                  mode: 'cors',
+                  headers: { 'Content-Type': 'application/json' },
+                  signal: AbortSignal.timeout(3000) 
+                });
+                connected = true;
+                break;
+              } catch (error) {
+                lastError = error;
+                continue;
+              }
+            }
           }
 
-          // 如果没有抛出错误，则认为连接成功
-          updatedServices[i] = { 
-            ...service, 
-            status: 'connected',
-            message: '连接成功！' 
-          };
+          if (connected) {
+            updatedServices[i] = { 
+              ...service, 
+              status: 'connected',
+              message: '连接成功！' 
+            };
+          } else {
+            updatedServices[i] = { 
+              ...service, 
+              status: 'error',
+              message: `连接失败: ${lastError instanceof Error ? lastError.message : '所有端点不可达'}` 
+            };
+          }
         } catch (error) {
-          console.error(`连接 ${service.name} 失败:`, error);
           updatedServices[i] = { 
             ...service, 
             status: 'error',
@@ -65,7 +92,6 @@ const BackendConnectionTest: React.FC = () => {
           };
         }
 
-        // 更新状态，使UI反映当前进度
         setServices([...updatedServices]);
       }
     };
@@ -112,7 +138,7 @@ const BackendConnectionTest: React.FC = () => {
             {services.map((service, index) => (
               <tr key={index}>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>{service.name}</td>
-                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{service.url}</td>
+                <td style={{ border: '1px solid #ddd', padding: '8px' }}>{service.url || '使用代理'}</td>
                 <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                   <span style={{ 
                     color: getStatusColor(service.status),
@@ -130,28 +156,71 @@ const BackendConnectionTest: React.FC = () => {
       </div>
 
       <div style={{ marginTop: '30px' }}>
-        <h2>高级API测试</h2>
+        <h2>API 端点测试</h2>
+        
         <button 
           onClick={async () => {
             try {
-              // 尝试连接用户服务
-              try {
-                // 先尝试健康检查端点
-                const result = await ApiService.get(`${config.userServiceUrl}/health`);
-                alert('API调用成功 (health): ' + JSON.stringify(result));
-              } catch (healthError) {
-                try {
-                  // 如果健康检查失败，尝试API健康检查端点
-                  const result = await ApiService.get(`${config.userServiceUrl}/api/health`);
-                  alert('API调用成功 (api/health): ' + JSON.stringify(result));
-                } catch (apiHealthError) {
-                  // 如果API健康检查也失败，尝试根端点
-                  const response = await fetch(config.userServiceUrl);
-                  alert('连接成功 (根端点): ' + response.status);
-                }
-              }
+              console.log('🔍 开始测试用户API端点...');
+              
+              // 使用正确的格式测试登录端点
+              const testResponse = await fetch('/api/LoginUserMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  username: 'test_user',
+                  passwordHash: 'test_hash'  // 使用 passwordHash 而不是 password
+                })
+              });
+              
+              const result = await testResponse.text();
+              console.log('🔍 测试响应状态:', testResponse.status);
+              console.log('🔍 测试响应内容:', result);
+              
+              alert(`用户服务API测试响应 (${testResponse.status}): ${result}`);
             } catch (error) {
-              alert('API调用失败: ' + (error instanceof Error ? error.message : '未知错误'));
+              console.error('🔍 测试失败:', error);
+              alert('用户服务API测试失败: ' + (error instanceof Error ? error.message : '未知错误'));
+            }
+          }}
+          style={{
+            padding: '10px 15px',
+            backgroundColor: '#FF9800',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          测试用户API端点
+        </button>
+
+        <button 
+          onClick={async () => {
+            try {
+              console.log('🔍 测试注册API端点...');
+              
+              // 使用正确的格式测试注册端点
+              const testResponse = await fetch('/api/RegisterUserMessage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  username: 'test_user_' + Date.now(),
+                  passwordHash: 'test123',  // 使用 passwordHash
+                  email: 'test@example.com',
+                  phoneNumber: '15300559913'
+                })
+              });
+              
+              const result = await testResponse.text();
+              console.log('🔍 注册测试响应状态:', testResponse.status);
+              console.log('🔍 注册测试响应内容:', result);
+              
+              alert(`注册API测试响应 (${testResponse.status}): ${result}`);
+            } catch (error) {
+              console.error('🔍 测试失败:', error);
+              alert('注册API测试失败: ' + (error instanceof Error ? error.message : '未知错误'));
             }
           }}
           style={{
@@ -164,42 +233,71 @@ const BackendConnectionTest: React.FC = () => {
             marginRight: '10px'
           }}
         >
-          测试用户服务
+          测试注册API端点
         </button>
 
         <button 
           onClick={async () => {
             try {
-              // 尝试连接卡牌服务
-              try {
-                // 先尝试健康检查端点
-                const result = await ApiService.get(`${config.cardServiceUrl}/health`);
-                alert('API调用成功 (health): ' + JSON.stringify(result));
-              } catch (healthError) {
-                try {
-                  // 如果健康检查失败，尝试API健康检查端点
-                  const result = await ApiService.get(`${config.cardServiceUrl}/api/health`);
-                  alert('API调用成功 (api/health): ' + JSON.stringify(result));
-                } catch (apiHealthError) {
-                  // 如果API健康检查也失败，尝试根端点
-                  const response = await fetch(config.cardServiceUrl);
-                  alert('连接成功 (根端点): ' + response.status);
-                }
-              }
+              console.log('🔍 测试代理连接...');
+              
+              const testResponse = await fetch('/api/', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+              });
+              
+              const result = await testResponse.text();
+              alert(`代理连接测试结果:\n状态: ${testResponse.status}\n响应: ${result}`);
             } catch (error) {
-              alert('API调用失败: ' + (error instanceof Error ? error.message : '未知错误'));
+              console.error('🔍 代理测试失败:', error);
+              alert('代理连接失败: ' + (error instanceof Error ? error.message : '未知错误'));
             }
           }}
           style={{
             padding: '10px 15px',
-            backgroundColor: '#2196F3',
+            backgroundColor: '#9C27B0',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginRight: '10px'
+          }}
+        >
+          测试代理连接
+        </button>
+
+        <button 
+          onClick={async () => {
+            try {
+              console.log('🔍 测试真实注册流程...');
+              
+              const response = await apiService.register({
+                username: 'testuser_' + Date.now(),
+                password: 'testpass123',
+                email: 'test@example.com',
+                phoneNumber: '13800138000'
+              });
+
+              // 类型安全的处理方式
+              if (response.success) {
+                alert(`注册测试结果:\n 成功: ${response.success}\n消息: ${response.message || '注册成功'}\n数据: ${JSON.stringify(response.data, null, 2)}`);
+              } else {
+                alert(`注册测试结果:\n 成功: ${response.success}\n消息: ${response.message}`);
+              }
+            } catch (error) {
+              alert('注册测试失败: ' + (error instanceof Error ? error.message : '未知错误'));
+            }
+          }}
+          style={{
+            padding: '10px 15px',
+            backgroundColor: '#4CAF50',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer'
           }}
         >
-          测试卡牌服务
+          测试注册流程
         </button>
       </div>
     </div>

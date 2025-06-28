@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.PlanContext
@@ -16,6 +15,8 @@ import org.http4s.dsl.io.*
 import scala.collection.concurrent.TrieMap
 import Common.Serialize.CustomColumnTypes.*
 import Impl.BanUserMessagePlanner
+import Impl.CreateAdminMessagePlanner
+import Impl.LoginAdminMessagePlanner
 import Impl.ManageReportMessagePlanner
 import Impl.UnbanUserMessagePlanner
 import Impl.ViewSystemStatsMessagePlanner
@@ -58,6 +59,20 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
+
+      case "LoginAdminMessage" =>
+        IO(
+          decode[LoginAdminMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for LoginAdminMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "CreateAdminMessage" =>
+        IO(
+          decode[CreateAdminMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateAdminMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
 
       case "test" =>
         for {
@@ -113,4 +128,3 @@ object Routes:
           BadRequest(e.getMessage.asJson.toString)
       }
   }
-  

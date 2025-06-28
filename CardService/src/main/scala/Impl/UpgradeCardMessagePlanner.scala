@@ -77,7 +77,7 @@ case class UpgradeCardMessagePlanner(
 
       // Step 5: Upgrade the card
       _ <- IO(logger.info(s"执行卡片升级逻辑，升级卡片 ${cardID}"))
-      _ <- upgradeCard(userID, cardID)
+      _ <- upgradeCard(userToken, userID, cardID)
 
       // Step 6: Return success result
       result <- IO.pure("卡牌升级成功！")

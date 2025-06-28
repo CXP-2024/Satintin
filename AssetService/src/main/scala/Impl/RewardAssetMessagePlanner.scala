@@ -81,10 +81,8 @@ case class RewardAssetMessagePlanner(
    */
   private def verifyUserToken(token: String)(using PlanContext): IO[String] = {
     for {
-      _ <- IO {
-        if (token == null || token.trim.isEmpty)
-          throw new IllegalArgumentException("用户 token 不能为空或无效")
-      }
+      _ <- IO(if (token == null || token.trim.isEmpty) 
+                throw new IllegalArgumentException("用户 token 不能为空或无效"))
       _ <- IO(logger.info(s"解析并校验用户 token=$token"))
 
       // For AssetService, we treat the userToken as the userID directly

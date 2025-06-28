@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:10010",
   "dependencies": {
     "axios": "^1.10.0",
     "react-router-dom": "^7.6.2",
