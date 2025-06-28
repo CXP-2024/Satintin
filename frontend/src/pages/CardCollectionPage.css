@@ -94,10 +94,89 @@
 	position: relative;
 	z-index: 2;
 	padding: 20px 30px;
+	overflow: hidden;
+	/* 隐藏滑动过程中的溢出内容 */
 }
 
-/* 我的卡组部分 */
-.deck-section h2 {
+/* 页面切换动画容器 */
+.tab-content-container {
+	position: relative;
+	width: 100%;
+	height: auto;
+	overflow: hidden;
+}
+
+.tab-content {
+	width: 100%;
+	transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+/* 页面切换动画 */
+.tab-content.slide-in-right {
+	animation: slideInRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.tab-content.slide-in-left {
+	animation: slideInLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.tab-content.slide-out-left {
+	animation: slideOutLeft 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.tab-content.slide-out-right {
+	animation: slideOutRight 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+	from {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideInLeft {
+	from {
+		transform: translateX(-100%);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideOutLeft {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+
+	to {
+		transform: translateX(-100%);
+		opacity: 0;
+	}
+}
+
+@keyframes slideOutRight {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+
+	to {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+}
+
+deck-section h2 {
 	text-align: center;
 	margin-bottom: 30px;
 	font-size: 1.8rem;
@@ -111,7 +190,8 @@
 	align-items: flex-start;
 	gap: 20px;
 	margin-bottom: 30px;
-	min-height: 200px;
+	min-height: 250px;
+	transition: all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 .empty-tip {
@@ -131,7 +211,7 @@
 	border-radius: 20px;
 	padding: 20px;
 	border: 2px solid rgba(255, 255, 255, 0.2);
-	transition: all 0.3s ease;
+	transition: all 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
 	position: relative;
 	overflow: hidden;
 	width: 280px;
@@ -210,12 +290,16 @@
 	background: rgba(231, 76, 60, 0.8);
 	color: white;
 	border: none;
-	width: 30px;
-	height: 30px;
-	border-radius: 50%;
+	width: 50px;
+	height: 24px;
+	border-radius: 12px;
 	cursor: pointer;
 	font-size: 12px;
+	font-weight: 600;
 	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .remove-btn:hover {
@@ -270,10 +354,11 @@
 }
 
 .all-cards-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-	gap: 20px;
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, 220px) !important;
+	gap: 25px;
 	margin-bottom: 30px;
+	justify-content: center !important;
 }
 
 .all-card {
@@ -422,6 +507,59 @@
 	box-shadow: 0 0 10px rgba(102, 102, 102, 0.3);
 }
 
+/* 卡牌移除动画 */
+.deck-card.removing {
+	animation: cardRemoveOut 0.3s ease-out forwards;
+	pointer-events: none;
+	/* 保持原始布局空间，避免其他元素移动 */
+	flex-shrink: 0;
+	width: 280px !important;
+	height: auto;
+	z-index: 10;
+	/* 确保移除的卡牌在上层 */
+}
+
+@keyframes cardRemoveOut {
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(0);
+	}
+}
+
+/* 卡牌重排动画 - 应用于移除后的重新定位 */
+.deck-card.rearranging {
+	animation: cardRearrange 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes cardRearrange {
+	0% {
+		transform: translateX(0) scale(1);
+		opacity: 1;
+	}
+
+	50% {
+		transform: translateX(0) scale(1.05);
+		opacity: 0.9;
+	}
+
+	100% {
+		transform: translateX(0) scale(1);
+		opacity: 1;
+	}
+}
+
+/* 移除旧的cardSlideIn动画 */
+
+/* 剩余卡牌的重新排列动画 */
+.deck-cards {
+	transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
 	.deck-cards {
@@ -435,7 +573,8 @@
 	}
 
 	.all-cards-grid {
-		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		grid-template-columns: repeat(auto-fill, 280px) !important;
+		justify-content: center !important;
 	}
 
 	.deck-actions {
