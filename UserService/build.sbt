@@ -1,5 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.4.2"
+ThisBuild / javaOptions += "-Dfile.encoding=UTF-8"
 
 scriptClasspath := Seq("*")
 
