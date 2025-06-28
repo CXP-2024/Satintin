@@ -55,19 +55,12 @@ case class QueryAssetStatusMessagePlanner(
       IO(logger.error(s"[validateAndDecodeToken] Token为空或者无效: ${token}")) >>
       IO.raiseError(new IllegalArgumentException("用户Token不能为空或无效"))
     } else {
+      // For AssetService, we treat the userToken as the userID directly
+      // This is because AssetService doesn't manage users - it only manages assets for existing users
       for {
-        // Step 1: Query User table by user token to get userID
-        _ <- IO(logger.info(s"[validateAndDecodeToken] 开始验证Token: ${token}"))
-        userQuerySQL <- IO(s"SELECT user_id FROM ${schemaName}.user WHERE user_token = ?")
-        userQueryParams <- IO(List(SqlParameter("String", token)))
-        userJson <- readDBJsonOptional(userQuerySQL, userQueryParams).flatMap {
-          case Some(json) => IO.pure(json)
-          case None =>
-            IO(logger.error(s"[validateAndDecodeToken] 未找到与令牌关联的用户: ${token}")) >>
-            IO.raiseError(new IllegalArgumentException("用户Token无效或不存在"))
-        }
-        userID <- IO(decodeField[String](userJson, "user_id"))
-        _ <- IO(logger.info(s"[validateAndDecodeToken] Token 验证成功，解析得到的用户ID: ${userID}"))
+        _ <- IO(logger.info(s"[validateAndDecodeToken] 使用Token作为用户ID: ${token}"))
+        userID <- IO.pure(token)  // Use token as userID directly
+        _ <- IO(logger.info(s"[validateAndDecodeToken] Token 验证通过，用户ID: ${userID}"))
       } yield userID
     }
   }

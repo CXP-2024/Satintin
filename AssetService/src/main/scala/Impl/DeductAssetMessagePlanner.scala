@@ -5,7 +5,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess.{modifyAsset, fetchAssetStatus, createTransactionRecord}
+import Utils.AssetTransactionProcess.{fetchAssetStatus, createTransactionRecord}
 import cats.effect.IO
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -26,7 +26,6 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess.modifyAsset
 import Utils.AssetTransactionProcess.fetchAssetStatus
 import Utils.AssetTransactionProcess.createTransactionRecord
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
@@ -80,8 +79,8 @@ case class DeductAssetMessagePlanner(
   }
 
   private def parseUserIDFromToken(userToken: String): String = {
-    // Mock parsing function - Replace with actual implementation
-    "MockUserID" // Replace this with actual logic to decode `userToken`
+    // For AssetService, we treat the userToken as the userID directly
+    userToken
   }
 
   private def checkAssetSufficiency(userID: String, deductAmount: Int)(using PlanContext): IO[Unit] = {
@@ -98,15 +97,10 @@ case class DeductAssetMessagePlanner(
 
   private def executeDeductionAndRecord(userID: String, deductAmount: Int)(using PlanContext): IO[String] = {
     for {
-      // Step 3.1: Deduct asset
-      _ <- IO(logger.info(s"[executeDeductionAndRecord] 扣减用户资产，用户ID=${userID}, 扣减金额=${deductAmount}"))
-      modifyResult <- modifyAsset(userID, -deductAmount)
-
-      // Step 3.2: Record transaction
-      _ <- IO(logger.info(s"[executeDeductionAndRecord] 创建资产交易记录"))
-      createRecordResult <- createTransactionRecord(userID, "消费", -deductAmount, "资产扣减")
-
-      _ <- IO(logger.info(s"[executeDeductionAndRecord] 资产扣减和记录成功，扣减结果=${modifyResult}, 记录结果=${createRecordResult}"))
+      // Execute deduction and record transaction in one go
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 扣减用户资产并记录交易，用户ID=${userID}, 扣减金额=${deductAmount}"))
+      result <- createTransactionRecord(userID, "PURCHASE", -deductAmount, "资产扣减")
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 资产扣减和记录成功，结果=${result}"))
     } yield "资产扣减成功！"
   }
 }
