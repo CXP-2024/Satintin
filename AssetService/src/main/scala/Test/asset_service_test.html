@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AssetService API Test</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 20px; 
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 3px solid #3498db;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #34495e;
+      border-left: 4px solid #3498db;
+      padding-left: 15px;
+      margin-top: 30px;
+    }
+    h3 {
+      color: #7f8c8d;
+      margin: 15px 0 10px 0;
+    }
+    .api-section {
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 1px solid #ecf0f1;
+      border-radius: 6px;
+      background-color: #fafafa;
+    }
+    input, button, textarea {
+      margin: 5px 0;
+      padding: 12px;
+      width: 100%;
+      max-width: 400px;
+      border: 2px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    button {
+      background: linear-gradient(45deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      max-width: 200px;
+    }
+    button:hover {
+      background: linear-gradient(45deg, #2980b9, #21618c);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 10px 0;
+    }
+    .success {
+      background: linear-gradient(45deg, #27ae60, #2ecc71);
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .error {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .info {
+      background: linear-gradient(45deg, #f39c12, #e67e22);
+      color: white;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .input-group input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .description {
+      background: #ecf0f1;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-style: italic;
+      color: #34495e;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-connected { background-color: #27ae60; }
+    .status-disconnected { background-color: #e74c3c; }
+    .status-testing { background-color: #f39c12; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏦 AssetService API Testing Dashboard</h1>
+    
+    <!-- Connection Status -->
+    <div class="api-section">
+      <h2><span class="status-indicator status-disconnected" id="statusIndicator"></span>Connection Status</h2>
+      <button id="healthCheckBtn" onclick="checkHealth()">Check AssetService Health</button>
+      <h3>Health Status:</h3>
+      <pre id="healthOutput">Not checked yet</pre>
+    </div>
+
+    <!-- Global User Token -->
+    <div class="api-section">
+      <h2>🔐 User Authentication</h2>
+      <div class="description">
+        Enter a user token (userID) to use for all asset operations. This should be a valid userID from UserService.
+      </div>
+      <input id="globalUserToken" placeholder="User Token (e.g., from UserService login)" value="zzz"/>
+      <button onclick="setGlobalToken()">Set Global Token</button>
+      <div id="tokenStatus" class="info" style="display: none;">Token set successfully!</div>
+    </div>
+
+    <!-- Query Asset Status -->
+    <div class="api-section">
+      <h2>💰 Query Asset Status</h2>
+      <div class="description">
+        Returns the user's current stone amount. Use this to check how many stones a user has.
+      </div>
+      <div class="input-group">
+        <input id="queryUserToken" placeholder="User Token" />
+      </div>
+      <button id="queryBtn" onclick="queryAssetStatus()">Query Asset Status</button>
+      <h3>Response:</h3>
+      <pre id="queryOutput">No query made yet</pre>
+    </div>
+
+    <!-- Reward Asset -->
+    <div class="api-section">
+      <h2>🎁 Reward Asset</h2>
+      <div class="description">
+        Give stones to a user as a reward. This increases the user's stone amount.
+      </div>
+      <div class="input-group">
+        <input id="rewardUserToken" placeholder="User Token" />
+        <input id="rewardAmount" type="number" placeholder="Reward Amount (positive integer)" value="100" />
+      </div>
+      <button id="rewardBtn" onclick="rewardAsset()">Give Reward</button>
+      <h3>Response:</h3>
+      <pre id="rewardOutput">No reward given yet</pre>
+    </div>
+
+    <!-- Deduct Asset -->
+    <div class="api-section">
+      <h2>💸 Deduct Asset</h2>
+      <div class="description">
+        Deduct stones from a user's account. This decreases the user's stone amount.
+      </div>
+      <div class="input-group">
+        <input id="deductUserToken" placeholder="User Token" />
+        <input id="deductAmount" type="number" placeholder="Deduct Amount (positive integer)" value="50" />
+      </div>
+      <button id="deductBtn" onclick="deductAsset()">Deduct Asset</button>
+      <h3>Response:</h3>
+      <pre id="deductOutput">No deduction made yet</pre>
+    </div>
+
+    <!-- Create Asset Transaction -->
+    <div class="api-section">
+      <h2>📋 Create Asset Transaction</h2>
+      <div class="description">
+        Create a comprehensive asset transaction record with detailed information. This is the most flexible way to modify user assets.
+      </div>
+      <div class="input-group">
+        <input id="transactionUserToken" placeholder="User Token" />
+        <input id="transactionType" placeholder="Transaction Type (e.g., PURCHASE, REWARD, REFUND)" value="PURCHASE" />
+      </div>
+      <div class="input-group">
+        <input id="changeAmount" type="number" placeholder="Change Amount (positive for add, negative for deduct)" value="-30" />
+        <input id="changeReason" placeholder="Change Reason (e.g., Bought sword, Daily login bonus)" value="Bought magic sword" />
+      </div>
+      <button id="transactionBtn" onclick="createAssetTransaction()">Create Transaction</button>
+      <h3>Response:</h3>
+      <pre id="transactionOutput">No transaction created yet</pre>
+    </div>
+
+    <!-- Batch Operations -->
+    <div class="api-section">
+      <h2>⚡ Quick Test Scenarios</h2>
+      <div class="description">
+        Pre-configured test scenarios to quickly test the asset service functionality.
+      </div>
+      <button onclick="runCompleteAssetTest()">🧪 Run Complete Asset Test</button>
+      <button onclick="runBulkRewardTest()">🎯 Test Bulk Rewards (100 stones)</button>
+      <button onclick="runPurchaseTest()">🛒 Test Purchase Scenario (-200 stones)</button>
+      <h3>Batch Test Results:</h3>
+      <pre id="batchOutput">No batch tests run yet</pre>
+    </div>
+
+    <!-- API Documentation -->
+    <div class="api-section">
+      <h2>📚 API Reference</h2>
+      <div class="description">
+        <strong>AssetService Endpoints:</strong><br>
+        • <code>POST /api/QueryAssetStatusMessage</code> - Get user's current stone amount<br>
+        • <code>POST /api/RewardAssetMessage</code> - Add stones to user account<br>
+        • <code>POST /api/DeductAssetMessage</code> - Remove stones from user account<br>
+        • <code>POST /api/CreateAssetTransactionMessage</code> - Create detailed transaction record<br><br>
+        <strong>Server:</strong> localhost:10012<br>
+        <strong>Health Check:</strong> GET /health
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:10012';
+    let globalToken = '';
+
+    // Set global user token
+    function setGlobalToken() {
+      globalToken = document.getElementById('globalUserToken').value;
+      if (globalToken) {
+        // Auto-fill all token fields
+        document.getElementById('queryUserToken').value = globalToken;
+        document.getElementById('rewardUserToken').value = globalToken;
+        document.getElementById('deductUserToken').value = globalToken;
+        document.getElementById('transactionUserToken').value = globalToken;
+        
+        document.getElementById('tokenStatus').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('tokenStatus').style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    // Check AssetService health
+    async function checkHealth() {
+      const statusIndicator = document.getElementById('statusIndicator');
+      const output = document.getElementById('healthOutput');
+      
+      statusIndicator.className = 'status-indicator status-testing';
+      output.textContent = 'Checking connection...';
+
+      try {
+        const response = await fetch(`${apiBase}/health`);
+        const result = await response.text();
+        
+        if (response.ok) {
+          statusIndicator.className = 'status-indicator status-connected';
+          output.textContent = `✅ AssetService is running!\nStatus: ${response.status}\nResponse: ${result}`;
+          output.className = 'success';
+        } else {
+          statusIndicator.className = 'status-indicator status-disconnected';
+          output.textContent = `❌ Health check failed\nStatus: ${response.status}\nResponse: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        statusIndicator.className = 'status-indicator status-disconnected';
+        output.textContent = `❌ Connection failed: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Create plan context for requests
+    function createPlanContext() {
+      return {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+    }
+
+    // Query asset status
+    async function queryAssetStatus() {
+      const userToken = document.getElementById('queryUserToken').value;
+      const output = document.getElementById('queryOutput');
+      
+      if (!userToken) {
+        output.textContent = '❌ Please enter a user token';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/api/QueryAssetStatusMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userToken,
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        
+        if (response.ok) {
+          try {
+            const parsed = JSON.parse(result);
+            output.textContent = `✅ Query successful!\nUser: ${userToken}\nCurrent Stone Amount: ${parsed}\n\nRaw Response: ${result}`;
+            output.className = 'success';
+          } catch {
+            output.textContent = `✅ Query successful!\nUser: ${userToken}\nStone Amount: ${result}`;
+            output.className = 'success';
+          }
+        } else {
+          output.textContent = `❌ Query failed (${response.status})\nError: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        output.textContent = `❌ Network error: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Reward asset
+    async function rewardAsset() {
+      const userToken = document.getElementById('rewardUserToken').value;
+      const rewardAmount = parseInt(document.getElementById('rewardAmount').value);
+      const output = document.getElementById('rewardOutput');
+      
+      if (!userToken || !rewardAmount || rewardAmount <= 0) {
+        output.textContent = '❌ Please enter valid user token and positive reward amount';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/api/RewardAssetMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userToken,
+            rewardAmount: rewardAmount,
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        
+        if (response.ok) {
+          output.textContent = `✅ Reward successful!\nUser: ${userToken}\nAmount Rewarded: +${rewardAmount} stones\nResult: ${result}`;
+          output.className = 'success';
+        } else {
+          output.textContent = `❌ Reward failed (${response.status})\nError: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        output.textContent = `❌ Network error: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Deduct asset
+    async function deductAsset() {
+      const userToken = document.getElementById('deductUserToken').value;
+      const deductAmount = parseInt(document.getElementById('deductAmount').value);
+      const output = document.getElementById('deductOutput');
+      
+      if (!userToken || !deductAmount || deductAmount <= 0) {
+        output.textContent = '❌ Please enter valid user token and positive deduct amount';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/api/DeductAssetMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userToken,
+            deductAmount: deductAmount,
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        
+        if (response.ok) {
+          output.textContent = `✅ Deduction successful!\nUser: ${userToken}\nAmount Deducted: -${deductAmount} stones\nResult: ${result}`;
+          output.className = 'success';
+        } else {
+          output.textContent = `❌ Deduction failed (${response.status})\nError: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        output.textContent = `❌ Network error: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Create asset transaction
+    async function createAssetTransaction() {
+      const userToken = document.getElementById('transactionUserToken').value;
+      const transactionType = document.getElementById('transactionType').value;
+      const changeAmount = parseInt(document.getElementById('changeAmount').value);
+      const changeReason = document.getElementById('changeReason').value;
+      const output = document.getElementById('transactionOutput');
+      
+      if (!userToken || !transactionType || !changeAmount || !changeReason) {
+        output.textContent = '❌ Please fill all transaction fields';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${apiBase}/api/CreateAssetTransactionMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userToken,
+            transactionType: transactionType,
+            changeAmount: changeAmount,
+            changeReason: changeReason,
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        
+        if (response.ok) {
+          output.textContent = `✅ Transaction created successfully!\nUser: ${userToken}\nType: ${transactionType}\nAmount: ${changeAmount > 0 ? '+' : ''}${changeAmount} stones\nReason: ${changeReason}\nResult: ${result}`;
+          output.className = 'success';
+        } else {
+          output.textContent = `❌ Transaction failed (${response.status})\nError: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        output.textContent = `❌ Network error: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Run complete asset test
+    async function runCompleteAssetTest() {
+      const output = document.getElementById('batchOutput');
+      const userToken = globalToken || document.getElementById('globalUserToken').value;
+      
+      if (!userToken) {
+        output.textContent = '❌ Please set a global user token first';
+        output.className = 'error';
+        return;
+      }
+
+      output.textContent = '🧪 Running complete asset test...\n';
+      output.className = '';
+
+      try {
+        // Step 1: Query initial balance
+        output.textContent += '\n1️⃣ Querying initial balance...\n';
+        let response = await fetch(`${apiBase}/api/QueryAssetStatusMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userToken, planContext: createPlanContext() })
+        });
+        let initialBalance = await response.text();
+        output.textContent += `Initial balance: ${initialBalance} stones\n`;
+
+        // Step 2: Add reward
+        output.textContent += '\n2️⃣ Adding 500 stone reward...\n';
+        response = await fetch(`${apiBase}/api/RewardAssetMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userToken, rewardAmount: 500, planContext: createPlanContext() })
+        });
+        let rewardResult = await response.text();
+        output.textContent += `Reward result: ${rewardResult}\n`;
+
+        // Step 3: Query after reward
+        response = await fetch(`${apiBase}/api/QueryAssetStatusMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userToken, planContext: createPlanContext() })
+        });
+        let balanceAfterReward = await response.text();
+        output.textContent += `Balance after reward: ${balanceAfterReward} stones\n`;
+
+        // Step 4: Make a purchase
+        output.textContent += '\n3️⃣ Creating purchase transaction (-200 stones)...\n';
+        response = await fetch(`${apiBase}/api/CreateAssetTransactionMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken,
+            transactionType: 'PURCHASE',
+            changeAmount: -200,
+            changeReason: 'Test purchase - Epic sword',
+            planContext: createPlanContext()
+          })
+        });
+        let purchaseResult = await response.text();
+        output.textContent += `Purchase result: ${purchaseResult}\n`;
+
+        // Step 5: Final balance
+        response = await fetch(`${apiBase}/api/QueryAssetStatusMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userToken, planContext: createPlanContext() })
+        });
+        let finalBalance = await response.text();
+        output.textContent += `\n🏁 Final balance: ${finalBalance} stones\n`;
+        output.textContent += '\n✅ Complete asset test finished successfully!';
+        output.className = 'success';
+
+      } catch (error) {
+        output.textContent += `\n❌ Test failed: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Run bulk reward test
+    async function runBulkRewardTest() {
+      const output = document.getElementById('batchOutput');
+      const userToken = globalToken || document.getElementById('globalUserToken').value;
+      
+      if (!userToken) {
+        output.textContent = '❌ Please set a global user token first';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        output.textContent = '🎯 Testing bulk reward (100 stones)...\n';
+        
+        const response = await fetch(`${apiBase}/api/RewardAssetMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userToken, rewardAmount: 100, planContext: createPlanContext() })
+        });
+        
+        const result = await response.text();
+        output.textContent += `Result: ${result}\n`;
+        output.textContent += '✅ Bulk reward test completed!';
+        output.className = 'success';
+      } catch (error) {
+        output.textContent = `❌ Bulk reward test failed: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Run purchase test
+    async function runPurchaseTest() {
+      const output = document.getElementById('batchOutput');
+      const userToken = globalToken || document.getElementById('globalUserToken').value;
+      
+      if (!userToken) {
+        output.textContent = '❌ Please set a global user token first';
+        output.className = 'error';
+        return;
+      }
+
+      try {
+        output.textContent = '🛒 Testing purchase scenario (-200 stones)...\n';
+        
+        const response = await fetch(`${apiBase}/api/CreateAssetTransactionMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken,
+            transactionType: 'PURCHASE',
+            changeAmount: -200,
+            changeReason: 'Test purchase - Legendary armor set',
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        output.textContent += `Result: ${result}\n`;
+        output.textContent += '✅ Purchase test completed!';
+        output.className = 'success';
+      } catch (error) {
+        output.textContent = `❌ Purchase test failed: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Auto-check health on page load
+    window.onload = function() {
+      checkHealth();
+    };
+  </script>
+</body>
+</html>

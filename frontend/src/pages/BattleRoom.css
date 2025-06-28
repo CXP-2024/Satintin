@@ -1,0 +1,418 @@
+/* BattleRoom.css */
+.battle-room-page {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	/* 确保背景覆盖所有内容 */
+	background-attachment: fixed;
+}
+
+.battle-room {
+	min-height: 100vh;
+	/* 改为 min-height 而不是固定 height */
+	display: flex;
+	flex-direction: column;
+	color: white;
+}
+
+/* 房间头部 */
+.room-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 30px;
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(10px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.room-info h1 {
+	margin: 0;
+	font-size: 1.8rem;
+	font-weight: 600;
+}
+
+.room-id {
+	font-size: 0.9rem;
+	color: rgba(255, 255, 255, 0.7);
+	margin-top: 5px;
+}
+
+.room-status {
+	flex: 1;
+	display: flex;
+	justify-content: center;
+}
+
+.status-indicator {
+	padding: 8px 16px;
+	border-radius: 20px;
+	font-weight: 500;
+	font-size: 0.9rem;
+	animation: pulse 2s infinite;
+}
+
+.status-indicator.waiting {
+	background: rgba(241, 196, 15, 0.3);
+	border: 1px solid #f1c40f;
+	color: #f39c12;
+}
+
+.status-indicator.ready {
+	background: rgba(46, 204, 113, 0.3);
+	border: 1px solid #2ecc71;
+	color: #27ae60;
+}
+
+.status-indicator.playing {
+	background: rgba(231, 76, 60, 0.3);
+	border: 1px solid #e74c3c;
+	color: #c0392b;
+}
+
+.leave-btn {
+	padding: 10px 20px;
+	background: linear-gradient(45deg, #e74c3c, #c0392b);
+	border: none;
+	border-radius: 8px;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.leave-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+/* 主要内容区域 */
+.room-main {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 20px;
+	min-height: 0;
+	/* 允许内容溢出时正常滚动 */
+}
+
+/* 等待区域 */
+.waiting-area {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+}
+
+.waiting-message {
+	text-align: center;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	padding: 60px 40px;
+	border-radius: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.waiting-icon {
+	font-size: 4rem;
+	margin-bottom: 20px;
+	animation: spin 2s linear infinite;
+}
+
+.waiting-message h2 {
+	margin: 0 0 20px 0;
+	font-size: 1.8rem;
+	font-weight: 600;
+}
+
+.waiting-message p {
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 1rem;
+	margin-bottom: 30px;
+}
+
+.share-room {
+	margin-top: 30px;
+}
+
+.share-btn {
+	padding: 12px 24px;
+	background: linear-gradient(45deg, #3498db, #2980b9);
+	border: none;
+	border-radius: 8px;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+}
+
+/* 连接状态 */
+.battle-room.connecting,
+.battle-room.error {
+	justify-content: center;
+	align-items: center;
+}
+
+.connecting-overlay,
+.error-overlay {
+	text-align: center;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	padding: 60px 40px;
+	border-radius: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.connecting-spinner {
+	width: 60px;
+	height: 60px;
+	border: 4px solid rgba(255, 255, 255, 0.3);
+	border-top: 4px solid #3498db;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 30px;
+}
+
+.error-icon {
+	font-size: 4rem;
+	margin-bottom: 20px;
+}
+
+.error-overlay h2 {
+	margin: 0 0 15px 0;
+	color: #e74c3c;
+}
+
+.error-overlay p {
+	color: rgba(255, 255, 255, 0.8);
+	margin-bottom: 30px;
+}
+
+.error-actions {
+	display: flex;
+	gap: 15px;
+	justify-content: center;
+}
+
+.retry-btn,
+.back-btn {
+	padding: 12px 24px;
+	border: none;
+	border-radius: 8px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.retry-btn {
+	background: linear-gradient(45deg, #27ae60, #219a52);
+	color: white;
+}
+
+.back-btn {
+	background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+	color: white;
+}
+
+.retry-btn:hover,
+.back-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 测试模式样式 */
+.test-mode-indicator {
+	display: inline-block;
+	margin-left: 10px;
+	padding: 4px 8px;
+	background: #ff6b35;
+	border-radius: 12px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	color: white;
+	animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+	from {
+		box-shadow: 0 0 5px #ff6b35, 0 0 10px #ff6b35;
+	}
+
+	to {
+		box-shadow: 0 0 10px #ff6b35, 0 0 20px #ff6b35, 0 0 30px #ff6b35;
+	}
+}
+
+.test-btn {
+	background: linear-gradient(45deg, #ff6b35, #f7931e);
+	border: none;
+	padding: 12px 24px;
+	border-radius: 8px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin: 0 10px;
+}
+
+.test-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+}
+
+.test-mode-btn {
+	background: linear-gradient(45deg, #ff6b35, #f7931e);
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-left: 15px;
+	font-size: 0.9rem;
+}
+
+.test-mode-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+}
+
+/* 错误页面按钮布局调整 */
+.error-actions {
+	display: flex;
+	gap: 15px;
+	margin-top: 30px;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.error-actions button {
+	min-width: 120px;
+}
+
+/* 房间信息区域调整 */
+.room-info {
+	display: flex;
+	flex-direction: column;
+}
+
+/* 分享房间按钮区域 */
+.share-room {
+	display: flex;
+	gap: 10px;
+	margin-top: 20px;
+	align-items: center;
+	justify-content: center;
+}
+
+.share-btn {
+	background: linear-gradient(45deg, #4facfe, #00f2fe);
+	border: none;
+	padding: 10px 20px;
+	border-radius: 6px;
+	color: white;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 20px rgba(79, 172, 254, 0.3);
+}
+
+/* 动画 */
+@keyframes pulse {
+
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.7;
+	}
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+	.room-header {
+		flex-direction: column;
+		gap: 15px;
+		padding: 20px;
+	}
+
+	.room-info h1 {
+		font-size: 1.5rem;
+	}
+
+	.waiting-message,
+	.connecting-overlay,
+	.error-overlay {
+		padding: 40px 20px;
+		margin: 20px;
+	}
+
+	.error-actions {
+		flex-direction: column;
+	}
+
+	/* 主要内容区域在小屏幕的优化 */
+	.room-main {
+		padding: 10px;
+		justify-content: flex-start;
+		/* 在小屏幕不要居中，从顶部开始 */
+	}
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+	.battle-room {
+		min-height: 100vh;
+	}
+
+	.room-header {
+		padding: 15px;
+		gap: 10px;
+	}
+
+	.room-info h1 {
+		font-size: 1.3rem;
+	}
+
+	.room-id {
+		font-size: 0.8rem;
+	}
+
+	.status-indicator {
+		padding: 6px 12px;
+		font-size: 0.8rem;
+	}
+
+	.leave-btn {
+		padding: 8px 16px;
+		font-size: 0.9rem;
+	}
+
+	.test-mode-indicator {
+		font-size: 0.7rem;
+		padding: 3px 6px;
+	}
+}

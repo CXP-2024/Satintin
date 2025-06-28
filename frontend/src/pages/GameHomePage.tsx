@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
+import UserProfile from '../components/UserProfile';
 import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
@@ -10,6 +11,7 @@ import { SoundUtils } from '../utils/soundUtils';
 const GameHomePage: React.FC = () => {
 	const { user, logout } = useAuthStore();
 	const { navigateWithTransition } = usePageTransition();
+	const [showUserProfile, setShowUserProfile] = useState(false);
 
 	// 初始化音效
 	useEffect(() => {
@@ -61,6 +63,17 @@ const GameHomePage: React.FC = () => {
 		alert('已领取200原石！');
 	};
 
+	const handleShowUserProfile = () => {
+		console.log('👤 [GameHomePage] 显示用户详情页面');
+		playClickSound();
+		setShowUserProfile(true);
+	};
+
+	const handleCloseUserProfile = () => {
+		console.log('👤 [GameHomePage] 关闭用户详情页面');
+		setShowUserProfile(false);
+	};
+
 	return (
 		<PageTransition className="game-page">
 			<div className="game-home">
@@ -74,7 +87,7 @@ const GameHomePage: React.FC = () => {
 						</button>
 					</div>
 					<div className="header-right">
-						<div className="user-info">
+						<div className="user-info clickable" onClick={handleShowUserProfile}>
 							<span className="username">{user?.username}</span>
 							<span className="coins">
 								<img src={primogemIcon} alt="原石" className="primogem-icon small" />
@@ -194,6 +207,12 @@ const GameHomePage: React.FC = () => {
 						</div>
 					</section>
 				</main>
+
+				{/* 用户详情模态框 */}
+				<UserProfile
+					isOpen={showUserProfile}
+					onClose={handleCloseUserProfile}
+				/>
 			</div>
 		</PageTransition>
 	);

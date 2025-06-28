@@ -131,15 +131,15 @@ const BattleRulesPage: React.FC = () => {
 									<p>强化你的撒攻击</p>
 									<div className="effect-levels">
 										<div className="level common">
-											<span className="level-name">普通</span>
+											<span className="level-name">普通 (三星)</span>
 											<span className="level-effect">5%概率穿透防御</span>
 										</div>
 										<div className="level rare">
-											<span className="level-name">稀有</span>
+											<span className="level-name">稀有 (四星)</span>
 											<span className="level-effect">15%概率穿透防御</span>
 										</div>
 										<div className="level legendary">
-											<span className="level-name">传说</span>
+											<span className="level-name">传说 (五星)</span>
 											<span className="level-effect">33%概率穿透防御</span>
 										</div>
 									</div>
@@ -155,15 +155,15 @@ const BattleRulesPage: React.FC = () => {
 									<p>强化你的饼发育</p>
 									<div className="effect-levels">
 										<div className="level common">
-											<span className="level-name">普通</span>
+											<span className="level-name">普通 (三星)</span>
 											<span className="level-effect">5%概率获得2点能量</span>
 										</div>
 										<div className="level rare">
-											<span className="level-name">稀有</span>
+											<span className="level-name">稀有 (四星)</span>
 											<span className="level-effect">15%概率获得2点能量</span>
 										</div>
 										<div className="level legendary">
-											<span className="level-name">传说</span>
+											<span className="level-name">传说 (五星)</span>
 											<span className="level-effect">33%概率获得2点能量</span>
 										</div>
 									</div>
@@ -179,15 +179,15 @@ const BattleRulesPage: React.FC = () => {
 									<p>强化你的防御</p>
 									<div className="effect-levels">
 										<div className="level common">
-											<span className="level-name">普通</span>
+											<span className="level-name">普通 (三星)</span>
 											<span className="level-effect">5%概率反弹撒攻击</span>
 										</div>
 										<div className="level rare">
-											<span className="level-name">稀有</span>
+											<span className="level-name">稀有 (四星)</span>
 											<span className="level-effect">15%概率反弹撒攻击</span>
 										</div>
 										<div className="level legendary">
-											<span className="level-name">传说</span>
+											<span className="level-name">传说 (五星)</span>
 											<span className="level-effect">33%概率反弹撒攻击</span>
 										</div>
 									</div>
