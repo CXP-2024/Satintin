@@ -1,6 +1,5 @@
 package Impl
 
-
 import Objects.UserService.MessageEntry
 import Objects.UserService.User
 import Utils.UserAuthenticationProcess.authenticateUser
@@ -17,20 +16,9 @@ import org.joda.time.DateTime
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.UserService.FriendEntry
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import APIs.UserService.GetUserInfoMessage
 
 case class LogUserOperationMessagePlanner(
     userToken: String,
@@ -39,7 +27,6 @@ case class LogUserOperationMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[String] {
 
-  // 日志打印器
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using PlanContext): IO[String] = {
@@ -61,12 +48,16 @@ case class LogUserOperationMessagePlanner(
    * 验证userToken是否合法并提取userID
    */
   private def validateAndExtractUserID(userToken: String)(using PlanContext): IO[String] = {
-    authenticateUser(userToken, "").flatMap {
-      case Some(user) =>
-        IO(logger.info(s"用户Token验证通过，解码userID: ${user.userID}")).map(_ => user.userID)
-      case None =>
-        IO(logger.error(s"用户Token验证失败: ${userToken}")) *> IO.raiseError(new RuntimeException("用户Token无效"))
-    }
+    // Use the same approach as other services - use userToken as userID and call GetUserInfoMessage
+    val userID = userToken
+    for {
+      _ <- IO(logger.info(s"通过 UserService 验证用户令牌: ${userToken}"))
+      user <- GetUserInfoMessage(userToken, userID).send.handleErrorWith { error =>
+        IO(logger.error(s"用户令牌验证失败: ${error.getMessage}"))
+          >> IO.raiseError(new RuntimeException("用户身份令牌无效"))
+      }
+      _ <- IO(logger.info(s"用户令牌有效，用户ID为: ${user.userID}"))
+    } yield user.userID
   }
 
   /**

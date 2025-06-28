@@ -39,12 +39,13 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import APIs.AssetService.CreateAssetTransactionMessage
 
 case class DrawCardMessagePlanner(
-                                   userToken: String,
-                                   drawCount: Int,
-                                   override val planContext: PlanContext
-                                 ) extends Planner[DrawResult] {
+  userToken: String,
+  drawCount: Int,
+  override val planContext: PlanContext
+) extends Planner[DrawResult] {
 
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
@@ -71,6 +72,9 @@ case class DrawCardMessagePlanner(
       _ <- DeductAssetMessage(userToken, totalCost).send.flatMap { result =>
         IO(logger.info(s"扣减资产完成: $result"))
       }
+      
+      // Step 3.5: Log the asset transaction using AssetService API
+      _ <- IO(logger.info("[Step 3.5] 记录资产交易日志"))
       _ <- logTransaction(userToken, totalCost)
 
       // Step 4: Execute card draw
@@ -87,7 +91,6 @@ case class DrawCardMessagePlanner(
 
   // Method to validate user token
   private def validateUserToken(userToken: String)(using PlanContext): IO[Boolean] = {
-    // Use GetUserInfoMessage to verify token and retrieve user info
     GetUserInfoMessage(userToken, getUserIDFromToken(userToken))
       .send
       .map(_ => true)
@@ -117,30 +120,20 @@ case class DrawCardMessagePlanner(
     } yield ()
   }
 
-  // Log the asset transaction
+  // Log the asset transaction using AssetService API
   private def logTransaction(userToken: String, totalCost: Int)(using PlanContext): IO[Unit] = {
     for {
-      userId <- IO.pure(getUserIDFromToken(userToken))
-      transactionQuery <- IO {
-        s"""
-           |INSERT INTO ${schemaName}.asset_transaction_table (transaction_id, user_id, transaction_type, detail, amount, transaction_time)
-           |VALUES (?, ?, 'deduction', '扣减抽卡原石', ?, ?)
-           |""".stripMargin
-      }
-      transactionParams <- IO {
-        List(
-          SqlParameter("String", UUID.randomUUID().toString),
-          SqlParameter("String", userId),
-          SqlParameter("Int", totalCost.toString),
-          SqlParameter("DateTime", DateTime.now.getMillis.toString)
-        )
-      }
-      _ <- writeDB(transactionQuery, transactionParams)
-      _ <- IO(logger.info("资产交易日志记录完成"))
+      _ <- IO(logger.info(s"调用 AssetService 记录交易: 用户=${userToken}, 金额=${-totalCost}"))
+      result <- CreateAssetTransactionMessage(
+        userToken = userToken,
+        transactionType = "PURCHASE",  // 使用 PURCHASE 类型表示购买抽卡
+        changeAmount = -totalCost,  // 负数表示扣减
+        changeReason = "抽卡消费原石"
+      ).send
+      _ <- IO(logger.info(s"资产交易日志记录完成: $result"))
     } yield ()
   }
 
-  // Extract userID from userToken.
-  // 假设在 DB 里存的是完整的 UUID，就直接返回 token 本身。
+  // Extract userID from userToken
   private def getUserIDFromToken(userToken: String): String = userToken
 }

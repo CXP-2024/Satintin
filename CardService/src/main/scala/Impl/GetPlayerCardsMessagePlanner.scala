@@ -50,10 +50,10 @@ case class GetPlayerCardsMessagePlanner(
           >> IO.raiseError(new IllegalArgumentException("用户Token无效或已过期"))
       } else IO(logger.info("[Step 1.2] 用户Token验证通过"))
 
-      // Step 2: Parse token to get user ID
-      _ <- IO(logger.info(s"[Step 2] 解析Token以获取用户ID: userToken=${userToken}"))
-      userID <- parseUserToken(userToken)
-      _ <- IO(logger.info(s"[Step 2.1] 从Token解析出的用户ID: ${userID}"))
+      // Step 2: Use token directly as user ID (consistent with other services)
+      _ <- IO(logger.info(s"[Step 2] 使用Token作为用户ID: userToken=${userToken}"))
+      userID = userToken  // 直接使用 token 作为 userID，与其他服务保持一致
+      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userID}"))
 
       // Step 3: Fetch user card inventory
       _ <- IO(logger.info(s"[Step 3] 开始拉取用户卡牌信息: userID=${userID}"))
@@ -71,18 +71,6 @@ case class GetPlayerCardsMessagePlanner(
       val isValid = token.nonEmpty && token.length > 10
       logger.info(s"[validateUserToken] 验证结果: ${isValid}")
       isValid
-    }
-  }
-
-  /**
-   * Extracts the user ID from the user token.
-   */
-  private def parseUserToken(token: String)(using PlanContext): IO[String] = {
-    IO {
-      logger.info("[parseUserToken] 开始解析用户Token")
-      val userID = token.reverse // 示例解析逻辑
-      logger.info(s"[parseUserToken] 解析后的用户ID: ${userID}")
-      userID
     }
   }
 }
