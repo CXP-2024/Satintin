@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
-import { useGlobalLoading } from '../hooks/useGlobalLoading';
+import { useGlobalLoading } from '../store/globalLoadingStore';
 import PageTransition from '../components/PageTransition';
 import { apiService } from '../services/ApiService';
 import './LoginPage.css';
@@ -47,8 +47,8 @@ const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            // 模拟网络延迟
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // 模拟网络延迟（匹配视频长度5秒）
+            await new Promise(resolve => setTimeout(resolve, 5000));
 
             // 创建测试用户数据
             const testUser = {
@@ -150,11 +150,11 @@ const LoginPage: React.FC = () => {
                     setUser(userData);
                     setToken(token);
 
-                    // 确保加载动画至少显示3秒
+                    // 确保加载动画至少显示5秒（匹配视频长度）
                     const elapsedTime = Date.now() - startTime;
-                    const minDisplayTime = 3000;
+                    const minDisplayTime = 5000;
                     if (elapsedTime < minDisplayTime) {
-                        console.log(`⏰ [登录流程] 等待动画完成，还需 ${minDisplayTime - elapsedTime}ms`);
+                        console.log(`⏰ [登录流程] 等待视频播放完成，还需 ${minDisplayTime - elapsedTime}ms`);
                         await new Promise(resolve =>
                             setTimeout(resolve, minDisplayTime - elapsedTime)
                         );

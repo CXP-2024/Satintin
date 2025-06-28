@@ -147,18 +147,22 @@
 	}
 }
 
-.card-container {
+.wish-result-page .card-container {
 	position: relative;
 	z-index: 2;
 	background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
 	border: 2px solid rgba(255, 255, 255, 0.2);
 	border-radius: 20px;
-	padding: 40px;
+	padding: 30px 40px 50px 40px !important;
 	backdrop-filter: blur(10px);
 	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 	text-align: center;
 	min-width: 300px;
+	min-height: 450px !important;
 	animation: cardFloat 3s ease-in-out infinite;
+	display: flex !important;
+	flex-direction: column !important;
+	justify-content: space-between !important;
 }
 
 @keyframes cardFloat {
@@ -173,27 +177,40 @@
 	}
 }
 
-.card-image {
-	margin-bottom: 20px;
+.wish-result-page .card-image {
+	margin-bottom: 0 !important;
+	flex-shrink: 0 !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	height: 140px !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	border: none !important;
+	border-radius: 0 !important;
+	overflow: visible !important;
 }
 
-.card-emoji {
-	font-size: 120px;
+.wish-result-page .card-emoji {
+	font-size: 120px !important;
 	display: block;
 	animation: cardScale 2s ease-in-out infinite;
 }
 
-.card-img {
-	width: 120px;
-	height: 120px;
+.wish-result-page .card-img {
+	width: 120px !important;
+	height: 120px !important;
+	max-width: none !important;
+	max-height: none !important;
 	object-fit: contain;
 	border-radius: 10px;
 	display: block;
 	margin: 0 auto;
 	animation: cardScale 2s ease-in-out infinite;
 	box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
-	background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-	padding: 5px;
+	background: transparent !important;
+	padding: 0 !important;
+	border: none !important;
 }
 
 @keyframes cardScale {
@@ -210,19 +227,31 @@
 	}
 }
 
-.card-info {
+.wish-result-page .card-info {
 	color: white;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px !important;
+	margin-top: 20px !important;
+	flex-grow: 1 !important;
+	justify-content: center !important;
 }
 
-.card-stars {
-	margin-bottom: 15px;
+.wish-result-page .card-stars {
+	margin-bottom: 0 !important;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
 }
 
-.star {
-	font-size: 24px;
-	margin: 0 2px;
+.wish-result-page .star {
+	font-size: 28px !important;
+	margin: 0 !important;
 	animation: starTwinkle 1.5s ease-in-out infinite;
 	animation-delay: calc(var(--i) * 0.2s);
+	line-height: 1;
 }
 
 .star:nth-child(1) {
@@ -259,17 +288,21 @@
 	}
 }
 
-.card-name {
-	font-size: 32px;
+.wish-result-page .card-name {
+	font-size: 32px !important;
 	font-weight: bold;
-	margin: 15px 0;
+	margin: 0 !important;
 	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	text-align: center;
+	line-height: 1.6;
 }
 
-.card-type {
-	font-size: 18px;
+.wish-result-page .card-type {
+	font-size: 18px !important;
 	opacity: 0.9;
-	margin-bottom: 30px;
+	margin: 0 !important;
+	text-align: center;
+	font-weight: 500;
 }
 
 /* 稀有度样式 */
@@ -594,20 +627,45 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-	.card-container {
-		min-width: 250px;
-		padding: 30px 20px;
+	.wish-result-page .card-container {
+		min-width: 280px !important;
+		min-height: 400px !important;
+		padding: 25px 20px 40px 20px !important;
 	}
 
-	.card-emoji {
-		font-size: 80px;
+	.wish-result-page .card-image {
+		height: 120px !important;
 	}
 
-	.card-name {
-		font-size: 24px;
+	.wish-result-page .card-emoji {
+		font-size: 90px !important;
 	}
 
-	.star {
-		font-size: 20px;
+	.wish-result-page .card-img {
+		width: 90px !important;
+		height: 90px !important;
+		max-width: none !important;
+		max-height: none !important;
+	}
+
+	.wish-result-page .card-info {
+		gap: 12px !important;
+		margin-top: 15px !important;
+	}
+
+	.wish-result-page .card-stars {
+		gap: 3px !important;
+	}
+
+	.wish-result-page .star {
+		font-size: 24px !important;
+	}
+
+	.wish-result-page .card-name {
+		font-size: 26px !important;
+	}
+
+	.wish-result-page .card-type {
+		font-size: 16px !important;
 	}
 }
