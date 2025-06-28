@@ -6,207 +6,278 @@ import './CardCollectionPage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
 
-const CardCollectionPage: React.FC = () => {
-	const { user } = useAuthStore();
-	const { navigateQuick } = usePageTransition();
-	const [activeTab, setActiveTab] = useState<'deck' | 'collection'>('deck');
+// 导入卡牌图片
+import nailongImg from '../assets/images/nailong.png';
+import gaiyaImg from '../assets/images/gaiya.png';
+import mygoImg from '../assets/images/mygo.png';
+import jiegeImg from '../assets/images/jiege.png';
+import paimengImg from '../assets/images/paimeng.png';
+import kunImg from '../assets/images/kun.png';
+import manImg from '../assets/images/man.png';
+import bingbingImg from '../assets/images/bingbing.png';
+import wlmImg from '../assets/images/wlm.png';
 
-	// 初始化音效
+// 具体卡牌数据（基于cards.md）
+const CARDS_DATA = [
+	// 传说卡牌 (5星)
+	{ id: 'nailong', name: 'Dragon Nai', type: '反弹', rarity: '传说', image: nailongImg, owned: true },
+	{ id: 'gaiya', name: '盖亚', type: '穿透', rarity: '传说', image: gaiyaImg, owned: false },
+	{ id: 'mygo', name: 'Go', type: '发育', rarity: '传说', image: mygoImg, owned: false },
+	{ id: 'jiege', name: '杰哥', type: '穿透', rarity: '传说', image: jiegeImg, owned: true },
+
+	// 稀有卡牌 (4星)
+	{ id: 'paimeng', name: 'Paimon', type: '反弹', rarity: '稀有', image: paimengImg, owned: true },
+	{ id: 'kun', name: '坤', type: '穿透', rarity: '稀有', image: kunImg, owned: true },
+	{ id: 'man', name: 'man', type: '发育', rarity: '稀有', image: manImg, owned: false },
+
+	// 普通卡牌 (3星)
+	{ id: 'bingbing', name: '冰', type: '反弹', rarity: '普通', image: bingbingImg, owned: true },
+	{ id: 'wlm', name: 'wlm', type: '发育', rarity: '普通', image: wlmImg, owned: true },
+	// 穿透普通卡牌暂缺，用占位符
+	{ id: 'placeholder', name: '？？？', type: '穿透', rarity: '普通', image: null, owned: false },
+];
+
+// 卡牌类型和稀有度定义
+const CARD_TYPES = [
+	{
+		type: '穿透',
+		desc: '撒增加概率穿透对手防御',
+		icon: '🗡️',
+		effects: ['5%概率穿透防御', '15%概率穿透防御', '33%概率穿透防御'],
+		color: '#e74c3c'
+	},
+	{
+		type: '发育',
+		desc: '饼增加概率获得2点能量',
+		icon: '🌱',
+		effects: ['5%概率获得2点能量', '15%概率获得2点能量', '33%概率获得2点能量'],
+		color: '#27ae60'
+	},
+	{
+		type: '反弹',
+		desc: '防增加概率反弹撒攻击',
+		icon: '🔄',
+		effects: ['5%概率反弹撒攻击', '15%概率反弹撒攻击', '33%概率反弹撒攻击'],
+		color: '#9b59b6'
+	},
+];
+
+const RARITIES = [
+	{ name: '普通', color: '#95a5a6', stars: 3 },
+	{ name: '稀有', color: '#3498db', stars: 4 },
+	{ name: '传说', color: '#f39c12', stars: 5 }
+];
+
+// 假设用户拥有的卡牌（实际应从后端获取）
+const userCards = CARDS_DATA;
+
+const CardCollectionPage: React.FC = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { user } = useAuthStore();
+	const { navigateQuick } = usePageTransition();
+	const [selected, setSelected] = useState<typeof CARDS_DATA[0][]>([
+		CARDS_DATA.find(c => c.id === 'jiege')!,
+		CARDS_DATA.find(c => c.id === 'paimeng')!,
+		CARDS_DATA.find(c => c.id === 'bingbing')!,
+	]); // 默认三张
+	const [showTab, setShowTab] = useState<'deck' | 'all'>('deck');
+	const [removingCard, setRemovingCard] = useState<string | null>(null);
+	const [rearranging, setRearranging] = useState<boolean>(false);
+	const [animationClass, setAnimationClass] = useState<string>('');
+
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
+	const playClickSound = () => SoundUtils.playClickSound(0.5);
 
-	// 播放按钮点击音效
-	const playClickSound = () => {
-		SoundUtils.playClickSound(0.5);
+	// 页面切换处理函数
+	const handleTabSwitch = (newTab: 'deck' | 'all') => {
+		if (newTab === showTab) return; // 如果是同一个标签页，不执行动画
+
+		playClickSound();
+
+		// 确定动画方向
+		const isMovingRight = (showTab === 'deck' && newTab === 'all');
+		const outClass = isMovingRight ? 'slide-out-left' : 'slide-out-right';
+		const inClass = isMovingRight ? 'slide-in-right' : 'slide-in-left';
+
+		// 开始退出动画
+		setAnimationClass(outClass);
+
+		// 在退出动画完成后切换内容并开始进入动画
+		setTimeout(() => {
+			setShowTab(newTab);
+			setAnimationClass(inClass);
+
+			// 清除动画类
+			setTimeout(() => {
+				setAnimationClass('');
+			}, 400);
+		}, 200); // 一半的动画时间后切换内容
 	};
 
-	const handleBackToHome = () => {
+	const handleBack = () => {
 		playClickSound();
 		navigateQuick('/game');
 	};
 
-	const renderDeckContent = () => (
-		<div className="deck-content">
-			<div className="deck-info">
-				<h3>当前卡组</h3>
-				<p>请选择最多30张卡牌组成你的战斗卡组</p>
-				<div className="deck-stats">
-					<span className="card-count">18/30 张卡牌</span>
-					<span className="deck-cost">平均费用: 3.2</span>
-				</div>
-			</div>
+	// 选择卡组
+	const handleSelect = (card: typeof CARDS_DATA[0]) => {
+		playClickSound();
+		if (!card.owned) return;
+		// 已选则取消
+		if (selected.find(sel => sel.id === card.id)) {
+			setSelected(selected.filter(sel => sel.id !== card.id));
+			return;
+		}
+		// 只能选3张
+		if (selected.length >= 3) return;
+		setSelected([...selected, card]);
+	};
 
-			<div className="deck-grid">
-				<div className="card-slot filled">
-					<div className="card common">
-						<div className="card-cost">2</div>
-						<div className="card-name">穿透卡</div>
-						<div className="card-rarity">普通</div>
-						<div className="card-count">x3</div>
-					</div>
-				</div>
-				<div className="card-slot filled">
-					<div className="card rare">
-						<div className="card-cost">4</div>
-						<div className="card-name">发育卡</div>
-						<div className="card-rarity">稀有</div>
-						<div className="card-count">x2</div>
-					</div>
-				</div>
-				<div className="card-slot filled">
-					<div className="card epic">
-						<div className="card-cost">3</div>
-						<div className="card-name">反弹卡</div>
-						<div className="card-rarity">史诗</div>
-						<div className="card-count">x2</div>
-					</div>
-				</div>
-				<div className="card-slot filled">
-					<div className="card legendary">
-						<div className="card-cost">6</div>
-						<div className="card-name">毁灭卡</div>
-						<div className="card-rarity">传说</div>
-						<div className="card-count">x1</div>
-					</div>
-				</div>
-				{/* 空槽位 */}
-				{Array.from({ length: 8 }, (_, i) => (
-					<div key={i} className="card-slot empty">
-						<div className="add-card">+</div>
-					</div>
-				))}
-			</div>
+	// 移除卡牌动画
+	const handleRemoveCard = (card: typeof CARDS_DATA[0]) => {
+		playClickSound();
+		setRemovingCard(card.id);
 
-			<div className="deck-actions">
-				<button className="deck-btn save">保存卡组</button>
-				<button className="deck-btn clear">清空卡组</button>
-				<button className="deck-btn preset">预设卡组</button>
-			</div>
-		</div>
-	);
+		// 延迟移除，等待动画完成
+		setTimeout(() => {
+			setSelected(selected.filter(sel => sel.id !== card.id));
+			setRemovingCard(null);
 
-	const renderCollectionContent = () => (
-		<div className="collection-content">
-			<div className="collection-filters">
-				<div className="filter-group">
-					<label>稀有度筛选</label>
-					<div className="rarity-filters">
-						<button className="filter-btn active">全部</button>
-						<button className="filter-btn common">普通</button>
-						<button className="filter-btn rare">稀有</button>
-						<button className="filter-btn epic">史诗</button>
-						<button className="filter-btn legendary">传说</button>
-					</div>
-				</div>
-				<div className="filter-group">
-					<label>费用筛选</label>
-					<div className="cost-filters">
-						<button className="filter-btn active">全部</button>
-						<button className="filter-btn">1-2</button>
-						<button className="filter-btn">3-4</button>
-						<button className="filter-btn">5-6</button>
-						<button className="filter-btn">7+</button>
-					</div>
-				</div>
-			</div>
+			// 触发重排动画
+			setRearranging(true);
+			setTimeout(() => setRearranging(false), 500);
+		}, 300); // 卡牌消失动画时间
+	};
 
-			<div className="collection-stats">
-				<div className="stat-item">
-					<span className="stat-number">45</span>
-					<span className="stat-label">拥有卡牌</span>
-				</div>
-				<div className="stat-item">
-					<span className="stat-number">120</span>
-					<span className="stat-label">总卡牌数</span>
-				</div>
-				<div className="stat-item">
-					<span className="stat-number">37.5%</span>
-					<span className="stat-label">收集进度</span>
-				</div>
-			</div>
+	// 一键清空
+	const handleClear = () => {
+		playClickSound();
+		setSelected([]);
+	};
 
-			<div className="collection-grid">
-				<div className="collection-card common owned">
-					<div className="card-cost">2</div>
-					<div className="card-name">穿透卡</div>
-					<div className="card-rarity">普通</div>
-					<div className="card-owned">已拥有 x5</div>
-				</div>
-				<div className="collection-card rare owned">
-					<div className="card-cost">4</div>
-					<div className="card-name">发育卡</div>
-					<div className="card-rarity">稀有</div>
-					<div className="card-owned">已拥有 x3</div>
-				</div>
-				<div className="collection-card epic owned">
-					<div className="card-cost">3</div>
-					<div className="card-name">反弹卡</div>
-					<div className="card-rarity">史诗</div>
-					<div className="card-owned">已拥有 x2</div>
-				</div>
-				<div className="collection-card legendary owned">
-					<div className="card-cost">6</div>
-					<div className="card-name">毁灭卡</div>
-					<div className="card-rarity">传说</div>
-					<div className="card-owned">已拥有 x1</div>
-				</div>
-				<div className="collection-card common not-owned">
-					<div className="card-cost">1</div>
-					<div className="card-name">治疗卡</div>
-					<div className="card-rarity">普通</div>
-					<div className="card-owned">未拥有</div>
-				</div>
-				<div className="collection-card rare not-owned">
-					<div className="card-cost">5</div>
-					<div className="card-name">爆发卡</div>
-					<div className="card-rarity">稀有</div>
-					<div className="card-owned">未拥有</div>
-				</div>
-			</div>
-		</div>
-	);
+	// 一键推荐（优先高稀有度）
+	const handleRecommend = () => {
+		playClickSound();
+		const recommend: typeof CARDS_DATA[0][] = [];
+		for (const t of CARD_TYPES) {
+			for (const r of RARITIES.reverse()) {
+				const card = CARDS_DATA.find(c => c.type === t.type && c.rarity === r.name && c.owned);
+				if (card) {
+					recommend.push(card);
+					break;
+				}
+			}
+		}
+		RARITIES.reverse(); // 恢复原序
+		setSelected(recommend);
+	};
+
+	const getRarityInfo = (rarity: string) => {
+		return RARITIES.find(r => r.name === rarity) || RARITIES[0];
+	};
+
+	const getTypeInfo = (type: string) => {
+		return CARD_TYPES.find(t => t.type === type) || CARD_TYPES[0];
+	};
 
 	return (
 		<PageTransition className="card-page">
 			<div className="card-collection-page">
 				<header className="page-header">
-					<button className="back-btn" onClick={handleBackToHome}>
-						← 返回主页
-					</button>
+					<button className="back-btn" onClick={handleBack}>← 返回大厅</button>
 					<h1>卡组管理</h1>
-					<div className="collection-progress">
-						<span className="progress-label">收集进度</span>
-						<div className="progress-bar">
-							<div className="progress-fill" style={{ width: '37.5%' }}></div>
-						</div>
-						<span className="progress-text">45/120</span>
-					</div>
 				</header>
 
 				<nav className="tab-nav">
-					<button
-						className={`tab-btn ${activeTab === 'deck' ? 'active' : ''}`}
-						onClick={() => {
-							playClickSound();
-							setActiveTab('deck');
-						}}
-					>
-						🃏 卡组编辑
-					</button>
-					<button
-						className={`tab-btn ${activeTab === 'collection' ? 'active' : ''}`}
-						onClick={() => {
-							playClickSound();
-							setActiveTab('collection');
-						}}
-					>
-						📚 卡牌收藏
-					</button>
+					<button className={`tab-btn ${showTab === 'deck' ? 'active' : ''}`} onClick={() => handleTabSwitch('deck')}>我的卡组</button>
+					<button className={`tab-btn ${showTab === 'all' ? 'active' : ''}`} onClick={() => handleTabSwitch('all')}>全部卡牌</button>
 				</nav>
 
 				<main className="collection-main">
-					{activeTab === 'deck' ? renderDeckContent() : renderCollectionContent()}
+					<div className="tab-content-container">
+						<div className={`tab-content ${animationClass}`}>
+							{showTab === 'deck' ? (
+								<div className="deck-section">
+									<h2>已选卡组（最多3张）</h2>
+									<div className="deck-cards">
+										{selected.length === 0 && <div className="empty-tip">请选择三张卡牌组成卡组</div>}
+										{selected.map((card, idx) => {
+											const rarityInfo = getRarityInfo(card.rarity);
+											const typeInfo = getTypeInfo(card.type);
+											const effectIndex = RARITIES.findIndex(r => r.name === card.rarity);
+											return (
+												<div key={card.id} className={`deck-card owned ${card.type} ${removingCard === card.id ? 'removing' : ''} ${rearranging ? 'rearranging' : ''}`}>
+													<div className="card-image">
+														{card.image ? (
+															<img src={card.image} alt={card.name} />
+														) : (
+															<div className="placeholder-image">？</div>
+														)}
+													</div>
+													<div className="card-info">
+														<div className="card-name">{card.name}</div>
+														<div className="card-type" style={{ color: typeInfo.color }}>
+															{typeInfo.icon} {card.type}
+														</div>
+														<div className="card-rarity" style={{ color: rarityInfo.color }}>
+															{'★'.repeat(rarityInfo.stars)} {card.rarity}
+														</div>
+														<div className="card-effect">{typeInfo.effects[effectIndex]}</div>
+													</div>
+													<button className="remove-btn" onClick={() => handleRemoveCard(card)}>移除</button>
+												</div>
+											);
+										})}
+									</div>
+									<div className="deck-actions">
+										<button className="deck-btn recommend" onClick={handleRecommend}>一键推荐</button>
+										<button className="deck-btn clear" onClick={handleClear}>清空卡组</button>
+									</div>
+									<div className="deck-tip">* 每场对战只能携带三张卡牌，合理搭配提升胜率！</div>
+								</div>
+							) : (
+								<div className="all-cards-section">
+									<h2>全部卡牌</h2>
+									<div className="all-cards-grid">
+										{CARDS_DATA.map((card) => {
+											const rarityInfo = getRarityInfo(card.rarity);
+											const typeInfo = getTypeInfo(card.type);
+											const effectIndex = RARITIES.findIndex(r => r.name === card.rarity);
+											const isSelected = selected.find(sel => sel.id === card.id);
+											return (
+												<div key={card.id}
+													className={`all-card ${card.owned ? 'owned' : 'not-owned'} ${card.type} ${isSelected ? 'selected' : ''}`}
+													onClick={() => handleSelect(card)}>
+													<div className="card-image">
+														{card.image ? (
+															<img src={card.image} alt={card.name} />
+														) : (
+															<div className="placeholder-image">？</div>
+														)}
+													</div>
+													<div className="card-info">
+														<div className="card-name">{card.name}</div>
+														<div className="card-type" style={{ color: typeInfo.color }}>
+															{typeInfo.icon} {card.type}
+														</div>
+														<div className="card-rarity" style={{ color: rarityInfo.color }}>
+															{'★'.repeat(rarityInfo.stars)} {card.rarity}
+														</div>
+														<div className="card-effect">{typeInfo.effects[effectIndex]}</div>
+													</div>
+													{!card.owned && <div className="not-owned-overlay">未拥有</div>}
+													{isSelected && <div className="selected-overlay">已选择</div>}
+												</div>
+											);
+										})}
+									</div>
+									<div className="all-cards-tip">* 只有已拥有的卡牌才能加入卡组</div>
+								</div>
+							)}
+						</div>
+					</div>
 				</main>
 			</div>
 		</PageTransition>

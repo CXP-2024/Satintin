@@ -9,6 +9,8 @@ import CardCollectionPage from '../pages/CardCollectionPage';
 import WishPage from '../pages/WishPage';
 import WishResultPage from '../pages/WishResultPage';
 import BattleRulesPage from '../pages/BattleRulesPage';
+import BattleTestPage from '../pages/BattleTestPage';
+import BattleRoom from '../pages/BattleRoom';
 import ConnectionTestPage from '../pages/ConnectionTestPage';
 import NavMenu from './NavMenu';
 
@@ -136,6 +138,38 @@ const AppRouter: React.FC = () => {
 							(() => {
 								console.log('🎁 [AppRouter] 渲染抽卡结果页面');
 								return <WishResultPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/battle-room"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('🏟️ [AppRouter] 渲染对战房间');
+								return <BattleRoom />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/battle-test"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('🧪 [AppRouter] 渲染对战测试页面');
+								return <BattleTestPage />;
 							})()
 						) : (
 							(() => {

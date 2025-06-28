@@ -13,13 +13,7 @@ import Common.Object.SqlParameter
 import cats.effect.IO
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.API.PlanContext
-import Objects.AdminService.UserActionLog
-import Utils.AssetTransactionProcess.modifyAsset
-import Utils.AssetTransactionProcess.fetchAssetStatus
-import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.Object.{ParameterList, SqlParameter}
-import Utils.AssetTransactionProcess.createTransactionRecord
 
 case object AssetTransactionProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -44,13 +38,47 @@ case object AssetTransactionProcess {
       }.flatMap { case (querySQL, parameters) =>
         // Step 3: Execute database query and retrieve asset status
         IO(logger.info(s"[fetchAssetStatus] 查询SQL: ${querySQL}，参数: ${parameters}")) >>
-        readDBInt(querySQL, parameters).flatMap { assetStatus =>
-          IO {
-            logger.info(s"[fetchAssetStatus] 查询成功，用户原石数量为: ${assetStatus}")
-          } >> IO.pure(assetStatus)
+        readDBJsonOptional(querySQL, parameters).flatMap {
+          case Some(json) =>
+            // User has an asset record, get the stone amount
+            val assetStatus = decodeField[Int](json, "stone_amount")
+            IO {
+              logger.info(s"[fetchAssetStatus] 查询成功，用户原石数量为: ${assetStatus}")
+            } >> IO.pure(assetStatus)
+          case None =>
+            // User doesn't have an asset record yet, create one with 0 stones
+            IO(logger.info(s"[fetchAssetStatus] 用户 ${userID} 暂无资产记录，创建默认记录")) >>
+            createInitialAssetRecord(userID).flatMap { _ =>
+              IO {
+                logger.info(s"[fetchAssetStatus] 创建初始资产记录成功，返回默认原石数量: 0")
+              } >> IO.pure(0)
+            }
         }
       }
     }
+  }
+  
+  def createInitialAssetRecord(userID: String)(using PlanContext): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"[createInitialAssetRecord] 为用户 ${userID} 创建初始资产记录"))
+      currentTime <- IO(DateTime.now())
+      insertSQL <- IO {
+        s"""
+        INSERT INTO ${schemaName}.user_asset_status_table (user_id, stone_amount, last_updated)
+        VALUES (?, ?, ?)
+        """
+      }
+      insertParams <- IO {
+        List(
+          SqlParameter("String", userID),
+          SqlParameter("Int", "0"),  // Initial stone amount is 0
+          SqlParameter("DateTime", currentTime.getMillis.toString)
+        )
+      }
+      _ <- IO(logger.info(s"[createInitialAssetRecord] 执行SQL: ${insertSQL}, 参数: ${insertParams}"))
+      _ <- writeDB(insertSQL, insertParams)
+      _ <- IO(logger.info(s"[createInitialAssetRecord] 初始资产记录创建成功，用户: ${userID}，初始原石数量: 0"))
+    } yield ()
   }
   
   def createTransactionRecord(
@@ -63,7 +91,7 @@ case object AssetTransactionProcess {
       // Step 1: Validate input parameters
       _ <- IO {
         if (userID.isBlank) throw new IllegalArgumentException("用户ID不能为空")
-        if (!Set("充值", "消费", "奖励").contains(transactionType)) 
+        if (!Set("CHARGE", "PURCHASE", "REWARD").contains(transactionType)) 
           throw new IllegalArgumentException(s"交易类型不允许: ${transactionType}")
         if (changeAmount == 0) 
           throw new IllegalArgumentException("变动的金额不能为0")
@@ -88,7 +116,7 @@ case object AssetTransactionProcess {
           SqlParameter("String", transactionType),
           SqlParameter("Int", changeAmount.toString),
           SqlParameter("String", changeReason),
-          SqlParameter("Long", timestamp.getMillis.toString)
+          SqlParameter("DateTime", timestamp.getMillis.toString)
         )
       }
       _ <- IO(logger.info(s"准备插入资产交易记录，SQL：${transactionInsertSql}, 参数：${transactionParams}"))
@@ -108,33 +136,26 @@ case object AssetTransactionProcess {
         updatedAsset
       }
   
-      // Step 3.3: Update the asset status
+      // Step 3.3: Update the asset status directly
       _ <- IO(logger.info(s"更新用户的资产数量，新的资产值：${newAssetAmount}"))
-      _ <- modifyAsset(userID, changeAmount)
-  
-      // Step 4: Log user action
-      actionLogID <- IO(java.util.UUID.randomUUID().toString)
-      actionType = "资产变动"
-      actionDetail = s"交易ID: ${transactionID}, 类型: ${transactionType}, 数量: ${changeAmount}, 原因: ${changeReason}"
-      userLogSql = 
+      updateAssetSql <- IO {
         s"""
-         INSERT INTO ${schemaName}.user_action_log
-         (action_log_id, user_id, action_type, action_detail, action_time)
-         VALUES (?, ?, ?, ?, ?)
+        UPDATE ${schemaName}.user_asset_status_table
+        SET stone_amount = ?, last_updated = ?
+        WHERE user_id = ?
         """
-      userLogParams <- IO {
+      }
+      updateAssetParams <- IO {
         List(
-          SqlParameter("String", actionLogID),
-          SqlParameter("String", userID),
-          SqlParameter("String", actionType),
-          SqlParameter("String", actionDetail),
-          SqlParameter("Long", timestamp.getMillis.toString)
+          SqlParameter("Int", newAssetAmount.toString),
+          SqlParameter("DateTime", timestamp.getMillis.toString),
+          SqlParameter("String", userID)
         )
       }
-      _ <- IO(logger.info(s"插入用户操作日志，SQL：${userLogSql}, 参数：${userLogParams}"))
-      _ <- writeDB(userLogSql, userLogParams)
+      _ <- IO(logger.info(s"[createTransactionRecord] 正在更新用户资产，SQL: ${updateAssetSql}, 参数: ${updateAssetParams}"))
+      _ <- writeDB(updateAssetSql, updateAssetParams)
   
-      // Step 5: Final logging and return success message
+      // Step 4: Final logging and return success message
       _ <- IO(logger.info("交易流程已完成，记录生成成功"))
     } yield "交易记录已生成!"
   }
@@ -174,23 +195,14 @@ case object AssetTransactionProcess {
       updateAssetParams <- IO {
         List(
           SqlParameter("Int", newAssetAmount.toString),
-          SqlParameter("Long", DateTime.now().getMillis.toString),
+          SqlParameter("DateTime", DateTime.now().getMillis.toString),
           SqlParameter("String", userID)
         )
       }
       _ <- IO(logger.info(s"[modifyAsset] 正在更新用户资产，SQL: ${updateAssetSql}, 参数: ${updateAssetParams}"))
       _ <- writeDB(updateAssetSql, updateAssetParams)
-  
-      // Step 4: Create transaction record
-      transactionType <- IO {
-        if (changeAmount > 0) "充值" else "消费"
-      }
-      changeReason <- IO {
-        if (changeAmount > 0) "资产充值" else "资产消费"
-      }
-      _ <- createTransactionRecord(userID, transactionType, changeAmount, changeReason)
-      _ <- IO(logger.info(s"[modifyAsset] 资产交易记录创建成功，用户ID=${userID}, 交易类型=${transactionType}, 数量=${changeAmount}"))
-  
+      _ <- IO(logger.info(s"[modifyAsset] 资产更新成功，用户ID=${userID}, 新资产数量=${newAssetAmount}"))
+
     } yield "资产数量更新成功!"
   }
 }

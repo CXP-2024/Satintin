@@ -4,7 +4,7 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
-import gaiyaImage from '../assets/images/gaiya.png';
+import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
@@ -17,6 +17,8 @@ const WishPage: React.FC = () => {
 	const [showRules, setShowRules] = useState(false);
 	const [isHistoryClosing, setIsHistoryClosing] = useState(false);
 	const [isRulesClosing, setIsRulesClosing] = useState(false);
+	const [animationClass, setAnimationClass] = useState<string>('');
+	const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
 	// 初始化音效
 	useEffect(() => {
@@ -26,6 +28,34 @@ const WishPage: React.FC = () => {
 	// 播放按钮点击音效
 	const playClickSound = () => {
 		SoundUtils.playClickSound(0.5);
+	};
+
+	// 卡池切换处理函数
+	const handleBannerSwitch = (newBanner: 'standard' | 'featured') => {
+		if (newBanner === selectedBanner || isAnimating) return;
+
+		playClickSound();
+		setIsAnimating(true);
+
+		// 确定滑动方向
+		const isSlideLeft = (selectedBanner === 'featured' && newBanner === 'standard');
+		const slideOutClass = isSlideLeft ? 'slide-left-out' : 'slide-right-out';
+		const slideInClass = isSlideLeft ? 'slide-left-in' : 'slide-right-in';
+
+		// 开始退出动画
+		setAnimationClass(slideOutClass);
+
+		// 在退出动画完成后切换内容并开始进入动画
+		setTimeout(() => {
+			setSelectedBanner(newBanner);
+			setAnimationClass(slideInClass);
+
+			// 进入动画完成后清除动画类
+			setTimeout(() => {
+				setAnimationClass('');
+				setIsAnimating(false);
+			}, 600); // 匹配CSS动画时长
+		}, 300); // 退出动画一半时间后切换内容
 	};
 
 	const handleShowHistory = () => {
@@ -96,9 +126,9 @@ const WishPage: React.FC = () => {
 	const banners = {
 		featured: {
 			name: '限定卡牌祈愿',
-			subtitle: '「盖亚——！！」概率UP',
-			image: gaiyaImage,
-			description: '限定时间内，5星卡牌「盖亚——！！」获得概率大幅提升！',
+			subtitle: '「Dragon Nai」概率UP',
+			image: nailongImage,
+			description: '限定时间内，5星卡牌「Dragon Nai」获得概率大幅提升！',
 			guaranteed: '90次内必出5星',
 			singleCost: 160,
 			tenCost: 1600,
@@ -142,10 +172,7 @@ const WishPage: React.FC = () => {
 			<div className="banner-tabs">
 				<button
 					className={`banner-tab ${selectedBanner === 'featured' ? 'active' : ''}`}
-					onClick={() => {
-						playClickSound();
-						setSelectedBanner('featured');
-					}}
+					onClick={() => handleBannerSwitch('featured')}
 				>
 					<div className="tab-icon">🌟</div>
 					<div className="tab-text">
@@ -155,10 +182,7 @@ const WishPage: React.FC = () => {
 				</button>
 				<button
 					className={`banner-tab ${selectedBanner === 'standard' ? 'active' : ''}`}
-					onClick={() => {
-						playClickSound();
-						setSelectedBanner('standard');
-					}}
+					onClick={() => handleBannerSwitch('standard')}
 				>
 					<div className="tab-icon">⭐</div>
 					<div className="tab-text">
@@ -444,9 +468,13 @@ const WishPage: React.FC = () => {
 
 				<main className="wish-main">
 					{renderBannerSelector()}
-					<div className="wish-content">
-						{renderCharacterShowcase()}
-						{renderInfoPanel()}
+					<div className="wish-content-container">
+						<div className={`wish-content-wrapper ${animationClass}`}>
+							<div className="wish-content">
+								{renderCharacterShowcase()}
+								{renderInfoPanel()}
+							</div>
+						</div>
 					</div>
 				</main>
 			</div>

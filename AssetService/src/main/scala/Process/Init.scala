@@ -41,7 +41,7 @@ object Init {
       /** 资产交易表，记录用户资产变动相关交易信息
        * transaction_id: 交易的唯一ID
        * user_id: 用户ID
-       * transaction_type: 交易类型 (如充值、消费、奖励)
+       * transaction_type: 交易类型 (如CHARGE、PURCHASE、REWARD)
        * change_amount: 资产变动数量
        * change_reason: 变动原因
        * timestamp: 交易时间
