@@ -4,7 +4,7 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
-import gaiyaImage from '../assets/images/gaiya.png';
+import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
@@ -96,9 +96,9 @@ const WishPage: React.FC = () => {
 	const banners = {
 		featured: {
 			name: '限定卡牌祈愿',
-			subtitle: '「盖亚——！！」概率UP',
-			image: gaiyaImage,
-			description: '限定时间内，5星卡牌「盖亚——！！」获得概率大幅提升！',
+			subtitle: '「Dragon Nai」概率UP',
+			image: nailongImage,
+			description: '限定时间内，5星卡牌「Dragon Nai」获得概率大幅提升！',
 			guaranteed: '90次内必出5星',
 			singleCost: 160,
 			tenCost: 1600,
