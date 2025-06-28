@@ -50,10 +50,11 @@
 	transform: translateX(-3px);
 }
 
-.page-header h1 {
+.card-collection-page .page-header h1 {
 	margin: 0;
 	font-size: 2rem;
 	font-weight: bold;
+	color: white !important;
 	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 

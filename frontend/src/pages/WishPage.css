@@ -50,14 +50,11 @@
 	transform: translateX(-3px);
 }
 
-.page-header h1 {
+.wish-page .page-header h1 {
 	margin: 0;
 	font-size: 2.2rem;
 	font-weight: bold;
-	background: linear-gradient(45deg, #ffd700, #ffeb3b);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
+	color: white !important;
 	position: absolute;
 	left: 50%;
 	transform: translateX(-50%);

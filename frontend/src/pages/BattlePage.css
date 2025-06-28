@@ -31,10 +31,11 @@
 	transform: translateX(-3px);
 }
 
-.page-header h1 {
+.battle-page .page-header h1 {
 	margin: 0;
 	font-size: 2rem;
 	font-weight: bold;
+	color: white !important;
 }
 
 .user-rank {
