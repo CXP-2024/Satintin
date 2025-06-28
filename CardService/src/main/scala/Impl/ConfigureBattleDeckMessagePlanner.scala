@@ -29,6 +29,7 @@ import Objects.CardService.CardEntry
 import io.circe._
 import io.circe.generic.auto._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import APIs.UserService.GetUserInfoMessage
 
 case class ConfigureBattleDeckMessagePlanner(
   userToken: String, 
@@ -60,23 +61,18 @@ case class ConfigureBattleDeckMessagePlanner(
     } yield updateResult
   }
 
-  // Function to validate the user token
+  // Function to validate the user token using UserService API
   private def validateUserToken()(using PlanContext): IO[String] = {
-    val sql =
-      s"""
-         SELECT user_id
-         FROM ${schemaName}.user_sessions
-         WHERE token = ?
-       """
+    // Use userToken as userID, consistent with other services
+    val userID = userToken
     for {
-      _ <- IO(logger.info("验证用户Token"))
-      userJson <- readDBJsonOptional(sql, List(SqlParameter("String", userToken)))
-      userID <- userJson match {
-        case Some(json) => IO(decodeField[String](json, "user_id"))
-        case None => IO.raiseError(new IllegalArgumentException("无效的用户令牌，请重新登录"))
+      _ <- IO(logger.info(s"通过 UserService 验证用户令牌: ${userToken}"))
+      user <- GetUserInfoMessage(userToken, userID).send.handleErrorWith { error =>
+        IO(logger.error(s"用户令牌验证失败: ${error.getMessage}"))
+          >> IO.raiseError(new IllegalArgumentException("无效的用户令牌，请重新登录"))
       }
-      _ <- IO(logger.info(s"用户验证成功，userID为: ${userID}"))
-    } yield userID
+      _ <- IO(logger.info(s"用户令牌有效，用户ID为: ${user.userID}"))
+    } yield user.userID
   }
 
   // Function to validate the length of cardIDs list

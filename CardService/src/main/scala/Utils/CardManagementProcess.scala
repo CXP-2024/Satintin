@@ -35,8 +35,6 @@ case object CardManagementProcess {
   //process plan code 预留标志位，不要删除
   
   def upgradeCard(userToken: String, userID: String, cardID: String)(using PlanContext): IO[String] = {
-  // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
-  
     for {
       // Step 1.1: Verify userID exists
       _ <- IO(logger.info(s"调用 UserService 验证用户 ID: ${userID}"))
@@ -45,7 +43,7 @@ case object CardManagementProcess {
             .handleErrorWith(_ =>
               IO.raiseError(new IllegalStateException(s"用户 ID ${userID} 不存在或 Token 非法"))
             )
-  
+
       // Step 1.2: Verify cardID belongs to the user
       _ <- IO(logger.info(s"验证卡片ID: ${cardID}是否属于用户 ${userID}"))
       cardExists <- readDBBoolean(
@@ -57,7 +55,7 @@ case object CardManagementProcess {
            } else {
              IO(logger.info(s"卡片ID ${cardID}属于用户 ${userID}"))
            }
-  
+
       // Step 2.1: Fetch user's card inventory and find the card
       _ <- IO(logger.info(s"获取用户 ${userID} 的卡片库存"))
       userCards <- fetchUserCardInventory(userID)
@@ -66,13 +64,11 @@ case object CardManagementProcess {
       )
       currentLevel = card.cardLevel
       _ <- IO(logger.info(s"卡片 ${cardID} 当前等级为 ${currentLevel}"))
-  
+
       // Step 2.2: Verify if user has enough resources for the upgrade
       _ <- IO(logger.info(s"验证用户是否有足够的资源进行升级"))
-      currentStoneAmount <- readDBInt(
-        s"SELECT stone_amount FROM ${schemaName}.user WHERE user_id = ?;",
-        List(SqlParameter("String", userID))
-      )
+      _ <- IO(logger.info(s"调用 AssetService 查询用户原石数量"))
+      currentStoneAmount <- QueryAssetStatusMessage(userToken).send
       upgradeCost = (currentLevel + 1) * 10 // 假设升级消耗为 (当前等级 + 1) * 10
       _ <- IO(logger.info(s"用户当前拥有的原石数量: ${currentStoneAmount}, 升级需要消耗的数量: ${upgradeCost}"))
       _ <- if (currentStoneAmount < upgradeCost) {
@@ -80,18 +76,13 @@ case object CardManagementProcess {
            } else {
              IO(logger.info(s"资源足够进行升级"))
            }
-  
+
       // Step 3.1: Deduct user's resources
       _ <- IO(logger.info(s"扣减用户的资源"))
-      _ <- writeDB(
-        s"UPDATE ${schemaName}.user SET stone_amount = stone_amount - ? WHERE user_id = ?;",
-        List(
-          SqlParameter("Int", upgradeCost.toString),
-          SqlParameter("String", userID)
-        )
-      )
+      _ <- IO(logger.info(s"调用 AssetService 扣减用户资源，数量: ${upgradeCost}"))
+      _ <- DeductAssetMessage(userToken, upgradeCost).send
       _ <- IO(logger.info(s"成功扣减资源，扣除数量: ${upgradeCost}"))
-  
+
       // Step 4.1: Update card's level in the database
       _ <- IO(logger.info(s"更新卡片等级"))
       _ <- writeDB(
@@ -102,27 +93,24 @@ case object CardManagementProcess {
         )
       )
       _ <- IO(logger.info(s"成功将卡片ID ${cardID} 的等级更新为 ${currentLevel + 1}"))
-  
+
       // Step 5.1: Log the upgrade operation
       _ <- IO(logger.info(s"记录本次升级操作"))
-
-      // only one log call, with all 3 args:
       _ <- LogUserOperationMessage(
-             userID,
+             userToken,  // 使用 userToken 而不是 userID
              "upgrade_card",
              s"from level ${currentLevel} to level ${currentLevel + 1}"
            ).send
       _ <- IO(logger.info(s"升级操作记录成功"))
 
-      // Optionally keep your cost log as a separate message:
       _ <- LogUserOperationMessage(
-            userID,
+            userToken,  // 使用 userToken 而不是 userID
             "upgrade_card",
             s"cost=$upgradeCost"
           ).send
-          } yield "卡牌已成功升级!"
-        }
-  
+    } yield "卡牌已成功升级!"
+  }
+
   def fetchUserCardInventory(userID: String)(using PlanContext): IO[List[CardEntry]] = {
   // val logger = LoggerFactory.getLogger(this.getClass)  // 同文后端处理: logger 统一
   
