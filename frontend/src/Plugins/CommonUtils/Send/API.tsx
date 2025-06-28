@@ -1,7 +1,7 @@
 import { materialAlertError } from 'Plugins/CommonUtils/Gadgets/AlertGadget'
 import { openBackdropGadget } from 'Plugins/CommonUtils/Gadgets/BackdropGadget'
 import { commonSend } from 'Plugins/CommonUtils/Send/CommonSend'
-import { config } from 'Globals/Config'
+import { config } from '../../../Globals/Config'
 
 export type InfoCallBackType = (info: any) => void
 export const backdropInitCallBack = openBackdropGadget

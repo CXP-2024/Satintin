@@ -1,4 +1,4 @@
-import { config } from '../globals/Config';
+import { config } from '../Globals/Config';
 
 /**
  * 连接测试服务 - 用于测试与后端各服务的连接

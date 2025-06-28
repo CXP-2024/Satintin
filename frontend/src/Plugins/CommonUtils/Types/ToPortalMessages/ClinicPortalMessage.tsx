@@ -1,4 +1,4 @@
-import { serviceName } from 'Globals/GlobalVariables'
+import { serviceName } from '../../../../Globals/GlobalVariables'
 import { getUniqueIDSnap } from 'Plugins/CommonUtils/UniqueID'
 import { getPublicKeySnap } from 'Plugins/CommonUtils/Encryption/EncryptionStore'
 import { getMacAddressIDSnap } from 'Plugins/CommonUtils/Store/GetMacAddressStore'

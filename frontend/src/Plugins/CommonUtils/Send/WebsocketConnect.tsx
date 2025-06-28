@@ -1,4 +1,4 @@
-import { config } from 'Globals/Config'
+import { config } from '../../../Globals/Config'
 
 export function websocketConnect(
     url: string,

@@ -1,32 +1,39 @@
 {
   "compilerOptions": {
-    "target": "es2015", // 更新为 es2015 以支持迭代器
+    "target": "es2015",
     "lib": [
       "dom",
-      "dom.iterable",
+      "dom.iterable", 
       "es6",
       "es2015"
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "allowJs": true,
+    "target": "esnext",
+    "module": "commonjs",
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "baseUrl": "src",
+    "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "downlevelIteration": true // 添加这个选项支持迭代器
+    "lib": ["dom", "esnext"],
+    "jsx": "react",
+    "paths": {
+      "Plugins/*": ["Plugins/*"],
+      "Assets/*": ["assets/*"],
+      "Pages/*": ["pages/*"],
+      "Components/*": ["components/*"],
+      "Utils/*": ["utils/*"],
+      "Store/*": ["store/*"],
+      "Globals/*": ["Globals/*"]
+    }
   },
   "include": [
-    "src"
-  ],
-  "exclude": [
-    "src/plugins",
-    "../Plugins/**/*"
+    "src/**/*"
   ]
 }

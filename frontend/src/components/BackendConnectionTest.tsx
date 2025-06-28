@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { config } from '../globals/Config';
+import { config } from '../Globals/Config';
 import { apiService } from '../services/ApiService';
 
 interface ServiceStatus {

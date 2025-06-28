@@ -13,14 +13,6 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "lib": ["dom", "esnext"],
-        "paths": {
-            "Globals/*": ["Globals/*"],
-            "Images/*": ["Images/*"],
-            "Pages/*": ["Pages/*"],
-            "Plugins/*": ["Plugins/*"],
-            "Styles/*": ["Styles/*"],
-            "Utils/*": ["Utils/*"]
-        },
         "jsx": "react"
     },
     "include": ["src/**/*", "src/declaration.d.ts"]

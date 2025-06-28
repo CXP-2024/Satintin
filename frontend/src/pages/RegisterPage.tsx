@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import { RegisterFormData } from '../types/User';  // 使用专门的表单类型
-import { apiService } from '../services/ApiService';
 import './RegisterPage.css';
+import {RegisterUserMessage} from "../Plugins/UserService/APIs/RegisterUserMessage";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({  // 使用正确的类型
@@ -18,8 +17,6 @@ const RegisterPage: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
 
-    const { setUser, setToken } = useAuthStore();
-    const { navigateWithTransition } = usePageTransition();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -93,13 +90,7 @@ const RegisterPage: React.FC = () => {
         e.preventDefault();
 
         console.log('📝 [注册流程] 开始注册流程');
-        console.log('📋 [注册流程] 表单数据:', { 
-            username: formData.username,
-            email: formData.email,
-            phoneNumber: formData.phoneNumber,
-            password: '***',
-            confirmPassword: '***'
-        });
+
 
         if (!validateForm()) {
             console.log('❌ [注册流程] 表单验证失败');
@@ -110,76 +101,19 @@ const RegisterPage: React.FC = () => {
         setLoading(true);
         setError('');
 
-        // 记录开始时间
-        const startTime = Date.now();
-
         try {
             console.log('🔄 [注册流程] 调用注册API...');
 
-            // 只调用真实API，不发送 confirmPassword 到后端
-            const response = await apiService.register({
-                username: formData.username,
-                email: formData.email,
-                password: formData.password,
-                phoneNumber: formData.phoneNumber
-                // 注意：不包含 confirmPassword
-            });
-
-            console.log('📡 [注册流程] API响应:', response);
-
-            if (response.success && response.data) {
-                console.log('✅ [注册流程] 注册成功');
-
-                // 设置完整的用户信息
-                const userData = {
-                    id: response.data.id,
-                    username: response.data.username,
-                    email: response.data.email,
-                    phoneNumber: response.data.phoneNumber || formData.phoneNumber,
-                    rank: response.data.rank || '青铜',
-                    coins: response.data.coins || 1000,
-                    status: response.data.status || 'online' as 'online' | 'offline' | 'in_battle',
-                    registrationTime: response.data.registrationTime,
-                    lastLoginTime: response.data.lastLoginTime,
-                    rankPosition: response.data.rankPosition || 0,
-                    cardDrawCount: response.data.cardDrawCount || 0
-                };
-
-                setUser(userData);
-
-                // 确保加载动画至少显示3秒
-                const elapsedTime = Date.now() - startTime;
-                const minDisplayTime = 3000;
-                if (elapsedTime < minDisplayTime) {
-                    console.log(`⏰ [注册流程] 等待动画完成，还需 ${minDisplayTime - elapsedTime}ms`);
-                    await new Promise(resolve =>
-                        setTimeout(resolve, minDisplayTime - elapsedTime)
-                    );
+            new RegisterUserMessage(formData.username, formData.email, formData.password, formData.phoneNumber).send(
+                (err: any) => {
+                    setMessage(err.message || "注册失败");
                 }
+            )
 
-                console.log('🧭 [注册流程] 跳转到游戏主页...');
-                await navigateWithTransition('/game');
-            } else {
-                console.error('❌ [注册流程] 注册失败:', response.message);
-                setError(response.message || '注册失败，请检查输入信息');
-            }
+
+
         } catch (err: any) {
-            console.error('💥 [注册流程] 发生错误:', err);
-            
-            // 提取详细错误信息
-            let errorMessage = '注册失败，请稍后重试';
-            if (err.response?.data?.message) {
-                errorMessage = err.response.data.message;
-            } else if (err.message) {
-                errorMessage = err.message;
-            } else if (typeof err === 'string') {
-                errorMessage = err;
-            }
-            
-            setError(errorMessage);
-        } finally {
-            console.log('🏁 [注册流程] 清理加载状态');
-            setLoading(false);
+            setMessage(err.message || "注册失败");
         }
     };
 

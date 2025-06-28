@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import { usePageTransition } from '../hooks/usePageTransition';
 import { useGlobalLoading } from '../store/globalLoadingStore';
 import PageTransition from '../components/PageTransition';
-import { apiService } from '../services/ApiService';
 import './LoginPage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from '../utils/soundUtils';
+import {setUserToken} from "../Plugins/CommonUtils/Store/UserInfoStore";
+import {LoginUserMessage} from "../Plugins/UserService/APIs/LoginUserMessage";
 
 const LoginPage: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -15,10 +14,7 @@ const LoginPage: React.FC = () => {
         password: ''
     });
     const [error, setError] = useState<string>('');
-
-    const { setUser, setToken } = useAuthStore();
     const { showLoading, hideLoading } = useGlobalLoading();
-    const { navigateWithTransition } = usePageTransition();
 
     // 初始化音效
     useEffect(() => {
@@ -39,50 +35,7 @@ const LoginPage: React.FC = () => {
         setError('');
     };
 
-    // 测试用户登录函数
-    const handleTestLogin = async () => {
-        playClickSound();
-        console.log('🧪 [测试登录] 开始测试用户登录');
-        showLoading('正在进行测试登录', 'login');
-        setError('');
 
-        try {
-            // 模拟网络延迟（匹配视频长度5秒）
-            await new Promise(resolve => setTimeout(resolve, 5000));
-
-            // 创建测试用户数据
-            const testUser = {
-                id: 'test-user-001',
-                username: '测试用户',
-                email: 'testuser@example.com',
-                phoneNumber: '13800138000',
-                rank: '黄金',
-                coins: 5000,
-                status: 'online' as const,
-                registrationTime: new Date().toISOString(),
-                lastLoginTime: new Date().toISOString(),
-                rankPosition: 1000,
-                cardDrawCount: 10
-            };
-
-            const testToken = 'test-token-' + Date.now();
-
-            console.log('👤 [测试登录] 设置测试用户信息:', testUser);
-            console.log('🔑 [测试登录] 设置测试令牌:', testToken);
-
-            setUser(testUser);
-            setToken(testToken);
-
-            console.log('🧭 [测试登录] 测试登录成功，跳转到游戏主页...');
-            await navigateWithTransition('/game');
-        } catch (err: any) {
-            console.error('💥 [测试登录] 发生错误:', err);
-            setError('测试登录失败');
-            hideLoading();
-        }
-    };
-
-    // 主要登录逻辑 - 只使用真实API
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         playClickSound();
@@ -111,73 +64,17 @@ const LoginPage: React.FC = () => {
         showLoading('正在验证登录信息', 'login');
         setError('');
 
-        const startTime = Date.now();
-
         try {
             console.log('🔄 [登录流程] 调用真实API...');
 
-            // 只调用真实的API，不再有模拟数据
-            const response = await apiService.login({
-                username: formData.username,
-                password: formData.password
-            });
-
-            console.log('📡 [登录流程] API响应:', response);
-
-            if (response.success && response.data) {
-                console.log('✅ [登录流程] 登录成功');
-
-                const { user, token } = response.data;
-
-                if (user && token) {
-                    console.log('💾 [登录流程] 更新用户状态...');
-
-                    // 确保用户数据完整性
-                    const userData = {
-                        id: user.id,
-                        username: user.username,
-                        email: user.email,
-                        phoneNumber: user.phoneNumber || '',
-                        rank: user.rank || '青铜',
-                        coins: user.coins || 1000,
-                        status: user.status || 'online' as 'online' | 'offline' | 'in_battle',
-                        registrationTime: user.registrationTime,
-                        lastLoginTime: user.lastLoginTime,
-                        rankPosition: user.rankPosition || 0,
-                        cardDrawCount: user.cardDrawCount || 0
-                    };
-
-                    setUser(userData);
-                    setToken(token);
-
-                    // 确保加载动画至少显示5秒（匹配视频长度）
-                    const elapsedTime = Date.now() - startTime;
-                    const minDisplayTime = 5000;
-                    if (elapsedTime < minDisplayTime) {
-                        console.log(`⏰ [登录流程] 等待视频播放完成，还需 ${minDisplayTime - elapsedTime}ms`);
-                        await new Promise(resolve =>
-                            setTimeout(resolve, minDisplayTime - elapsedTime)
-                        );
-                    }
-
-                    console.log('🧭 [登录流程] 跳转到游戏主页...');
-                    await navigateWithTransition('/game');
-                } else {
-                    console.error('❌ [登录流程] 响应数据结构异常');
-                    setError('服务器响应数据异常，请稍后重试');
+            new LoginUserMessage(formData.username, formData.password).send(
+                (info:string)=>{
+                    const token=JSON.parse(info)
+                    setUserToken(token)
                 }
-            } else {
-                console.error('❌ [登录流程] 登录失败:', response.message);
-                setError(response.message || '登录失败，请检查用户名和密码');
-            }
-
-            hideLoading();
-        } catch (error: any) {
-            console.error('💥 [登录流程] 发生网络错误:', error);
-            const errorMessage = error.response?.data?.message || error.message || '网络连接失败，请检查网络后重试';
-            console.log('📋 [登录流程] 设置错误信息:', errorMessage);
-            setError(errorMessage);
-            hideLoading();
+            )
+        } catch (err: any) {
+            setMessage(err.message || "登录失败");
         }
     };
 
@@ -206,7 +103,7 @@ const LoginPage: React.FC = () => {
                                 required
                             />
                         </div>
-
+jian
                         <div className="form-group">
                             <label htmlFor="password">密码</label>
                             <input

@@ -1,4 +1,4 @@
-import { config } from 'Globals/Config'
+import { config } from '../../../Globals/Config'
 
 let currentEventSource: EventSource | null = null
 

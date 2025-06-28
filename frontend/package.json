@@ -4,8 +4,6 @@
   "private": true,
   "proxy": "http://localhost:10010",
   "dependencies": {
-    "axios": "^1.10.0",
-    "react-router-dom": "^7.6.2",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.1.2",
@@ -26,11 +24,11 @@
     "lodash": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.2",
+    "react-router-dom": "^7.6.3",
     "react-scripts": "^5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.6"
   },
   "scripts": {
     "start": "react-scripts start",

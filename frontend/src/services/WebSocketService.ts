@@ -1,4 +1,4 @@
-import { config } from '../globals/Config';
+import { config } from '../Globals/Config';
 
 export interface BattleAction {
 	type: 'cake' | 'defense' | 'spray'; // 饼、防、撒

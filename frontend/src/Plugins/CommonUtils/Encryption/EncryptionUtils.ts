@@ -1,5 +1,5 @@
 import { getCurrentBranch } from 'Plugins/CommonUtils/Functions/ProjectMetaInfo'
-import { serviceName } from 'Globals/GlobalVariables'
+import { serviceName } from '../../../Globals/GlobalVariables'
 
 export function generateKeyPair() {
     const keyUtil = (window as any).__keyUtil
