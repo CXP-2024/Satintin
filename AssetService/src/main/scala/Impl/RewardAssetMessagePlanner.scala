@@ -85,14 +85,12 @@ case class RewardAssetMessagePlanner(
    */
   private def verifyUserToken(token: String)(using PlanContext): IO[String] = {
     for {
-      _ <- IO {
-        if (token == null || token.trim.isEmpty)
-          throw new IllegalArgumentException("用户 token 不能为空或无效")
-      }
+      _ <- IO(if (token == null || token.trim.isEmpty) 
+                throw new IllegalArgumentException("用户 token 不能为空或无效"))
       _ <- IO(logger.info(s"解析并校验用户 token=$token"))
 
       // Call GetUserInfoMessage to extract user details
-      user <- GetUserInfoMessage(token, userID = "").send
+      user <- GetUserInfoMessage(token, token).send
       _ <- IO(logger.info(s"用户 token 验证成功，对应用户 ID=${user.userID}"))
 
     } yield user.userID

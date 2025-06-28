@@ -47,10 +47,9 @@ case class ViewSystemStatsMessagePlanner(
       systemStats <- queryLatestSystemStats()
     } yield systemStats
   }
-
   /** Step 1.1: 验证管理员令牌是否有效 */
   private def validateAdminToken()(using PlanContext): IO[Unit] = {
-    val sql = s"SELECT is_valid_admin_token(?) AS token_valid;"
+    val sql = s"SELECT COUNT(*) > 0 FROM ${schemaName}.admin_account_table WHERE token = ? AND is_active = true;"
     readDBBoolean(sql, List(SqlParameter("String", adminToken))).flatMap {
       case true =>
         IO(logger.info("管理员令牌验证通过"))
@@ -61,7 +60,6 @@ case class ViewSystemStatsMessagePlanner(
         IO.raiseError(new IllegalArgumentException(errorMsg))
     }
   }
-
   /** Step 2: 查询最新的系统统计数据 */
   private def queryLatestSystemStats()(using PlanContext): IO[SystemStats] = {
     val sql =
@@ -86,7 +84,7 @@ case class ViewSystemStatsMessagePlanner(
             totalMatches = decodeField[Int](json, "total_matches"),
             totalCardDraws = decodeField[Int](json, "total_card_draws"),
             totalReports = decodeField[Int](json, "total_reports"),
-            snapshotTime = new DateTime(decodeField[Long](json, "snapshot_time"))
+            snapshotTime = decodeField[DateTime](json, "snapshot_time")
           )
         }
 

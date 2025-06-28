@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.{API, PlanContext, TraceID}
@@ -26,6 +25,8 @@ object Init {
        * admin_id: 管理员的唯一ID，主键，自动递增
        * account_name: 管理员账号名
        * password_hash: 管理员密码哈希值
+       * token: 管理员账号的唯一标识符，用于身份验证
+       * is_active: 管理员账号是否激活
        * create_time: 管理员账号创建时间
        */
       _ <- writeDB(
@@ -34,9 +35,27 @@ object Init {
             admin_id VARCHAR NOT NULL PRIMARY KEY,
             account_name TEXT NOT NULL,
             password_hash TEXT NOT NULL,
+            token VARCHAR NOT NULL,
+            is_active BOOLEAN NOT NULL DEFAULT TRUE,
             create_time TIMESTAMP NOT NULL
         );
          
+        """,
+        List()
+      )
+      _ <- writeDB(
+        s"""
+        INSERT INTO "${schemaName}"."admin_account_table" (admin_id, account_name, password_hash, token, is_active, create_time)
+        SELECT
+          '00000000-0000-0000-0000-000000000000',
+          'admin',
+          '$$2a$$10$$eImiTXuWVxfM37uY4JANjQ==',
+          'a1b2c3d4-e5f6-7890-abcd-1234567890ab',
+          TRUE,
+          NOW()
+        WHERE NOT EXISTS (
+          SELECT 1 FROM "${schemaName}"."admin_account_table"
+        );
         """,
         List()
       )
@@ -104,6 +123,23 @@ object Init {
         );
          
         """,
+        List()      )
+
+      // 插入初始系统统计数据（如果表为空）
+      _ <- writeDB(
+        s"""
+        INSERT INTO "${schemaName}"."system_stats_table" (stats_id, active_user_count, total_matches, total_card_draws, total_reports, snapshot_time)
+        SELECT 
+          '${java.util.UUID.randomUUID().toString}',
+          0,
+          0, 
+          0,
+          0,
+          NOW()
+        WHERE NOT EXISTS (
+          SELECT 1 FROM "${schemaName}"."system_stats_table"
+        );
+        """,
         List()
       )
     } yield ()
@@ -114,4 +150,3 @@ object Init {
     })
   }
 }
-    

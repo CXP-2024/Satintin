@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AdminService API 测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        section { margin-bottom: 30px; padding: 10px; border: 1px solid #ccc; }
+        section h2 { margin-top: 0; }
+        label { display: inline-block; width: 120px; }
+        input, select { width: 200px; }
+        button { margin-left: 124px; }
+        pre { background: #f7f7f7; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>AdminService API 测试</h1>
+    <script>
+        const BASE_URL = 'http://127.0.0.1:10013/api';
+
+        async function callApi(path, payload, outputId) {
+            try {
+                const res = await fetch(BASE_URL + path, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const text = await res.text();
+                document.getElementById(outputId).textContent = 
+                    `Status: ${res.status}\n\n` + text;
+            } catch (err) {
+                document.getElementById(outputId).textContent = err.toString();
+            }
+        }
+
+        function testBanUser() {
+            const token = document.getElementById('ban_token').value;
+            const userID = document.getElementById('ban_userID').value;
+            const days = parseInt(document.getElementById('ban_days').value, 10);
+            callApi('/BanUserMessage', { adminToken: token, userID: userID, banDays: days }, 'ban_result');
+        }
+
+        function testUnbanUser() {
+            const token = document.getElementById('unban_token').value;
+            const userID = document.getElementById('unban_userID').value;
+            callApi('/UnbanUserMessage', { adminToken: token, userID: userID }, 'unban_result');
+        }
+
+        function testManageReport() {
+            const token = document.getElementById('report_token').value;
+            const reportID = document.getElementById('report_id').value;
+            const status = document.getElementById('report_status').value;
+            callApi('/ManageReportMessage', { adminToken: token, reportID: reportID, resolutionStatus: status }, 'report_result');
+        }
+
+        function testViewSystemStats() {
+            const token = document.getElementById('stats_token').value;
+            callApi('/ViewSystemStatsMessage', { adminToken: token }, 'stats_result');
+        }
+
+        // 新增：测试创建管理员
+        function testCreateAdmin() {
+            const token = document.getElementById('create_token').value;
+            const username = document.getElementById('create_username').value;
+            const pwd = document.getElementById('create_password').value;
+            callApi('/CreateAdminMessage', { superAdminToken: token, username: username, passwordHash: pwd }, 'create_result');
+        }
+
+        // 新增：测试管理员登录
+        function testLoginAdmin() {
+            const username = document.getElementById('login_username').value;
+            const pwd = document.getElementById('login_password').value;
+            callApi('/LoginAdminMessage', { accountName: username, passwordHash: pwd }, 'login_result');
+        }
+    </script>
+
+    <section>
+        <h2>1. BanUser</h2>
+        <div>
+            <label>adminToken:</label><input id="ban_token" type="text" placeholder="管理员 Token"><br>
+            <label>userID:</label><input id="ban_userID" type="text" placeholder="用户 ID"><br>
+            <label>banDays:</label><input id="ban_days" type="number" value="1"><br>
+            <button onclick="testBanUser()">调用 BanUser</button>
+        </div>
+        <pre id="ban_result"></pre>
+    </section>
+
+    <section>
+        <h2>2. UnbanUser</h2>
+        <div>
+            <label>adminToken:</label><input id="unban_token" type="text" placeholder="管理员 Token"><br>
+            <label>userID:</label><input id="unban_userID" type="text" placeholder="用户 ID"><br>
+            <button onclick="testUnbanUser()">调用 UnbanUser</button>
+        </div>
+        <pre id="unban_result"></pre>
+    </section>
+
+    <section>
+        <h2>3. ManageReport</h2>
+        <div>
+            <label>adminToken:</label><input id="report_token" type="text" placeholder="管理员 Token"><br>
+            <label>reportID:</label><input id="report_id" type="text" placeholder="举报记录 ID"><br>
+            <label>resolutionStatus:</label>
+            <select id="report_status">
+                <option value="已处理">已处理</option>
+                <option value="未处理">未处理</option>
+            </select><br>
+            <button onclick="testManageReport()">调用 ManageReport</button>
+        </div>
+        <pre id="report_result"></pre>
+    </section>
+
+    <section>
+        <h2>4. ViewSystemStats</h2>
+        <div>
+            <label>adminToken:</label><input id="stats_token" type="text" placeholder="管理员 Token"><br>
+            <button onclick="testViewSystemStats()">调用 ViewSystemStats</button>
+        </div>
+        <pre id="stats_result"></pre>
+    </section>
+
+    <!-- 新增：管理员登录 -->
+    <section>
+        <h2>5. LoginAdmin</h2>
+        <div>
+            <label>username:</label><input id="login_username" type="text" placeholder="管理员用户名"><br>
+            <label>password:</label><input id="login_password" type="text" placeholder="管理员密码哈希"><br>
+            <button onclick="testLoginAdmin()">调用 LoginAdmin</button>
+        </div>
+        <pre id="login_result"></pre>
+    </section>
+
+    <!-- 新增：创建管理员 -->
+    <section>
+        <h2>6. CreateAdmin</h2>
+        <div>
+            <label>superAdminToken:</label><input id="create_token" type="text" placeholder="超级管理员 Token"><br>
+            <label>username:</label><input id="create_username" type="text" placeholder="新管理员用户名"><br>
+            <label>passwordHash:</label><input id="create_password" type="text" placeholder="新管理员密码哈希"><br>
+            <button onclick="testCreateAdmin()">调用 CreateAdmin</button>
+        </div>
+        <pre id="create_result"></pre>
+    </section>
+
+</body>
+</html>

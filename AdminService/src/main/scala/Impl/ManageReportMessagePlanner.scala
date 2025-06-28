@@ -69,7 +69,7 @@ case class ManageReportMessagePlanner(
       val sql =
         s"""
 SELECT admin_id, account_name, password_hash, create_time
-FROM ${schemaName}.admin_table
+FROM ${schemaName}.admin_account_table
 WHERE token = ? AND is_active = true
          """.stripMargin
 

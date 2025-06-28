@@ -14,19 +14,6 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.ReportManagementProcess.banUser
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class BanUserMessagePlanner(adminToken: String, userID: String, banDays: Int, override val planContext: PlanContext) 
   extends Planner[String] {
@@ -54,7 +41,7 @@ case class BanUserMessagePlanner(adminToken: String, userID: String, banDays: In
       _ <- IO(logger.info(s"[Step 1] 验证管理员权限, adminToken=${adminToken}"))
 
       // SQL 查询
-      sql <- IO(s"SELECT is_admin FROM ${schemaName}.admins WHERE token = ?;")
+      sql <- IO(s"SELECT is_active FROM ${schemaName}.admin_account_table WHERE token = ?;")
       params <- IO(List(SqlParameter("String", adminToken)))
 
       // 检查是否具有管理员权限

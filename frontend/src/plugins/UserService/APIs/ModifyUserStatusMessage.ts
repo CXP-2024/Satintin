@@ -1,10 +1,9 @@
 /**
  * ModifyUserStatusMessage
- * desc: 管理员通过提供userID和新的封禁天数，更新用户的封禁字段。
- * @param adminToken: String (管理员身份验证的Token)
- * @param userID: String (需要被修改状态的用户ID)
- * @param banDays: Int (新的封禁天数)
- * @return result: String (修改状态的结果信息 (如: '用户状态修改成功！'))
+ * desc: 通过提供 userID 和新的封禁天数，更新用户的封禁字段。
+ * @param userID: string (需要被修改状态的用户ID)
+ * @param banDays: number (新的封禁天数)
+ * @return result: String (修改状态的结果信息)
  */
 import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
 
@@ -12,7 +11,6 @@ import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
 
 export class ModifyUserStatusMessage extends TongWenMessage {
     constructor(
-        public adminToken: string,
         public userID: string,
         public banDays: number
     ) {
