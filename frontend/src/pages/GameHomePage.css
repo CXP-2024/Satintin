@@ -133,7 +133,46 @@
 	height: 80px;
 }
 
-.logout-btn {
+.charge-btn {
+	background: rgba(53, 153, 220, 0.8);
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	position: relative;
+	overflow: hidden;
+}
+
+.charge-btn::before {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(90deg, #4facfe, #00f2fe, #4facfe);
+	background-size: 200% 100%;
+	border-radius: 27px;
+	z-index: -1;
+	animation: gradientShift 3s ease-in-out infinite;
+}
+
+.charge-btn:hover {
+	background: rgba(88, 166, 222, 0.9);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
+}
+
+.charge-btn:hover::before {
+	animation-duration: 1.5s;
+	box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+}
+
+.home-logout-btn {
 	background: rgba(220, 53, 69, 0.8);
 	color: white;
 	border: none;
@@ -145,7 +184,7 @@
 	backdrop-filter: blur(10px);
 }
 
-.logout-btn:hover {
+.home-logout-btn:hover {
 	background: rgba(200, 35, 51, 0.9);
 	transform: translateY(-2px);
 	box-shadow: 0 8px 15px rgba(220, 53, 69, 0.4);
@@ -310,7 +349,7 @@
 	gap: 30px;
 }
 
-.action-btn {
+.home-action-btn {
 	background: rgba(255, 255, 255, 0.1);
 	border: 2px solid rgba(255, 255, 255, 0.2);
 	border-radius: 25px;
@@ -323,12 +362,12 @@
 	min-height: 150px;
 }
 
-.action-btn:hover {
+.game-home .home-action-btn:hover {
 	transform: translateY(-15px) scale(1.02);
 	box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
 }
 
-.btn-background {
+.home-btn-background {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -338,19 +377,19 @@
 	transition: opacity 0.3s ease;
 }
 
-.battle-btn .btn-background {
-	background: linear-gradient(135deg, #667eea, #764ba2);
+.game-home .home-battle-btn .home-btn-background {
+	background: linear-gradient(135deg, #667eea, #764ba2) !important;
 }
 
-.cards-btn .btn-background {
-	background: linear-gradient(135deg, #4facfe, #00f2fe);
+.game-home .cards-btn .home-btn-background {
+	background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
 }
 
-.wish-btn .btn-background {
-	background: linear-gradient(135deg, #ffd89b, #19547b);
+.game-home .wish-btn .home-btn-background {
+	background: linear-gradient(135deg, #ffd89b, #19547b) !important;
 }
 
-.action-btn:hover .btn-background {
+.game-home .home-action-btn:hover .home-btn-background {
 	opacity: 0.8;
 }
 
@@ -561,7 +600,7 @@
 		gap: 15px;
 	}
 
-	.action-btn {
+	.home-action-btn {
 		min-height: 120px;
 	}
 

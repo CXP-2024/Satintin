@@ -778,6 +778,47 @@
 	padding: 40px 20px;
 }
 
+
+.wishpage-charge-btn {
+	background: rgba(53, 153, 220, 0.8);
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	position: relative;
+	overflow: hidden;
+}
+
+.wishpage-charge-btn::before {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(90deg, #849329, #a9993a, #ab8a36);
+	background-size: 200% 100%;
+	border-radius: 27px;
+	z-index: -1;
+	animation: gradientShift 3s ease-in-out infinite;
+}
+
+.wishpage-charge-btn:hover {
+	background: rgba(88, 166, 222, 0.9);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
+}
+
+.wishpage-charge-btn:hover::before {
+	animation-duration: 1.5s;
+	box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+}
+
+
 /* 祈愿规则按钮样式 */
 .rules-btn {
 	background: rgba(255, 215, 0, 0.2);

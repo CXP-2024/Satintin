@@ -1,0 +1,301 @@
+/* 商店页面样式 */
+.shop-page {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+	color: white;
+	position: relative;
+	overflow-x: hidden;
+}
+
+.shop-page::before {
+	content: '';
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+	pointer-events: none;
+}
+
+.page-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px 30px;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	position: relative;
+	z-index: 10;
+}
+
+.back-btn {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+	border: none;
+	padding: 12px 24px;
+	border-radius: 30px;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+}
+
+.back-btn:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: translateX(-3px);
+}
+
+.shop-page .page-header h1 {
+	margin: 0;
+	font-size: 2.2rem;
+	font-weight: bold;
+	color: white !important;
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+}
+
+.user-currency-header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(255, 255, 255, 0.15);
+	padding: 10px 20px;
+	border-radius: 25px;
+	backdrop-filter: blur(10px);
+}
+
+.currency-icon {
+	width: 24px;
+	height: 24px;
+}
+
+.currency-amount {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #ffd700;
+}
+
+.shop-main {
+	padding: 30px;
+	max-width: 1400px;
+	margin: 0 auto;
+	position: relative;
+	z-index: 2;
+}
+
+/* 商店顶部横幅 */
+.shop-banner {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 25px;
+	padding: 40px;
+	margin-bottom: 40px;
+	text-align: center;
+	backdrop-filter: blur(15px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	position: relative;
+	overflow: hidden;
+}
+
+.shop-banner::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+	background-size: 300% 100%;
+	animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+	0%, 100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+.banner-title {
+	font-size: 2.5rem;
+	font-weight: bold;
+	color: white;
+	margin-bottom: 15px;
+	text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.banner-subtitle {
+	font-size: 1.3rem;
+	color: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	font-weight: 300;
+}
+
+/* 充值选项区域 */
+.recharge-options {
+	margin-bottom: 40px;
+}
+
+.options-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 30px;
+}
+
+.recharge-card {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 20px;
+	padding: 30px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+	transition: all 0.3s ease;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	position: relative;
+	overflow: hidden;
+}
+
+.recharge-card::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #4facfe, #00f2fe);
+}
+
+.recharge-card:hover {
+	transform: translateY(-10px);
+	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+	background: rgba(255, 255, 255, 0.15);
+}
+
+.crystal-image {
+	width: 80px;
+	height: 80px;
+	margin-bottom: 10px;
+}
+
+.crystal-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+	filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+}
+
+.crystal-amount {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 5px;
+}
+
+.crystal-amount .amount {
+	font-size: 2.5rem;
+	font-weight: bold;
+	color: #ffd700;
+	text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+}
+
+.crystal-amount .label {
+	font-size: 1.2rem;
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.price {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	margin: 5px 0;
+}
+
+.price-label {
+	font-size: 1.2rem;
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.price-amount {
+	font-size: 1.8rem;
+	font-weight: bold;
+	color: white;
+}
+
+.recharge-btn {
+	background: rgba(53, 153, 220, 0.8);
+	color: white;
+	border: none;
+	padding: 12px 30px;
+	border-radius: 25px;
+	cursor: pointer;
+	font-weight: 600;
+	transition: all 0.3s ease;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+	margin-top: 10px;
+}
+
+.recharge-btn::before {
+	content: '';
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	right: -2px;
+	bottom: -2px;
+	background: linear-gradient(90deg, #4facfe, #00f2fe, #4facfe);
+	background-size: 200% 100%;
+	border-radius: 27px;
+	z-index: -1;
+	animation: gradientShift 3s ease-in-out infinite;
+}
+
+.recharge-btn:hover {
+	background: rgba(88, 166, 222, 0.9);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
+}
+
+.recharge-btn:hover::before {
+	animation-duration: 1.5s;
+	box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+}
+
+/* 购买须知区域 */
+.shop-info {
+	margin-top: 40px;
+}
+
+.info-card {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 20px;
+	padding: 30px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	backdrop-filter: blur(15px);
+}
+
+.info-card h3 {
+	font-size: 1.5rem;
+	margin-top: 0;
+	margin-bottom: 20px;
+	color: #4facfe;
+}
+
+.info-card ul {
+	padding-left: 20px;
+}
+
+.info-card li {
+	margin-bottom: 15px;
+	color: rgba(255, 255, 255, 0.8);
+	line-height: 1.5;
+}

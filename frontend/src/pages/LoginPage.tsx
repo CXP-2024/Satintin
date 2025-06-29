@@ -85,11 +85,63 @@ const LoginPage: React.FC = () => {
             setUserToken(testToken);
 
             console.log('🧭 [测试登录] 测试登录成功，跳转到游戏主页...');
-            
+
             await navigateWithTransition('/game');
         } catch (err: any) {
             console.error('💥 [测试登录] 发生错误:', err);
             setError('测试登录失败');
+            hideLoading();
+        }
+    };
+
+    // 管理员登录处理
+    const handleAdminLogin = async () => {
+        playClickSound();
+        console.log('👑 [管理员登录] 开始管理员登录');
+        showLoading('正在进行管理员登录', 'login');
+        setError('');
+
+        try {
+            // 模拟网络延迟
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // 创建管理员用户数据
+            const adminUser = {
+                userID: 'admin-001',
+                userName: '系统管理员',
+                email: 'admin@satintin.com',
+                phoneNumber: '13900000001',
+                registerTime: '2023-01-01',
+                permissionLevel: 10, // 管理员权限级别更高
+                banDays: 0,
+                isOnline: false,
+                matchStatus: 'offline',
+                stoneAmount: 999999,
+                cardDrawCount: 999,
+                rank: '管理员',
+                rankPosition: 0,
+                friendList: [],
+                blackList: [],
+                messageBox: [],
+                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
+                realName: '系统管理员'
+            };
+
+            const adminToken = 'admin-token-' + Date.now();
+
+            console.log('👑 [管理员登录] 设置管理员用户信息:', adminUser);
+            console.log('🔑 [管理员登录] 设置管理员令牌:', adminToken);
+
+            // 设置管理员用户信息和令牌
+            setUserInfo(adminUser);
+            setUserToken(adminToken);
+
+            console.log('🧭 [管理员登录] 管理员登录成功，跳转到管理员控制台...');
+
+            await navigateWithTransition('/admin');
+        } catch (err: any) {
+            console.error('💥 [管理员登录] 发生错误:', err);
+            setError('管理员登录失败');
             hideLoading();
         }
     };
@@ -201,7 +253,7 @@ const LoginPage: React.FC = () => {
                             {isVisible ? '正在登录...' : '登录'}
                         </button>
 
-                        {/* 开发环境才显示测试登录 */}
+                        {/* 开发环境才显示测试登录和管理员登录 */}
                         {process.env.NODE_ENV === 'development' && (
                             <div className="test-login-section">
                                 <div className="test-login-divider">
@@ -215,6 +267,16 @@ const LoginPage: React.FC = () => {
                                     title="开发测试专用，跳过后端验证"
                                 >
                                     {isVisible ? '测试登录中...' : '🧪 测试登录'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="test-login-btn admin-login-btn"
+                                    onClick={handleAdminLogin}
+                                    disabled={isVisible}
+                                    title="管理员登录，跳过后端验证"
+                                    style={{ marginTop: '10px', backgroundColor: '#8e44ad' }}
+                                >
+                                    {isVisible ? '管理员登录中...' : '👑 管理员登录'}
                                 </button>
                                 <p className="test-login-hint">
                                     💡 开发测试专用，无需输入用户名密码

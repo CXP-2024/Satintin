@@ -10,11 +10,15 @@ import WishResultPage from '../pages/WishResultPage';
 import BattleRulesPage from '../pages/BattleRulesPage';
 import BattleTestPage from '../pages/BattleTestPage';
 import BattleRoom from '../pages/BattleRoom';
-import {useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import ShopPage from "../pages/ShopPage";
+import AdminDashboardPage from "../pages/AdminDashboardPage";
+import {useUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const AppRouter: React.FC = () => {
 	const userToken = useUserToken();
+	const user = useUserInfo();
 	const isAuthenticated = !!userToken;
+	const isAdmin = user?.permissionLevel >= 10;
 
 	console.log('🧭 [AppRouter] 路由组件渲染，当前认证状态:', isAuthenticated);
 	console.log('🌐 [AppRouter] 当前路径:', window.location.pathname);
@@ -174,6 +178,45 @@ const AppRouter: React.FC = () => {
 								console.log('📖 [AppRouter] 渲染对战规则页面');
 								return <BattleRulesPage />;
 							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/shop"
+					element={
+						isAuthenticated ? (
+							(() => {
+								console.log('📖 [AppRouter] 渲染商店页面');
+								return <ShopPage />;
+							})()
+						) : (
+							(() => {
+								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
+								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/admin"
+					element={
+						isAuthenticated ? (
+							isAdmin ? (
+								(() => {
+									console.log('👑 [AppRouter] 渲染管理员控制台');
+									return <AdminDashboardPage />;
+								})()
+							) : (
+								(() => {
+									console.log('⛔ [AppRouter] 非管理员用户尝试访问管理页面，重定向到游戏页面');
+									return <Navigate to="/game" replace />;
+								})()
+							)
 						) : (
 							(() => {
 								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
