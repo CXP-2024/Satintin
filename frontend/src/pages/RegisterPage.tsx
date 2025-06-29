@@ -132,9 +132,15 @@ const RegisterPage: React.FC = () => {
                 formData.phoneNumber,
             ).send(
                 (info: string) => {
-                    const token=JSON.parse(info);
-                    console.log('UserID as token:',token);
-                    setUserToken(token)
+                    const token = JSON.parse(info);
+                    console.log('UserID as token:', token);
+                    setUserToken(token);
+                    setLoading(false);
+                },
+                (errorMsg: string) => {
+                    setLoading(false);
+                    setError(errorMsg || "注册失败");
+                    console.log('❌ [注册流程] 错误:', errorMsg);
                 }
             );
 

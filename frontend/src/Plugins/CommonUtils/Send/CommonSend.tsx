@@ -61,7 +61,7 @@ export async function commonSend(
     if (!res) {
         if (timeoutCall) timeoutCall()
         else if (failureCall !== alertCallBack) failureCall('发送信息超时，请检查服务器!')
-        else materialAlert('发送信息超时，请检查服务器!')
+        else materialAlert('发送似乎信息超时，请检查服务器!')
 
         console.error(
             '接口超时：' + url.split('/')[url.split('/').length - 1] + '\n',
