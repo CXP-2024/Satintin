@@ -39,12 +39,12 @@ case class LoginUserMessagePlanner(
     username: String,
     passwordHash: String,
     override val planContext: PlanContext
-) extends Planner[Boolean] {
+) extends Planner[String] {
 
   // Logger 实例
   private val logger = LoggerFactory.getLogger(getClass.getSimpleName + "_" + planContext.traceID.id)
 
-  override def plan(using PlanContext): IO[Boolean] = {
+  override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: 验证用户名和密码的哈希
       _ <- IO(logger.info(s"[LoginUser] 验证用户登录信息, 用户名: ${username}"))
@@ -52,11 +52,14 @@ case class LoginUserMessagePlanner(
       result <- userOpt match {
         case Some(user) =>
           // Step 2: 如果验证通过，更新用户在线状态为true
-          updateOnlineStatus(user)
+          for {
+            _ <- updateOnlineStatus(user)
+            _ <- IO(logger.info(s"[LoginUser] 登录成功, 返回用户ID: ${user.userID}"))
+          } yield user.userID  // 返回 userID
 
         case None =>
-          // 验证失败，返回false
-          IO(logger.warn(s"[LoginUser] 用户验证失败: 用户名=${username}")) >> IO(false)
+          // 验证失败，返回错误
+          IO.raiseError(new IllegalArgumentException("用户名或密码错误"))
       }
     } yield result
   }

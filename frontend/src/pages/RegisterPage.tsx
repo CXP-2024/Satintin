@@ -139,9 +139,10 @@ const RegisterPage: React.FC = () => {
                     setLoading(false);
                 },
                 (error: any) => {
-                    setLoading(false);
-                    setError(error || "用户名已存在");
+                    const errorMessage =  JSON.parse(error);
+                    setError(errorMessage);
                     console.log('❌ [注册流程] 完整错误对象:', error);
+                    setLoading(false);
                 }
             );
 
