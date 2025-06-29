@@ -171,7 +171,7 @@ object Routes:
           }
       }
     case req @ POST -> Root / "api" / name =>
-      for {
+      (for {
         // 1) 读取 + merge PlanContext
         bodyWithCtx <- handlePostRequest(req)
 
@@ -186,7 +186,14 @@ object Routes:
 
         // 4) 返回 Json
         resp        <- Ok(resultJson)
-      } yield resp
+      } yield resp).handleErrorWith {
+        case e: DidRollbackException =>
+          println(s"Rollback error: $e")
+          val headers = Headers("X-DidRollback" -> "true")
+          BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
 
-    // … error handlers …
+        case e: Throwable =>
+          println(s"General error: $e")
+          BadRequest(e.getMessage.asJson.toString)
+      }
   }

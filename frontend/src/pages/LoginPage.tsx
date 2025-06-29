@@ -8,6 +8,8 @@ import clickSound from 'assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
+import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
+import {GetUserStatusMessage} from "Plugins/UserService/APIs/GetUserStatusMessage";
 
 const LoginPage: React.FC = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -114,11 +116,21 @@ const LoginPage: React.FC = () => {
             console.log('🔄 [登录流程] 调用真实API...');
 
             new LoginUserMessage(formData.username, formData.password).send(
-                (info:string)=>{
-                    const token=JSON.parse(info)
-                    setUserToken(token)
+                (Info: string) => {
+                    const UserId = JSON.parse(Info);
+                    setUserToken(UserId);
+                    console.log('Token set:', UserId);
+                    console.log('callback message', Info);
+                    navigateWithTransition('/game');
+                },
+                (error: any) => {
+                    const errorMessage =  JSON.parse(error);
+                    setError(errorMessage);
+                    console.log('❌ [注册流程] 完整错误对象:', error);
+                    hideLoading();
                 }
-            )
+            );
+
         } catch (err: any) {
             //setMessage(err.message || "登录失败");
         }
