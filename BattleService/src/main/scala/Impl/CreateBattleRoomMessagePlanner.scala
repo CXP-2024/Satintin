@@ -5,6 +5,7 @@ import Objects.UserService.MessageEntry
 import Objects.UserService.User
 import Objects.UserService.BlackEntry
 import Objects.UserService.FriendEntry
+import APIs.UserService.GetUserInfoMessage
 import Utils.RoomManagementProcess.createBattleRoom
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
@@ -62,32 +63,14 @@ case class CreateBattleRoomMessagePlanner(
    * 返回用户的信息（User对象，如果验证通过）
    */
   private def validateUserToken(userToken: String)(using PlanContext): IO[User] = {
-    for {
-      _ <- IO(logger.info(s"[validateUserToken] 开始验证，Token=${userToken.take(8)}... (部分隐藏)"))
-
-      // 查询用户信息
-      sql =
-        s"""
-           SELECT *
-           FROM ${schemaName}.user
-           WHERE token = ?;
-         """
-      params = List(SqlParameter("String", userToken))
-      userJsonOption <- readDBJsonOptional(sql, params)
-
-      // 检查查询结果并解码用户信息
-      user <- userJsonOption match {
-        case Some(json) =>
-          for {
-            _ <- IO(logger.info(s"[validateUserToken] Token合法，用户信息: ${json.noSpaces.take(100)}...(部分隐藏)"))
-            user <- IO(decodeType[User](json))
-          } yield user
-
-        case None =>
-          val errorMsg = s"[validateUserToken] 用户Token无效，Token=${userToken.take(8)}... (部分隐藏)"
-          IO(logger.error(errorMsg)) >>
-            IO.raiseError(new IllegalArgumentException("Invalid user token"))
+    logger.info("调用 GetUserInfoMessage 接口验证用户Token")
+    // Use userToken as userID, consistent with other services like AssetService and CardService
+    GetUserInfoMessage(userToken, userToken).send.flatMap { user =>
+      if (user == null) IO.raiseError(new SecurityException(s"用户Token无效或者未通过认证: userToken=${userToken}"))
+      else IO {
+        logger.info("用户认证成功！")
+        user
       }
-    } yield user
+    }
   }
 }

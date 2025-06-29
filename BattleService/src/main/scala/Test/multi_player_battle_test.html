@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Player BattleService Test</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 20px; 
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 40px;
+      border-bottom: 3px solid #e74c3c;
+      padding-bottom: 10px;
+    }
+    h2 {
+      color: #34495e;
+      border-left: 4px solid #e74c3c;
+      padding-left: 15px;
+      margin-top: 30px;
+    }
+    h3 {
+      color: #7f8c8d;
+      margin: 15px 0 10px 0;
+    }
+    .player-section {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .player-panel {
+      flex: 1;
+      padding: 20px;
+      border: 2px solid #3498db;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    .player-panel.player1 {
+      border-color: #e74c3c;
+    }
+    .player-panel.player2 {
+      border-color: #2ecc71;
+    }
+    .player-panel h3 {
+      text-align: center;
+      padding: 10px;
+      border-radius: 6px;
+      color: white;
+      margin-top: 0;
+    }
+    .player1 h3 {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+    }
+    .player2 h3 {
+      background: linear-gradient(45deg, #2ecc71, #27ae60);
+    }
+    .api-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ecf0f1;
+      border-radius: 6px;
+      background-color: #fafafa;
+    }
+    input, button, textarea, select {
+      margin: 5px 0;
+      padding: 12px;
+      width: 100%;
+      max-width: 300px;
+      border: 2px solid #bdc3c7;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    }
+    button {
+      background: linear-gradient(45deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      max-width: 200px;
+    }
+    .player1 button {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+    }
+    .player2 button {
+      background: linear-gradient(45deg, #2ecc71, #27ae60);
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      line-height: 1.4;
+      margin: 10px 0;
+    }
+    .success {
+      background: linear-gradient(45deg, #27ae60, #2ecc71);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+    .error {
+      background: linear-gradient(45deg, #e74c3c, #c0392b);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+    .info {
+      background: linear-gradient(45deg, #f39c12, #e67e22);
+      color: white;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+    .battle-status {
+      text-align: center;
+      padding: 20px;
+      margin: 20px 0;
+      border: 2px solid #34495e;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+      color: white;
+    }
+    .room-info {
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 15px 0;
+      border-left: 4px solid #3498db;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      flex-wrap: wrap;
+    }
+    .action-buttons button {
+      flex: 1;
+      min-width: 80px;
+      max-width: 120px;
+      padding: 8px;
+      font-size: 12px;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-connected { background-color: #27ae60; }
+    .status-disconnected { background-color: #e74c3c; }
+    .status-in-battle { background-color: #f39c12; }
+    .center-controls {
+      text-align: center;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border: 2px solid #3498db;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚔️ Multi-Player BattleService Test Dashboard</h1>
+    
+    <!-- Connection Status -->
+    <div class="api-section">
+      <h2><span id="statusIndicator" class="status-indicator status-disconnected"></span>Connection Status</h2>
+      <button onclick="checkHealth()">Check BattleService Health</button>
+      <pre id="healthOutput">Click "Check BattleService Health" to test connection...</pre>
+    </div>
+
+    <!-- Room Management (Centered) -->
+    <div class="center-controls">
+      <h2>🏟️ Battle Room Management</h2>
+      <div class="room-info">
+        <strong>Room ID:</strong> <span id="currentRoomID">None</span><br>
+        <strong>Players:</strong> <span id="playersInRoom">0</span>/2<br>
+        <strong>Room Creator:</strong> <span id="roomCreator">None</span>
+      </div>
+      <div class="info" id="roomCreateInfo" style="display: none;">
+        💡 Set player tokens first, then click "Create Room" from either player panel
+      </div>
+      <div class="api-section" id="simultaneousActions" style="display: none; background: #f39c12; color: white; text-align: center; padding: 20px; margin: 20px 0;">
+        <h3>⚔️ Turn-Based Battle Actions</h3>
+        <div style="margin: 15px 0;">
+          <strong>Player 1 Action:</strong> <span id="p1ActionDisplay">Not selected</span><br>
+          <strong>Player 2 Action:</strong> <span id="p2ActionDisplay">Not selected</span>
+        </div>
+        <button onclick="submitActionsTogether()" id="submitBothBtn" disabled style="background: #e74c3c; font-size: 16px; padding: 15px 30px;">
+          🎯 Submit Both Actions
+        </button>
+        <div style="font-size: 12px; margin-top: 10px;">
+          Both players must select actions before submitting
+        </div>
+      </div>
+      <button onclick="runFullBattleSimulation()" id="startBattleBtn" disabled>Start Full Battle Simulation</button>
+      <pre id="roomOutput">Set player tokens and create a room to begin...</pre>
+    </div>
+
+    <!-- Two Player Panels -->
+    <div class="player-section">
+      <!-- Player 1 Panel -->
+      <div class="player-panel player1">
+        <h3>🔴 Player 1 (Red)</h3>
+        
+        <div class="api-section">
+          <h4>Token Setup</h4>
+          <input type="text" id="player1Token" placeholder="Player 1 Token" value="player1_token_12345">
+          <button onclick="setPlayerToken(1)">Set Player 1 Token</button>
+          <div id="player1TokenStatus" class="info" style="display: none;">✅ Token set and ready</div>
+        </div>
+
+        <div class="api-section">
+          <h4>Room Management</h4>
+          <button onclick="createRoomAsPlayer(1)" id="player1CreateBtn" disabled>Create Room as Player 1</button>
+          <button onclick="joinRoom(1)" id="player1JoinBtn" disabled>Join Existing Room</button>
+          <button onclick="leaveRoom(1)" id="player1LeaveBtn" disabled>Leave Room</button>
+        </div>
+
+        <div class="api-section">
+          <h4>Battle Actions</h4>
+          <div class="action-buttons">
+            <button onclick="selectAction(1, '代表喷射动作')" id="player1SprayBtn" disabled>撒 (Spray)</button>
+            <button onclick="selectAction(1, '代表防御动作')" id="player1DefenseBtn" disabled>防 (Defense)</button>
+            <button onclick="selectAction(1, '代表Pancake动作')" id="player1PancakeBtn" disabled>饼 (Pancake)</button>
+          </div>
+          <input type="text" id="player1Target" placeholder="Target Player Token (leave empty for random)" maxlength="50">
+          <div id="player1ActionSelected" class="info" style="display: none; font-size: 12px; margin-top: 5px; background: #3498db;">
+            🎯 Selected: <span id="player1SelectedAction">None</span>
+          </div>
+          <div class="info" style="font-size: 11px; margin-top: 5px;">
+            💡 Select your action first, then use "Submit Both Actions" below
+          </div>
+        </div>
+
+        <div class="api-section">
+          <h4>Player 1 Log</h4>
+          <pre id="player1Output">Player 1 ready...</pre>
+        </div>
+      </div>
+
+      <!-- Player 2 Panel -->
+      <div class="player-panel player2">
+        <h3>🟢 Player 2 (Green)</h3>
+        
+        <div class="api-section">
+          <h4>Token Setup</h4>
+          <input type="text" id="player2Token" placeholder="Player 2 Token" value="player2_token_67890">
+          <button onclick="setPlayerToken(2)">Set Player 2 Token</button>
+          <div id="player2TokenStatus" class="info" style="display: none;">✅ Token set and ready</div>
+        </div>
+
+        <div class="api-section">
+          <h4>Room Management</h4>
+          <button onclick="createRoomAsPlayer(2)" id="player2CreateBtn" disabled>Create Room as Player 2</button>
+          <button onclick="joinRoom(2)" id="player2JoinBtn" disabled>Join Existing Room</button>
+          <button onclick="leaveRoom(2)" id="player2LeaveBtn" disabled>Leave Room</button>
+        </div>
+
+        <div class="api-section">
+          <h4>Battle Actions</h4>
+          <div class="action-buttons">
+            <button onclick="selectAction(2, '代表喷射动作')" id="player2SprayBtn" disabled>撒 (Spray)</button>
+            <button onclick="selectAction(2, '代表防御动作')" id="player2DefenseBtn" disabled>防 (Defense)</button>
+            <button onclick="selectAction(2, '代表Pancake动作')" id="player2PancakeBtn" disabled>饼 (Pancake)</button>
+          </div>
+          <input type="text" id="player2Target" placeholder="Target Player Token (leave empty for random)" maxlength="50">
+          <div id="player2ActionSelected" class="info" style="display: none; font-size: 12px; margin-top: 5px; background: #2ecc71;">
+            🎯 Selected: <span id="player2SelectedAction">None</span>
+          </div>
+          <div class="info" style="font-size: 11px; margin-top: 5px;">
+            💡 Select your action first, then use "Submit Both Actions" below
+          </div>
+        </div>
+
+        <div class="api-section">
+          <h4>Player 2 Log</h4>
+          <pre id="player2Output">Player 2 ready...</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Battle Status (Centered) -->
+    <div class="battle-status">
+      <h2>⚔️ Battle Status</h2>
+      <div id="battleStatus">Waiting for battle to start...</div>
+      <div id="turnStatus" style="margin-top: 15px; font-size: 14px;">
+        <strong>Current Turn:</strong> <span id="currentTurn">Not started</span><br>
+        <strong>Actions Selected:</strong>
+        <span id="player1ActionStatus">❌ Player 1</span> | 
+        <span id="player2ActionStatus">❌ Player 2</span>
+      </div>
+      <div style="margin-top: 20px;">
+        <button onclick="submitActionsTogether()" id="submitBothBtn" disabled style="font-size: 16px; padding: 15px 30px;">
+          🎯 Submit Both Actions Together
+        </button>
+        <div style="font-size: 12px; margin-top: 10px; color: #7f8c8d;">
+          Both players must select actions before submitting
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Scenarios -->
+    <div class="api-section">
+      <h2>🎮 Automated Test Scenarios</h2>
+      <button onclick="runQuickBattleTest()">Quick Battle Test (Both Players)</button>
+      <button onclick="runExtendedBattleTest()">Extended Battle Test (Multiple Rounds)</button>
+      <button onclick="resetAllPlayers()">Reset All Players</button>
+      <pre id="testOutput">Ready to run automated tests...</pre>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:10014';
+    let currentRoomID = '';
+    let roomCreator = '';
+    let players = {
+      1: { token: '', tokenSet: false, inRoom: false, ready: false },
+      2: { token: '', tokenSet: false, inRoom: false, ready: false }
+    };
+    let currentTurn = 0;
+    let playerActionsSubmitted = {
+      1: false,
+      2: false
+    };
+    let selectedActions = {
+      1: { action: null, target: '' },
+      2: { action: null, target: '' }
+    };
+
+    // Set player token
+    function setPlayerToken(playerNum) {
+      const tokenInput = document.getElementById(`player${playerNum}Token`);
+      const token = tokenInput.value.trim();
+      
+      if (!token) {
+        logToPlayer(playerNum, '❌ Please enter a valid token', true);
+        return;
+      }
+      
+      players[playerNum].token = token;
+      players[playerNum].tokenSet = true;
+      
+      logToPlayer(playerNum, `✅ Token set successfully: ${token}`);
+      
+      // Show token status
+      const statusDiv = document.getElementById(`player${playerNum}TokenStatus`);
+      statusDiv.style.display = 'block';
+      statusDiv.textContent = `✅ Token set: ${token.substring(0, 10)}...`;
+      
+      updateUI();
+    }
+
+    // Create plan context for requests
+    function createPlanContext() {
+      return {
+        traceID: {
+          id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36)
+        },
+        transactionLevel: 0
+      };
+    }
+
+    // Log message to specific player's output
+    function logToPlayer(playerNum, message, isError = false) {
+      const output = document.getElementById(`player${playerNum}Output`);
+      const timestamp = new Date().toLocaleTimeString();
+      const className = isError ? 'error' : 'info';
+      output.innerHTML += `\n[${timestamp}] ${message}`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // Log message to room output
+    function logToRoom(message, isError = false) {
+      const output = document.getElementById('roomOutput');
+      const timestamp = new Date().toLocaleTimeString();
+      output.innerHTML += `\n[${timestamp}] ${message}`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // Log message to test output
+    function logToTest(message, isError = false) {
+      const output = document.getElementById('testOutput');
+      const timestamp = new Date().toLocaleTimeString();
+      output.innerHTML += `\n[${timestamp}] ${message}`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    // Update UI based on current state
+    function updateUI() {
+      // Update room info
+      document.getElementById('currentRoomID').textContent = currentRoomID || 'None';
+      document.getElementById('roomCreator').textContent = roomCreator || 'None';
+      const playersInRoom = Object.values(players).filter(p => p.inRoom).length;
+      document.getElementById('playersInRoom').textContent = playersInRoom;
+
+      // Show/hide room creation info
+      const roomInfo = document.getElementById('roomCreateInfo');
+      const hasTokens = players[1].tokenSet || players[2].tokenSet;
+      roomInfo.style.display = (!currentRoomID && !hasTokens) ? 'block' : 'none';
+
+      // Update buttons for each player
+      for (let i = 1; i <= 2; i++) {
+        // Create room button - enabled only if token is set and no room exists
+        document.getElementById(`player${i}CreateBtn`).disabled = !players[i].tokenSet || !!currentRoomID;
+        
+        // Join room button - enabled if token is set, room exists, and player not in room
+        document.getElementById(`player${i}JoinBtn`).disabled = !players[i].tokenSet || !currentRoomID || players[i].inRoom;
+        
+        // Leave room button - enabled only if player is in room
+        document.getElementById(`player${i}LeaveBtn`).disabled = !players[i].inRoom;
+        
+        // Battle action buttons - enabled if player is in room and there are at least 2 players
+        const canBattle = players[i].inRoom && playersInRoom >= 2;
+        document.getElementById(`player${i}SprayBtn`).disabled = !canBattle;
+        document.getElementById(`player${i}DefenseBtn`).disabled = !canBattle;
+        document.getElementById(`player${i}PancakeBtn`).disabled = !canBattle;
+      }
+
+      // Update start battle button
+      document.getElementById('startBattleBtn').disabled = playersInRoom < 2;
+      
+      // Show/hide simultaneous actions panel
+      const simultaneousPanel = document.getElementById('simultaneousActions');
+      simultaneousPanel.style.display = playersInRoom >= 2 ? 'block' : 'none';
+
+      // Update battle status
+      const battleStatus = document.getElementById('battleStatus');
+      if (!currentRoomID) {
+        battleStatus.textContent = 'Set player tokens and create a room to begin...';
+      } else if (playersInRoom === 0) {
+        battleStatus.textContent = 'Room created! Players need to join...';
+      } else if (playersInRoom === 1) {
+        battleStatus.textContent = 'Waiting for second player to join...';
+      } else {
+        battleStatus.textContent = 'Ready to battle! Select actions and submit together.';
+      }
+      
+      // Update simultaneous action display
+      updateSimultaneousActionDisplay();
+    }
+
+    // Update turn status based on action submission result
+    function updateTurnStatus(playerNum, result) {
+      // Mark this player as having submitted an action
+      playerActionsSubmitted[playerNum] = true;
+      
+      // Update UI
+      document.getElementById(`player${playerNum}ActionStatus`).textContent = `✅ Player ${playerNum}`;
+      
+      // Check if result indicates round was processed
+      if (result.includes('round evaluated') || result.includes('Battle state updated')) {
+        // Round completed, reset for next turn
+        currentTurn++;
+        playerActionsSubmitted[1] = false;
+        playerActionsSubmitted[2] = false;
+        document.getElementById('currentTurn').textContent = `Turn ${currentTurn}`;
+        document.getElementById('player1ActionStatus').textContent = '❌ Player 1';
+        document.getElementById('player2ActionStatus').textContent = '❌ Player 2';
+        logToRoom(`🎯 Turn ${currentTurn} completed! Both players can submit new actions.`);
+      } else if (result.includes('Waiting for')) {
+        // Still waiting for other player
+        const waitingPlayer = playerActionsSubmitted[1] ? 2 : 1;
+        document.getElementById('currentTurn').textContent = `Turn ${currentTurn + 1} (waiting for Player ${waitingPlayer})`;
+        logToRoom(`⏳ Turn ${currentTurn + 1}: Waiting for Player ${waitingPlayer} to submit action...`);
+      }
+    }
+
+    // Reset turn status
+    function resetTurnStatus() {
+      currentTurn = 0;
+      playerActionsSubmitted[1] = false;
+      playerActionsSubmitted[2] = false;
+      selectedActions[1] = { action: null, target: '' };
+      selectedActions[2] = { action: null, target: '' };
+      document.getElementById('currentTurn').textContent = 'Not started';
+      document.getElementById('player1ActionStatus').textContent = '❌ Player 1';
+      document.getElementById('player2ActionStatus').textContent = '❌ Player 2';
+      updateSimultaneousActionDisplay();
+    }
+
+    // Select action for a player (doesn't submit yet)
+    function selectAction(playerNum, actionType) {
+      if (!currentRoomID || !players[playerNum].inRoom) {
+        logToPlayer(playerNum, '❌ Must be in a room to select actions', true);
+        return;
+      }
+
+      const targetInput = document.getElementById(`player${playerNum}Target`);
+      const targetID = targetInput.value.trim() || '';
+
+      // Validate that user isn't accidentally entering a room ID in target field
+      if (targetID && targetID === currentRoomID) {
+        logToPlayer(playerNum, '❌ Target field should be a player token, not the room ID. Leave empty or enter opponent token.', true);
+        return;
+      }
+
+      // Update selected action
+      selectedActions[playerNum] = { action: actionType, target: targetID };
+      
+      // Show selection feedback
+      const actionDisplay = document.getElementById(`player${playerNum}ActionSelected`);
+      const actionText = document.getElementById(`player${playerNum}SelectedAction`);
+      actionDisplay.style.display = 'block';
+      actionText.textContent = getActionDisplayName(actionType) + (targetID ? ` → ${targetID}` : ' (no target)');
+      
+      logToPlayer(playerNum, `🎯 Action selected: ${getActionDisplayName(actionType)}${targetID ? ` → ${targetID}` : ' (no specific target)'}`);
+      
+      updateSimultaneousActionDisplay();
+    }
+
+    // Get display name for action
+    function getActionDisplayName(actionType) {
+      switch(actionType) {
+        case '代表喷射动作': return 'Spray';
+        case '代表防御动作': return 'Defense'; 
+        case '代表Pancake动作': return 'Pancake';
+        default: return actionType;
+      }
+    }
+
+    // Update the simultaneous action display
+    function updateSimultaneousActionDisplay() {
+      document.getElementById('p1ActionDisplay').textContent = 
+        selectedActions[1].action ? getActionDisplayName(selectedActions[1].action) + 
+        (selectedActions[1].target ? ` → ${selectedActions[1].target}` : '') : 'Not selected';
+      
+      document.getElementById('p2ActionDisplay').textContent = 
+        selectedActions[2].action ? getActionDisplayName(selectedActions[2].action) + 
+        (selectedActions[2].target ? ` → ${selectedActions[2].target}` : '') : 'Not selected';
+      
+      // Enable submit button only if both players have selected actions
+      const bothSelected = selectedActions[1].action && selectedActions[2].action;
+      document.getElementById('submitBothBtn').disabled = !bothSelected;
+    }
+
+    // Submit both players' actions simultaneously
+    async function submitActionsTogether() {
+      if (!selectedActions[1].action || !selectedActions[2].action) {
+        logToRoom('❌ Both players must select actions before submitting', true);
+        return;
+      }
+
+      if (!currentRoomID) {
+        logToRoom('❌ No active room for battle', true);
+        return;
+      }
+
+      logToRoom('⚔️ Submitting both players\' actions simultaneously...');
+
+      try {
+        const response = await fetch(`${apiBase}/api/SubmitSimultaneousActionsMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            player1Token: players[1].token,
+            player1ActionType: selectedActions[1].action,
+            player1TargetID: selectedActions[1].target || null,
+            player2Token: players[2].token,
+            player2ActionType: selectedActions[2].action,
+            player2TargetID: selectedActions[2].target || null,
+            roomID: currentRoomID,
+            planContext: createPlanContext()
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.text();
+          const cleanResult = result.replace(/^"|"$/g, ''); // Remove surrounding quotes
+          
+          logToRoom(`🎮 Battle Round Result:\n${cleanResult}`);
+          
+          // Update turn status
+          currentTurn++;
+          document.getElementById('currentTurn').textContent = `Turn ${currentTurn} completed`;
+          
+          // Reset selections for next turn
+          selectedActions[1] = { action: null, target: '' };
+          selectedActions[2] = { action: null, target: '' };
+          document.getElementById('player1ActionSelected').style.display = 'none';
+          document.getElementById('player2ActionSelected').style.display = 'none';
+          document.getElementById('player1Target').value = '';
+          document.getElementById('player2Target').value = '';
+          
+          updateSimultaneousActionDisplay();
+          
+          // Check if battle ended
+          if (cleanResult.includes('wins!') || cleanResult.includes('Draw')) {
+            logToRoom('🏆 Battle has ended!');
+          }
+          
+        } else {
+          const errorText = await response.text();
+          let errorMessage = `❌ Simultaneous action submission failed (${response.status}): ${errorText}`;
+          
+          // Provide helpful error message for common issues
+          if (errorText.includes('Battle state not found')) {
+            errorMessage = '❌ Battle not ready: Make sure both players have joined the room before submitting actions. Try joining the room again if needed.';
+          } else if (errorText.includes('head of empty list')) {
+            errorMessage = '❌ Battle initialization error: The battle state was not properly set up. Please recreate the room or ensure both players are properly joined.';
+          }
+          
+          logToRoom(errorMessage, true);
+        }
+      } catch (e) {
+        let errorMessage = `❌ Battle submission error: ${e.message}`;
+        
+        // Handle network or parsing errors
+        if (e.message.includes('Failed to fetch')) {
+          errorMessage = '❌ Cannot connect to battle service. Please check if the service is running.';
+        }
+        
+        logToRoom(errorMessage, true);
+      }
+    }
+
+    // Check BattleService health
+    async function checkHealth() {
+      const output = document.getElementById('healthOutput');
+      const indicator = document.getElementById('statusIndicator');
+      
+      try {
+        const response = await fetch(`${apiBase}/health`, { method: 'GET' });
+        if (response.ok) {
+          output.innerHTML = '✅ BattleService is running and healthy!';
+          output.className = 'success';
+          indicator.className = 'status-indicator status-connected';
+        } else {
+          throw new Error(`HTTP ${response.status}`);
+        }
+      } catch (e) {
+        output.innerHTML = `❌ BattleService connection failed: ${e.message}`;
+        output.className = 'error';
+        indicator.className = 'status-indicator status-disconnected';
+      }
+    }
+
+    // Create room as specific player
+    async function createRoomAsPlayer(playerNum) {
+      if (!players[playerNum].tokenSet || !players[playerNum].token) {
+        logToPlayer(playerNum, '❌ Please set your token first', true);
+        return;
+      }
+
+      if (currentRoomID) {
+        logToPlayer(playerNum, '❌ Room already exists', true);
+        return;
+      }
+
+      logToPlayer(playerNum, '🏗️ Creating new battle room...');
+      logToRoom(`Player ${playerNum} is creating a new room...`);
+      
+      try {
+        const response = await fetch(`${apiBase}/api/CreateBattleRoomMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: players[playerNum].token,
+            planContext: createPlanContext()
+          })
+        });
+
+        if (response.ok) {
+          const roomID = await response.text();
+          currentRoomID = roomID.replace(/"/g, ''); // Remove quotes
+          roomCreator = `Player ${playerNum}`;
+          
+          logToPlayer(playerNum, `✅ Room created successfully! Room ID: ${currentRoomID}`);
+          logToRoom(`✅ Room created by Player ${playerNum}! Room ID: ${currentRoomID}`);
+          
+          // Auto-join the creator to the room
+          setTimeout(() => {
+            players[playerNum].inRoom = true;
+            logToPlayer(playerNum, `✅ Automatically joined room as creator`);
+            updateUI();
+          }, 500);
+        } else {
+          const errorText = await response.text();
+          logToPlayer(playerNum, `❌ Room creation failed (${response.status}): ${errorText}`, true);
+          logToRoom(`❌ Room creation by Player ${playerNum} failed: ${errorText}`, true);
+        }
+      } catch (e) {
+        logToPlayer(playerNum, `❌ Room creation error: ${e.message}`, true);
+        logToRoom(`❌ Room creation error: ${e.message}`, true);
+      }
+      updateUI();
+    }
+
+    // Join room (simulate - in real implementation this might be a separate API)
+    async function joinRoom(playerNum) {
+      if (!players[playerNum].tokenSet || !players[playerNum].token) {
+        logToPlayer(playerNum, '❌ Please set your token first', true);
+        return;
+      }
+
+      if (!currentRoomID) {
+        logToPlayer(playerNum, '❌ No room available to join', true);
+        return;
+      }
+
+      if (players[playerNum].inRoom) {
+        logToPlayer(playerNum, '❌ Already in room', true);
+        return;
+      }
+
+      logToPlayer(playerNum, `🚪 Joining room ${currentRoomID}...`);
+      
+      // Simulate joining (in real game, this might be a separate API call)
+      players[playerNum].inRoom = true;
+      logToPlayer(playerNum, `✅ Successfully joined room ${currentRoomID}`);
+      logToRoom(`Player ${playerNum} joined the room`);
+      
+      updateUI();
+    }
+
+    // Leave room (simulate)
+    async function leaveRoom(playerNum) {
+      if (!players[playerNum].inRoom) {
+        logToPlayer(playerNum, '❌ Not in any room', true);
+        return;
+      }
+
+      logToPlayer(playerNum, `🚪 Leaving room ${currentRoomID}...`);
+      players[playerNum].inRoom = false;
+      logToPlayer(playerNum, '✅ Successfully left room');
+      logToRoom(`Player ${playerNum} left the room`);
+      updateUI();
+    }
+
+    // Submit player action (DEPRECATED - use selectAction + submitBothActions instead)
+    async function submitAction(playerNum, actionType) {
+      console.warn('submitAction is deprecated. Use selectAction + submitBothActions for proper turn-based gameplay.');
+      
+      if (!currentRoomID || !players[playerNum].inRoom) {
+        logToPlayer(playerNum, '❌ Must be in a room to submit actions', true);
+        return;
+      }
+
+      const targetInput = document.getElementById(`player${playerNum}Target`);
+      const targetID = targetInput.value.trim() || '';
+
+      // Validate that user isn't accidentally entering a room ID in target field
+      if (targetID && targetID === currentRoomID) {
+        logToPlayer(playerNum, '❌ Target field should be a player token, not the room ID. Leave empty or enter opponent token.', true);
+        return;
+      }
+
+      logToPlayer(playerNum, `⚔️ Submitting action: ${actionType}${targetID ? ` → ${targetID}` : ' (no specific target)'}...`);
+
+      try {
+        const response = await fetch(`${apiBase}/api/SubmitPlayerActionMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: players[playerNum].token,
+            roomID: currentRoomID,
+            actionType: actionType,
+            targetID: targetID,
+            planContext: createPlanContext()
+          })
+        });
+
+        if (response.ok) {
+          const result = await response.text();
+          logToPlayer(playerNum, `✅ Action submitted successfully: ${result}`);
+          
+          // Update turn status based on response
+          updateTurnStatus(playerNum, result);
+        } else {
+          const errorText = await response.text();
+          logToPlayer(playerNum, `❌ Action submission failed (${response.status}): ${errorText}`, true);
+        }
+      } catch (e) {
+        logToPlayer(playerNum, `❌ Action submission error: ${e.message}`, true);
+      }
+    }
+
+    // Run full battle simulation
+    async function runFullBattleSimulation() {
+      if (Object.values(players).filter(p => p.inRoom).length < 2) {
+        logToTest('❌ Need at least 2 players in room for battle simulation', true);
+        return;
+      }
+
+      logToTest('🎮 Starting full battle simulation with simultaneous actions...');
+      
+      // Round 1: Both players spray
+      logToTest('=== Round 1: Both players spray ===');
+      selectAction(1, '代表喷射动作');
+      selectAction(2, '代表喷射动作');
+      await submitActionsTogether();
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Round 2: Player 1 defends, Player 2 attacks with pancake
+      logToTest('=== Round 2: Defense vs Pancake ===');
+      selectAction(1, '代表防御动作');
+      selectAction(2, '代表Pancake动作');
+      await submitActionsTogether();
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Round 3: Both players use pancake
+      logToTest('=== Round 3: Pancake battle ===');
+      selectAction(1, '代表Pancake动作');
+      selectAction(2, '代表Pancake动作');
+      await submitActionsTogether();
+
+      logToTest('✅ Full battle simulation completed!');
+    }
+
+    // Run quick battle test
+    async function runQuickBattleTest() {
+      logToTest('🚀 Running quick battle test...');
+      
+      // Set default tokens if not set
+      if (!players[1].tokenSet) {
+        document.getElementById('player1Token').value = 'test_player1_token';
+        setPlayerToken(1);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (!players[2].tokenSet) {
+        document.getElementById('player2Token').value = 'test_player2_token';
+        setPlayerToken(2);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (!currentRoomID) {
+        await createRoomAsPlayer(1);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (!players[2].inRoom) {
+        await joinRoom(2);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      selectAction(1, '代表喷射动作');
+      selectAction(2, '代表防御动作');
+      await submitActionsTogether();
+      
+      logToTest('✅ Quick battle test completed!');
+    }
+
+    // Run extended battle test
+    async function runExtendedBattleTest() {
+      logToTest('🎯 Running extended battle test...');
+      
+      // Set default tokens if not set
+      if (!players[1].tokenSet) {
+        document.getElementById('player1Token').value = 'test_player1_extended';
+        setPlayerToken(1);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (!players[2].tokenSet) {
+        document.getElementById('player2Token').value = 'test_player2_extended';
+        setPlayerToken(2);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      if (!currentRoomID) {
+        await createRoomAsPlayer(1);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+
+      if (!players[2].inRoom) {
+        await joinRoom(2);
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      const actions = ['代表喷射动作', '代表防御动作', '代表Pancake动作'];
+      
+      for (let round = 1; round <= 5; round++) {
+        logToTest(`=== Round ${round} ===`);
+        
+        const action1 = actions[Math.floor(Math.random() * actions.length)];
+        const action2 = actions[Math.floor(Math.random() * actions.length)];
+        
+        selectAction(1, action1);
+        selectAction(2, action2);
+        await submitActionsTogether();
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      logToTest('✅ Extended battle test completed!');
+    }
+
+    // Reset all players
+    function resetAllPlayers() {
+      // Reset player states
+      for (let i = 1; i <= 2; i++) {
+        players[i].inRoom = false;
+        players[i].tokenSet = false;
+        players[i].token = '';
+        
+        // Clear input fields
+        document.getElementById(`player${i}Token`).value = '';
+        
+        // Hide token status
+        document.getElementById(`player${i}TokenStatus`).style.display = 'none';
+      }
+      
+      // Reset room info
+      currentRoomID = '';
+      roomCreator = '';
+      
+      // Reset turn status
+      resetTurnStatus();
+      
+      logToTest('🔄 All players and room data reset');
+      logToRoom('🔄 Room reset - ready for new session');
+      updateUI();
+    }
+
+    // Auto-check health on page load
+    window.onload = function() {
+      checkHealth();
+      updateUI();
+    };
+  </script>
+</body>
+</html>

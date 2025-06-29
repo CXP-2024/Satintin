@@ -17,6 +17,7 @@ import scala.collection.concurrent.TrieMap
 import Common.Serialize.CustomColumnTypes.*
 import Impl.CreateBattleRoomMessagePlanner
 import Impl.SubmitPlayerActionMessagePlanner
+import Impl.SubmitSimultaneousActionsMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -39,6 +40,13 @@ object Routes:
         IO(
           decode[SubmitPlayerActionMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SubmitPlayerActionMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "SubmitSimultaneousActionsMessage" =>
+        IO(
+          decode[SubmitSimultaneousActionsMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SubmitSimultaneousActionsMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

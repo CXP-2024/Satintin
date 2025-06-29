@@ -76,7 +76,8 @@ case class SubmitPlayerActionMessagePlanner(
    */
   private def validateUserToken(userToken: String)(using PlanContext): IO[User] = {
     logger.info("调用 GetUserInfoMessage 接口验证用户Token")
-    GetUserInfoMessage(userToken, "").send.flatMap { user =>
+    // Use userToken as userID, consistent with other services like AssetService and CardService
+    GetUserInfoMessage(userToken, userToken).send.flatMap { user =>
       if (user == null) IO.raiseError(new SecurityException(s"用户Token无效或者未通过认证: userToken=${userToken}"))
       else IO {
         logger.info("用户认证成功！")
@@ -103,20 +104,22 @@ case class SubmitPlayerActionMessagePlanner(
       targetID: Option[String]
   )(using PlanContext): IO[String] = {
     for {
-      // 检查 actionType 是否是合法的值
-      _ <- IO(logger.info(s"检查 actionType=${actionType} 是否有效"))
+      // 检查 actionType 是否是合法的中文值
+      _ <- IO(logger.info(s"Checking actionType=${actionType}"))
+      
       _ <- IO {
-        if (!List("Pancake", "Defense", "Spray").contains(actionType)) {
-          val errorMessage = s"无效的操作类型：actionType=${actionType}"
+        if (!List("代表Pancake动作", "代表防御动作", "代表喷射动作").contains(actionType)) {
+          val errorMessage = s"Invalid action type: actionType=${actionType}. Expected: 代表Pancake动作, 代表防御动作, or 代表喷射动作"
           logger.error(errorMessage)
           throw new IllegalArgumentException(errorMessage)
         }
       }
 
-      // 调用公共方法完成操作
-      _ <- IO(logger.info(s"调用submitPlayerAction: playerID=${playerID}, roomID=${roomID}, actionType=${actionType}, targetID=${targetID}"))
+      // 调用公共方法完成操作 - 直接使用中文actionType
+      _ <- IO(logger.info(s"Calling submitPlayerAction: playerID=${playerID}, roomID=${roomID}, actionType=${actionType}, targetID=${targetID}"))
       result <- submitPlayerAction(playerID, roomID, actionType, targetID)
 
     } yield result
   }
+
 }
