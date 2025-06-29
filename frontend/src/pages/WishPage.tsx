@@ -7,7 +7,7 @@ import primogemIcon from '../assets/images/primogem-icon.png';
 import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 const WishPage: React.FC = () => {
 	const { user } = useAuthStore();

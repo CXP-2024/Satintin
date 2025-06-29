@@ -3,15 +3,17 @@ import { persist } from 'zustand/middleware'
 import { encryptionSessionStorage } from 'Plugins/CommonUtils/Store/DefaultStorage'
 
 export class UserInfo {
-    nationalID: string = ''
-    cellphone: string = ''
-    email: string = ''
-    userName: string = ''
-    realName: string = ''
-    avatar: string = ''
-    userSource: string = ''
     userID: string = ''
-    invitationCode: string | null = null
+    username: string = ''
+    email: string = ''
+    phoneNumber: string = ''
+    rank: string = ''
+    coins: number = 0
+    status: string = ''
+    registrationTime: string = ''
+    lastLoginTime: string = ''
+    rankPosition: number = 0
+    cardDrawCount: number = 0
 }
 
 /* userInfo存储在localStorage中 */

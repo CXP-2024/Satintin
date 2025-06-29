@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useGlobalLoading } from '../store/globalLoadingStore';
 import PageTransition from '../components/PageTransition';
+import { usePageTransition } from '../hooks/usePageTransition';
 import './LoginPage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
-import {setUserToken} from "../Plugins/CommonUtils/Store/UserInfoStore";
-import {LoginUserMessage} from "../Plugins/UserService/APIs/LoginUserMessage";
+import clickSound from 'assets/sound/yingxiao.mp3';
+import { SoundUtils } from 'utils/soundUtils';
+import {setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 
 const LoginPage: React.FC = () => {
+    const { navigateWithTransition } = usePageTransition();
     const [formData, setFormData] = useState({
         username: '',
         password: ''
@@ -33,6 +35,50 @@ const LoginPage: React.FC = () => {
             [name]: value
         }));
         setError('');
+    };
+
+    // 测试登录处理
+    const handleTestLogin = async () => {
+        playClickSound();
+        console.log('🧪 [测试登录] 开始测试用户登录');
+        showLoading('正在进行测试登录', 'login');
+        setError('');
+
+        try {
+            // 模拟网络延迟（匹配视频长度5秒）
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            // 创建测试用户数据
+            const testUser = {
+                userID: 'test-user-001',
+                username: '测试用户',
+                email: 'testuser@example.com',
+                phoneNumber: '13800138000',
+                rank: '黄金',
+                coins: 5000,
+                status: 'online' as const,
+                registrationTime: new Date().toISOString(),
+                lastLoginTime: new Date().toISOString(),
+                rankPosition: 1000,
+                cardDrawCount: 10
+            };
+
+            const testToken = 'test-token-' + Date.now();
+
+            console.log('👤 [测试登录] 设置测试用户信息:', testUser);
+            console.log('🔑 [测试登录] 设置测试令牌:', testToken);
+
+            // 设置测试用户信息和令牌, use Plugins files
+            setUserInfo(testUser);
+            setUserToken(testToken);
+
+            console.log('🧭 [测试登录] 测试登录成功，跳转到游戏主页...');
+            await navigateWithTransition('/game');
+        } catch (err: any) {
+            console.error('💥 [测试登录] 发生错误:', err);
+            setError('测试登录失败');
+            hideLoading();
+        }
     };
 
 
@@ -74,7 +120,7 @@ const LoginPage: React.FC = () => {
                 }
             )
         } catch (err: any) {
-            setMessage(err.message || "登录失败");
+            //setMessage(err.message || "登录失败");
         }
     };
 
@@ -103,7 +149,7 @@ const LoginPage: React.FC = () => {
                                 required
                             />
                         </div>
-jian
+
                         <div className="form-group">
                             <label htmlFor="password">密码</label>
                             <input

@@ -11,7 +11,7 @@ import RoundResultModal from '../components/RoundResultModal';
 import { GameOverModal } from '../components/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();

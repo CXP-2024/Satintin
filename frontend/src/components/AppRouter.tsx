@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import GameHomePage from '../pages/GameHomePage';
@@ -11,11 +10,12 @@ import WishResultPage from '../pages/WishResultPage';
 import BattleRulesPage from '../pages/BattleRulesPage';
 import BattleTestPage from '../pages/BattleTestPage';
 import BattleRoom from '../pages/BattleRoom';
-import ConnectionTestPage from '../pages/ConnectionTestPage';
 import NavMenu from './NavMenu';
+import {useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const AppRouter: React.FC = () => {
-	const { isAuthenticated } = useAuthStore();
+	const userToken = useUserToken();
+	const isAuthenticated = !!userToken;
 
 	console.log('🧭 [AppRouter] 路由组件渲染，当前认证状态:', isAuthenticated);
 	console.log('🌐 [AppRouter] 当前路径:', window.location.pathname);
@@ -24,17 +24,6 @@ const AppRouter: React.FC = () => {
 		<Router>
 			<NavMenu />
 			<Routes>
-				{/* 测试连接路由 - 不需要认证 */}
-				<Route
-					path="/test-connection"
-					element={
-						(() => {
-							console.log('🔌 [AppRouter] 渲染连接测试页面');
-							return <ConnectionTestPage />;
-						})()
-					}
-				/>
-
 				<Route
 					path="/login"
 					element={

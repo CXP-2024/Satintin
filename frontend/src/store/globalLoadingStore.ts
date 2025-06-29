@@ -1,4 +1,5 @@
-import { create } from 'zustand';
+// @ts-ignore
+import  create  from 'zustand';
 
 type LoadingType = 'login' | 'transition' | 'general';
 

@@ -137,7 +137,7 @@ case object UserRegistrationProcess {
     // val logger = LoggerFactory.getLogger("validateRegistrationInput")  // 同文后端处理: logger 统一
 
     // Logging the start of validation and then proceed with validation
-    IO(logger.info(s"[Validation] 开始验证注册输入：用户名=${username}，邮箱=${email}，电话=${phoneNumber.getOrElse("None")}")) >>
+    IO(logger.info(s"[Validation] 开始验证注册输入：用户名=${username}，邮箱=${email}，电话=${phoneNumber.getOrElse("None")}， password=${password}")) >>
     // Regular expressions for validation
     IO {
       val usernameRegex = "^[a-zA-Z0-9_]{3,20}$".r

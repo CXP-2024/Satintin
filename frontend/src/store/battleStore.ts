@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import create from 'zustand';
 import { GameState, PlayerState, BattleAction, RoundResult, GameOverResult } from '../services/WebSocketService';
 
 interface BattleState {

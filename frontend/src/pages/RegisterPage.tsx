@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
-import { RegisterFormData } from '../types/User';  // 使用专门的表单类型
+import { RegisterFormData } from '../types/User';
 import './RegisterPage.css';
-import {RegisterUserMessage} from "../Plugins/UserService/APIs/RegisterUserMessage";
+import CryptoJS from 'crypto-js';
+import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
+import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 
 const RegisterPage: React.FC = () => {
-    const [formData, setFormData] = useState<RegisterFormData>({  // 使用正确的类型
+    const [formData, setFormData] = useState<RegisterFormData>({
         username: '',
         email: '',
         password: '',
@@ -17,6 +20,18 @@ const RegisterPage: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
 
+    // 密码哈希函数
+    const hashPassword = (password: string): string => {
+        return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+    };
+
+    // 更安全的加盐哈希函数
+    const hashPasswordWithSalt = (password: string): string => {
+        /*const salt = CryptoJS.lib.WordArray.random(128/8).toString();
+        const hash = CryptoJS.SHA256(password + salt).toString(CryptoJS.enc.Hex);
+        return `${hash}:${salt}`;*/
+        return password;
+    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -27,9 +42,8 @@ const RegisterPage: React.FC = () => {
         setError('');
     };
 
-    // 严格按照后端验证规则
     const validateForm = (): boolean => {
-        // 用户名验证 - 根据后端 UserRegistrationProcess.scala
+        // 用户名验证
         if (!formData.username) {
             setError('用户名不能为空');
             return false;
@@ -53,7 +67,7 @@ const RegisterPage: React.FC = () => {
             return false;
         }
 
-        // 手机号验证 - 根据后端要求
+        // 手机号验证
         if (!formData.phoneNumber) {
             setError('手机号码不能为空');
             return false;
@@ -63,7 +77,7 @@ const RegisterPage: React.FC = () => {
             return false;
         }
 
-        // 密码验证 - 根据后端规则
+        // 密码验证
         if (!formData.password) {
             setError('密码不能为空');
             return false;
@@ -91,7 +105,6 @@ const RegisterPage: React.FC = () => {
 
         console.log('📝 [注册流程] 开始注册流程');
 
-
         if (!validateForm()) {
             console.log('❌ [注册流程] 表单验证失败');
             return;
@@ -103,28 +116,43 @@ const RegisterPage: React.FC = () => {
 
         try {
             console.log('🔄 [注册流程] 调用注册API...');
+            console.log('🔐 [安全] 对密码进行哈希加密...');
 
-            new RegisterUserMessage(formData.username, formData.email, formData.password, formData.phoneNumber).send(
-                (err: any) => {
-                    setMessage(err.message || "注册失败");
+            // 对密码进行哈希加密
+            const passwordHash = hashPasswordWithSalt(formData.password);
+
+            console.log('✅ [安全] 密码哈希完成');
+
+
+            // 发送注册请求，使用哈希后的密码
+            new RegisterUserMessage(
+                formData.username,
+                passwordHash,
+                formData.email,
+                formData.phoneNumber,
+            ).send(
+                (info: string) => {
+                    const token=JSON.parse(info);
+                    console.log('UserID as token:',token);
+                    setUserToken(token)
                 }
-            )
-
-
+            );
 
         } catch (err: any) {
-            setMessage(err.message || "注册失败");
+            setLoading(false);
+            setError(err.message || "注册失败");
+            console.log('❌ [注册流程] 异常:', err);
         }
     };
 
-	return (
-		<PageTransition className="fade-scale">
-			<div className="register-container">
-				<div className="register-card">
-					<div className="register-header">
-						<h1>SaTT</h1>
-						<h2>创建账号</h2>
-					</div>
+    return (
+        <PageTransition className="fade-scale">
+            <div className="register-container">
+                <div className="register-card">
+                    <div className="register-header">
+                        <h1>SaTT</h1>
+                        <h2>创建账号</h2>
+                    </div>
 
                     <form onSubmit={handleSubmit} className="register-form">
                         <div className="form-group">

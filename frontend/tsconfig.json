@@ -1,24 +1,20 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2015", // 更新为 es2015 以支持迭代器
     "lib": [
       "dom",
-      "dom.iterable", 
+      "dom.iterable",
       "es6",
       "es2015"
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "experimentalDecorators": true,
-    "allowJs": true,
-    "target": "esnext",
-    "module": "commonjs",
-    "skipLibCheck": true,
     "esModuleInterop": true,
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "baseUrl": "src",
-    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    //"strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -26,8 +22,8 @@
     "jsx": "react-jsx",
     "baseUrl": "src", // 设置基础路径为 src 目录
     "paths": {
-      "globals/*": [
-        "globals/*"
+      "Globals/*": [
+        "Globals/*"
       ], // Globals/* → src/Globals/*
       "Images/*": [
         "Images/*"
@@ -48,6 +44,10 @@
     //"downlevelIteration": true // 添加这个选项支持迭代器
   },
   "include": [
-    "src/**/*"
+    "src"
+  ],
+  "exclude": [
+    "src/plugins",
+    "../Plugins/**/*"
   ]
 }
