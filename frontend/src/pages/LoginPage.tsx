@@ -6,7 +6,7 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import './LoginPage.css';
 import clickSound from 'assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserToken, setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserInfo, getUserToken, setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
 
@@ -51,20 +51,31 @@ const LoginPage: React.FC = () => {
 
             // 创建测试用户数据
             const testUser = {
-                userID: 'test-user-001',
-                username: '测试用户',
-                email: 'testuser@example.com',
-                phoneNumber: '13800138000',
-                rank: '黄金',
-                coins: 5000,
-                status: 'online' as const,
-                registrationTime: new Date().toISOString(),
-                lastLoginTime: new Date().toISOString(),
-                rankPosition: 1000,
-                cardDrawCount: 10
-            };
+                    userID: 'test-user-003',
+                    userName: '王者荣耀',
+                    email: 'king@example.com',
+                    phoneNumber: '13800138003',
+                    registerTime: '1919',
+                    permissionLevel: 5,
+                    banDays: 0,
+                    isOnline: false,
+                    matchStatus: 'offline',
+                    stoneAmount: 50000,
+                    cardDrawCount: 200,
+                    rank: '王者',
+                    rankPosition: 100,
+                    friendList: [
+                    ],
+                    blackList: [
+                    ],
+                    messageBox: [
+                    ],
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=king',
+                    realName: '王大神'
+                };
 
-            const testToken = 'test-token-' + Date.now();
+
+                const testToken = 'test-token-' + Date.now();
 
             console.log('👤 [测试登录] 设置测试用户信息:', testUser);
             console.log('🔑 [测试登录] 设置测试令牌:', testToken);
@@ -125,7 +136,7 @@ const LoginPage: React.FC = () => {
                         async (userInfo) => {
                             console.log('User info:', userInfo);
                             setUserInfo(userInfo);
-                            console.log('User set successfully:', userInfo);
+                            console.log('User set successfully:',getUserInfo() );
                             await new Promise(resolve => setTimeout(resolve, 5000));
                             navigateWithTransition('/game');
                         }

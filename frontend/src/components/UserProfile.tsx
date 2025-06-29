@@ -108,11 +108,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 					</div>
 					<div className="profile-avatar">
 						<div className="avatar-circle">
-							{user?.username.charAt(0).toUpperCase()}
+							{user?.userName.charAt(0).toUpperCase()}
 						</div>
 					</div>
 					<div className="profile-info">
-						<h2 className="profile-username">{user?.username}</h2>
+						<h2 className="profile-username">{user?.userName}</h2>
 						<p className="profile-email">{user?.email || 'test@satintin.com'}</p>
 					</div>
 				</div>
@@ -133,7 +133,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 						<div className="detail-item">
 							<span className="detail-label">原石</span>
 							<span className="detail-value" style={{ color: '#ffd700' }}>
-								{user?.coins || '1,000'}
+								{user?.stoneAmount || '1,000'}
 							</span>
 						</div>
 						<div className="detail-item">

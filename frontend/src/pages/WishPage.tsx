@@ -100,7 +100,7 @@ const WishPage: React.FC = () => {
 		playClickSound();
 
 		// 检查用户是否有足够的原石
-		if (!user || user.coins < currentBanner.singleCost) {
+		if (!user || user.stoneAmount < currentBanner.singleCost) {
 			alert('原石不足！');
 			return;
 		}
@@ -114,7 +114,7 @@ const WishPage: React.FC = () => {
 		playClickSound();
 
 		// 检查用户是否有足够的原石
-		if (!user || user.coins < currentBanner.tenCost) {
+		if (!user || user.stoneAmount < currentBanner.tenCost) {
 			alert('原石不足！');
 			return;
 		}
@@ -455,7 +455,7 @@ const WishPage: React.FC = () => {
 					<div className="header-right">
 						<div className="user-currency-header">
 							<img src={primogemIcon} alt="原石" className="currency-icon" />
-							<span className="currency-amount">{user?.coins}</span>
+							<span className="currency-amount">{user?.stoneAmount}</span>
 						</div>
 						<button className="rules-btn" onClick={handleShowRules}>
 							📋 祈愿规则

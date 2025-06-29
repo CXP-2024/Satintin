@@ -8,10 +8,11 @@ import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {clearUserInfo, getUserInfo, initUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {clearUserInfo, useUserInfo, initUserToken, getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const GameHomePage: React.FC = () => {
-	const user = getUserInfo();
+	const user = useUserInfo();
+	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
 	function logout() {
 		console.log('🚪 [AuthStore] 用户退出登录');
 		clearUserInfo();
@@ -102,10 +103,10 @@ const GameHomePage: React.FC = () => {
 					</div>
 					<div className="header-right">
 						<div className="user-info clickable" onClick={handleShowUserProfile}>
-							<span className="username">{user?.username}</span>
+							<span className="username">{user?.userName}</span>
 							<span className="coins">
 								<img src={primogemIcon} alt="原石" className="primogem-icon small" />
-								{user?.coins}
+								{user?.stoneAmount}
 							</span>
 						</div>
 						<button className="logout-btn" onClick={handleLogout}>
@@ -119,7 +120,7 @@ const GameHomePage: React.FC = () => {
 					{/* 欢迎区域 */}
 					<section className="welcome-section">
 						<div className="welcome-content">
-							<h2 className="welcome-title">欢迎回来，{user?.username}！</h2>
+							<h2 className="welcome-title">欢迎回来，{user?.userName}！</h2>
 							<p className="welcome-subtitle">准备好迎接激烈的卡牌对战了吗？</p>
 						</div>
 					</section>
@@ -140,7 +141,7 @@ const GameHomePage: React.FC = () => {
 								</div>
 								<div className="stat-content">
 									<span className="stat-label">原石</span>
-									<span className="stat-value">{user?.coins}</span>
+									<span className="stat-value">{user?.stoneAmount}</span>
 								</div>
 							</div>
 							<div className="stat-card cards">
