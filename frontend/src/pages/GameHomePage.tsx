@@ -41,6 +41,12 @@ const GameHomePage: React.FC = () => {
 		logout();
 	};
 
+	const handleNavigateToShop = () => {
+		console.log('⚔️ [GameHomePage] 导航到商店充值页面');
+		playClickSound();
+		navigateWithTransition('/shop', '正在进入商店充值页面...');
+	}
+
 	const handleNavigateToBattle = () => {
 		console.log('⚔️ [GameHomePage] 导航到战斗页面');
 		playClickSound();
@@ -108,7 +114,10 @@ const GameHomePage: React.FC = () => {
 								{user?.stoneAmount}
 							</span>
 						</div>
-						<button className="logout-btn" onClick={handleLogout}>
+						<button className="charge-btn" onClick={handleNavigateToShop}>
+							充值
+						</button>
+						<button className="home-logout-btn" onClick={handleLogout}>
 							退出登录
 						</button>
 					</div>
@@ -163,8 +172,8 @@ const GameHomePage: React.FC = () => {
 					{/* 主要功能按钮 */}
 					<section className="main-actions-section">
 						<div className="main-actions">
-							<button className="action-btn battle-btn" onClick={handleNavigateToBattle}>
-								<div className="btn-background"></div>
+							<button className="home-action-btn home-battle-btn" onClick={handleNavigateToBattle}>
+								<div className="home-btn-background"></div>
 								<div className="btn-content">
 									<div className="btn-icon">⚔️</div>
 									<div className="btn-text">
@@ -174,8 +183,8 @@ const GameHomePage: React.FC = () => {
 								</div>
 							</button>
 
-							<button className="action-btn cards-btn" onClick={handleNavigateToCards}>
-								<div className="btn-background"></div>
+							<button className="home-action-btn cards-btn" onClick={handleNavigateToCards}>
+								<div className="home-btn-background"></div>
 								<div className="btn-content">
 									<div className="btn-icon">🃏</div>
 									<div className="btn-text">
@@ -185,8 +194,8 @@ const GameHomePage: React.FC = () => {
 								</div>
 							</button>
 
-							<button className="action-btn wish-btn" onClick={handleNavigateToWish}>
-								<div className="btn-background"></div>
+							<button className="home-action-btn wish-btn" onClick={handleNavigateToWish}>
+								<div className="home-btn-background"></div>
 								<div className="btn-content">
 									<div className="btn-icon">✨</div>
 									<div className="btn-text">

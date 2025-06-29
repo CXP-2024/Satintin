@@ -9,6 +9,7 @@ import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
+
 const WishPage: React.FC = () => {
 	const user = useUserInfo();
 	const { navigateQuick } = usePageTransition();
@@ -29,6 +30,12 @@ const WishPage: React.FC = () => {
 	const playClickSound = () => {
 		SoundUtils.playClickSound(0.5);
 	};
+
+	const handleNavigateToShop = () => {
+		playClickSound();
+		console.log('going to shop...')
+		navigateQuick('/shop');
+	}
 
 	// 卡池切换处理函数
 	const handleBannerSwitch = (newBanner: 'standard' | 'featured') => {
@@ -457,11 +464,14 @@ const WishPage: React.FC = () => {
 							<img src={primogemIcon} alt="原石" className="currency-icon" />
 							<span className="currency-amount">{user?.stoneAmount}</span>
 						</div>
-						<button className="rules-btn" onClick={handleShowRules}>
-							📋 祈愿规则
-						</button>
 						<button className="history-btn" onClick={handleShowHistory}>
 							📜 历史记录
+						</button>
+						<button className="wishpage-charge-btn" onClick={handleNavigateToShop}>
+							📜 我想氪金
+						</button>
+						<button className="rules-btn" onClick={handleShowRules}>
+							📋 祈愿规则
 						</button>
 					</div>
 				</header>
