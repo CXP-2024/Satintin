@@ -18,6 +18,7 @@ const RegisterPage: React.FC = () => {
         confirmPassword: '',
     });
     const [error, setError] = useState<string>('');
+    const [success, setSuccess] = useState<string>(''); // 添加成功消息状态
     const [loading, setLoading] = useState<boolean>(false);
 
     // 密码哈希函数
@@ -40,6 +41,7 @@ const RegisterPage: React.FC = () => {
             [name]: value
         }));
         setError('');
+        setSuccess(''); // 清除成功消息
     };
 
     const validateForm = (): boolean => {
@@ -113,6 +115,7 @@ const RegisterPage: React.FC = () => {
         console.log('✅ [注册流程] 表单验证通过');
         setLoading(true);
         setError('');
+        setSuccess(''); // 清除之前的成功消息
 
         try {
             console.log('🔄 [注册流程] 调用注册API...');
@@ -123,7 +126,6 @@ const RegisterPage: React.FC = () => {
 
             console.log('✅ [安全] 密码哈希完成');
 
-
             // 发送注册请求，使用哈希后的密码
             new RegisterUserMessage(
                 formData.username,
@@ -132,15 +134,27 @@ const RegisterPage: React.FC = () => {
                 formData.phoneNumber,
             ).send(
                 (info: string) => {
-                    const token = JSON.parse(info);
-                    console.log('UserID as token:', token);
+                    console.log('✅ [注册流程] 注册成功');
                     console.log('callback message', info);
-                    setUserToken(token);
+                    
+                    // 显示成功消息而不是存储token
+                    setSuccess('注册成功，请前往登录');
+                    setError(''); // 清除错误信息
                     setLoading(false);
+                    
+                    // 可选：清空表单
+                    setFormData({
+                        username: '',
+                        email: '',
+                        password: '',
+                        phoneNumber: '',
+                        confirmPassword: '',
+                    });
                 },
                 (error: any) => {
-                    const errorMessage =  JSON.parse(error);
+                    const errorMessage = JSON.parse(error);
                     setError(errorMessage);
+                    setSuccess(''); // 清除成功消息
                     console.log('❌ [注册流程] 完整错误对象:', error);
                     setLoading(false);
                 }
@@ -149,6 +163,7 @@ const RegisterPage: React.FC = () => {
         } catch (err: any) {
             setLoading(false);
             setError(err.message || "注册失败");
+            setSuccess(''); // 清除成功消息
             console.log('❌ [注册流程] 异常:', err);
         }
     };
@@ -234,6 +249,7 @@ const RegisterPage: React.FC = () => {
                         </div>
 
                         {error && <div className="error-message">{error}</div>}
+                        {success && <div className="success-message">{success}</div>}
 
                         <button type="submit" className="register-btn" disabled={loading}>
                             {loading ? '注册中...' : '注册'}

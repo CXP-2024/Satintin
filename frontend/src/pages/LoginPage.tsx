@@ -6,10 +6,11 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import './LoginPage.css';
 import clickSound from 'assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserToken, setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
 import {GetUserStatusMessage} from "Plugins/UserService/APIs/GetUserStatusMessage";
+import {useAuthStore} from "../store/authStore";
 
 const LoginPage: React.FC = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -17,6 +18,7 @@ const LoginPage: React.FC = () => {
         username: '',
         password: ''
     });
+    const { user, setUser, setToken, token } = useAuthStore();
     const [error, setError] = useState<string>('');
     const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -116,21 +118,27 @@ const LoginPage: React.FC = () => {
             console.log('🔄 [登录流程] 调用真实API...');
 
             new LoginUserMessage(formData.username, formData.password).send(
-                (Info: string) => {
+                (Info) => {
                     const UserId = JSON.parse(Info);
-                    setUserToken(UserId);
-                    console.log('Token set:', UserId);
+                    setToken(UserId);
+                    console.log('Token set:',getUserToken() );
                     console.log('callback message', Info);
-                    navigateWithTransition('/game');
+                    new GetUserInfoMessage(getUserToken(), getUserToken()).send(
+                        (userInfo) => {
+                            console.log('User info:', userInfo);
+                            setUser(userInfo);
+                            console.log('User set:', userInfo);
+                            navigateWithTransition('/game');
+                        }
+                    )
                 },
                 (error: any) => {
-                    const errorMessage =  JSON.parse(error);
+                    const errorMessage = JSON.parse(error);
                     setError(errorMessage);
                     console.log('❌ [注册流程] 完整错误对象:', error);
                     hideLoading();
                 }
             );
-
         } catch (err: any) {
             //setMessage(err.message || "登录失败");
         }

@@ -95,6 +95,20 @@
 	margin: 10px 0;
 }
 
+.success-message {
+    color: #28a745;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin: 15px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-align: center;
+    border-left: 4px solid #28a745;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.1);
+}
+
 .register-btn {
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	color: white;
