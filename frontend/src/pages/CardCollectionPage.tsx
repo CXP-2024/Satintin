@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './CardCollectionPage.css';
@@ -16,6 +15,7 @@ import kunImg from '../assets/images/kun.png';
 import manImg from '../assets/images/man.png';
 import bingbingImg from '../assets/images/bingbing.png';
 import wlmImg from '../assets/images/wlm.png';
+import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 // 具体卡牌数据（基于cards.md）
 const CARDS_DATA = [
@@ -73,7 +73,7 @@ const userCards = CARDS_DATA;
 
 const CardCollectionPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { user } = useAuthStore();
+	const user = useUserInfo();
 	const { navigateQuick } = usePageTransition();
 	const [selected, setSelected] = useState<typeof CARDS_DATA[0][]>([
 		CARDS_DATA.find(c => c.id === 'jiege')!,

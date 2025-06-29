@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './WishPage.css';
@@ -8,9 +7,10 @@ import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
+import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const WishPage: React.FC = () => {
-	const { user } = useAuthStore();
+	const user = useUserInfo();
 	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured'>('featured');
 	const [showHistory, setShowHistory] = useState(false);

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/UserProfile';

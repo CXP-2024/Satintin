@@ -1,12 +1,12 @@
 import React from 'react';
 import { useBattleStore } from '../store/battleStore';
 import { webSocketService } from '../services/WebSocketService';
-import { useAuthStore } from '../store/authStore';
 import { SoundUtils } from 'utils/soundUtils';
 import './ActionSelector.css';
+import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const ActionSelector: React.FC = () => {
-	const { user } = useAuthStore();
+	const user = useUserInfo();
 	const {
 		selectedAction,
 		isActionSubmitted,

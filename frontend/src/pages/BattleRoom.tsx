@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import { useBattleStore } from '../store/battleStore';
 import { webSocketService, GameState } from '../services/WebSocketService';
 import { battleTestSimulator } from '../services/BattleTestSimulator';
@@ -12,10 +11,11 @@ import { GameOverModal } from '../components/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
+import {getUserToken, useUserInfo, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
-	const { user, token } = useAuthStore();
+	const user = useUserInfo();
 	const {
 		roomId,
 		gameState,
@@ -50,6 +50,7 @@ const BattleRoom: React.FC = () => {
 	// 初始化WebSocket连接
 	useEffect(() => {
 		const initializeConnection = async () => {
+			const token = getUserToken();
 			if (!user || !token) {
 				console.error('❌ [BattleRoom] 用户未登录');
 				navigate('/login');
@@ -65,7 +66,7 @@ const BattleRoom: React.FC = () => {
 				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
 
 				// 连接WebSocket
-				await webSocketService.connect(battleRoomId, token);
+				await webSocketService.connect(battleRoomId, getUserToken());
 				setConnectionStatus(true);
 				setIsConnecting(false);
 				setRoomStatus('waiting');
@@ -89,7 +90,7 @@ const BattleRoom: React.FC = () => {
 			// 停止测试模式
 			battleTestSimulator.stopTestMode();
 		};
-	}, [user, token, navigate, setRoomId, setConnectionStatus, resetBattle]);
+	}, [user, getUserToken(), navigate, setRoomId, setConnectionStatus, resetBattle]);
 
 	// 设置WebSocket事件监听器
 	const setupWebSocketListeners = () => {

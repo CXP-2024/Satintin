@@ -107,7 +107,7 @@ case class RegisterUserMessagePlanner(
       banDays = 0,
       isOnline = false,
       matchStatus = "Idle",
-      stoneAmount = 0,
+      stoneAmount = 10000,
       cardDrawCount = 0,
       rank = "Bronze",
       rankPosition = 0,

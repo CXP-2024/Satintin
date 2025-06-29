@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import './UserProfile.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
+import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 interface UserProfileProps {
 	isOpen: boolean;
@@ -11,7 +11,7 @@ interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
-	const { user } = useAuthStore();
+	const user = useUserInfo();
 	const [activeTab, setActiveTab] = useState<'friends' | 'blocked'>('friends');
 	const [isClosing, setIsClosing] = useState(false);
 

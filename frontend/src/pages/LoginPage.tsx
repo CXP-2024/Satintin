@@ -135,7 +135,8 @@ const LoginPage: React.FC = () => {
                     new GetUserInfoMessage(getUserToken(), getUserToken()).send(
                         async (userInfo) => {
                             console.log('User info:', userInfo);
-                            setUserInfo(userInfo);
+                            const userInfoParse = JSON.parse(userInfo);
+                            setUserInfo(userInfoParse);
                             console.log('User set successfully:',getUserInfo() );
                             await new Promise(resolve => setTimeout(resolve, 5000));
                             navigateWithTransition('/game');

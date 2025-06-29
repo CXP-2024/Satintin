@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useAuthStore } from '../store/authStore';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './BattlePage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
+import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const BattlePage: React.FC = () => {
-	const { user } = useAuthStore();
+	const user = useUserInfo();
 	const { navigateQuick, navigateWithTransition } = usePageTransition();
 	const [isMatching, setIsMatching] = useState(false);
 	const [matchingMode, setMatchingMode] = useState<'quick' | 'ranked' | null>(null);
