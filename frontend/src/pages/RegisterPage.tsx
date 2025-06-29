@@ -8,6 +8,7 @@ import CryptoJS from 'crypto-js';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
 import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
+import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -136,12 +137,22 @@ const RegisterPage: React.FC = () => {
                 (info: string) => {
                     console.log('✅ [注册流程] 注册成功');
                     console.log('callback message', info);
+                    const userID = JSON.parse(info);
+
+                    new RewardAssetMessage(userID,10000).send(
+                        (error: any) => {
+                            const errormessage = JSON.parse(error);
+                            if(errormessage.include("失败","错误") ){
+                                setError(errormessage);
+                            }
+                        }
+                    )
                     
                     // 显示成功消息而不是存储token
                     setSuccess('注册成功，请前往登录');
                     setError(''); // 清除错误信息
                     setLoading(false);
-                    
+
                     // 可选：清空表单
                     setFormData({
                         username: '',

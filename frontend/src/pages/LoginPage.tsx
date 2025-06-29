@@ -6,9 +6,17 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import './LoginPage.css';
 import clickSound from 'assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserInfo, getUserToken, setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {
+    getUserInfo,
+    getUserToken,
+    setUserInfo,
+    setUserToken,
+    useUserToken
+} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
+import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
+import {QueryAssetStatusMessage} from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 
 const LoginPage: React.FC = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -128,16 +136,30 @@ const LoginPage: React.FC = () => {
 
             new LoginUserMessage(formData.username, formData.password).send(
                 (Info) => {
-                    const UserId = JSON.parse(Info);
-                    setUserToken(UserId);
+                    const userId = JSON.parse(Info);
+
+                    setUserToken(userId) ;
                     console.log('Token set:',getUserToken() );
                     console.log('callback message', Info);
-                    new GetUserInfoMessage(getUserToken(), getUserToken()).send(
+
+                    new GetUserInfoMessage(getUserToken(), userId).send(
                         async (userInfo) => {
                             console.log('User info:', userInfo);
                             const userInfoParse = JSON.parse(userInfo);
                             setUserInfo(userInfoParse);
-                            console.log('User set successfully:',getUserInfo() );
+
+                            new QueryAssetStatusMessage(getUserToken()).send(
+                                (stoneJSON) => {
+                                    const stoneAmount = JSON.parse(stoneJSON);
+                                    console.log('stoneAmount:', stoneAmount);
+                                    setUserInfo({
+                                        ...userInfoParse,
+                                        stoneAmount: stoneAmount
+                                    });
+                                }
+                            )
+
+                            console.log('User set successfully:', getUserInfo());
                             await new Promise(resolve => setTimeout(resolve, 5000));
                             navigateWithTransition('/game');
                         }
