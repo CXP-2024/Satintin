@@ -1,17 +1,32 @@
 import create from 'zustand'
 import { persist } from 'zustand/middleware'
 import { encryptionSessionStorage } from 'Plugins/CommonUtils/Store/DefaultStorage'
+import { FriendEntry } from 'Plugins/UserService/Objects/FriendEntry'
+import { BlackEntry } from 'Plugins/UserService/Objects/BlackEntry'
+import { MessageEntry } from 'Plugins/UserService/Objects/MessageEntry'
 
 export class UserInfo {
-    nationalID: string = ''
-    cellphone: string = ''
-    email: string = ''
-    userName: string = ''
-    realName: string = ''
-    avatar: string = ''
-    userSource: string = ''
     userID: string = ''
-    invitationCode: string | null = null
+    userName: string = ''
+    // 不存储敏感信息如 passwordHash
+    email: string = ''
+    phoneNumber: string = ''  // 改名从 cellphone
+    registerTime: number = 0  // 新增
+    permissionLevel: number = 0  // 新增
+    banDays: number = 0  // 新增
+    isOnline: boolean = false  // 新增
+    matchStatus: string = ''  // 新增
+    stoneAmount: number = 0  // 新增
+    cardDrawCount: number = 0  // 新增
+    rank: string = ''  // 新增
+    rankPosition: number = 0  // 新增
+    friendList: FriendEntry[] = []  // 新增
+    blackList: BlackEntry[] = []  // 新增
+    messageBox: MessageEntry[] = []  // 新增
+    
+    // 可选的前端特有字段
+    avatar: string = ''  // 头像URL，可能来自其他服务
+    realName: string = ''  // 真实姓名，可能是可选字段
 }
 
 /* userInfo存储在localStorage中 */
@@ -40,6 +55,7 @@ const tokenStore = create(
     )
 )
 
+// 现有的导出函数保持不变
 export function getUserTokenSnap(): string {
     return tokenStore.getState().userToken
 }
@@ -72,7 +88,7 @@ export function getUserIDSnap(): string {
     return userInfoStore.getState().userInfo.userID
 }
 
-export function setUserInfoField(f: string, v: string) {
+export function setUserInfoField(f: string, v: string | number | boolean | any[]) {
     userInfoStore.setState({
         userInfo: { ...userInfoStore.getState().userInfo, [f]: v },
     })
