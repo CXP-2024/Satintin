@@ -134,13 +134,14 @@ const RegisterPage: React.FC = () => {
                 (info: string) => {
                     const token = JSON.parse(info);
                     console.log('UserID as token:', token);
+                    console.log('callback message', info);
                     setUserToken(token);
                     setLoading(false);
                 },
-                (errorMsg: string) => {
+                (error: any) => {
                     setLoading(false);
-                    setError(errorMsg || "注册失败");
-                    console.log('❌ [注册流程] 错误:', errorMsg);
+                    setError(error || "用户名已存在");
+                    console.log('❌ [注册流程] 完整错误对象:', error);
                 }
             );
 

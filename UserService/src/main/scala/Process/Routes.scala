@@ -171,22 +171,17 @@ object Routes:
           }
       }
     case req @ POST -> Root / "api" / name =>
-      for {
-        // 1) 读取 + merge PlanContext
-        bodyWithCtx <- handlePostRequest(req)
+      handlePostRequest(req).flatMap {
+        executePlan(name, _)
+      }.flatMap(Ok(_))
+      .handleErrorWith {
+        case e: DidRollbackException =>
+          println(s"Rollback error: $e")
+          val headers = Headers("X-DidRollback" -> "true")
+          BadRequest(e.getMessage.asJson.toString).map(_.withHeaders(headers))
 
-        // 2) 执行 Planner, 拿到 JSON 字符串
-        resultStr   <- executePlan(name, bodyWithCtx)
-
-        // 3) parse 成真正的 Json
-        resultJson  <- parse(resultStr) match {
-                         case Left(e)   => IO.raiseError(e)
-                         case Right(js) => IO.pure(js)
-                       }
-
-        // 4) 返回 Json
-        resp        <- Ok(resultJson)
-      } yield resp
-
-    // … error handlers …
+        case e: Throwable =>
+          println(s"General error: $e")
+          BadRequest(e.getMessage.asJson.toString)
+      }
   }

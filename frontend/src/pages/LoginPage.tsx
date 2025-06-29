@@ -114,11 +114,19 @@ const LoginPage: React.FC = () => {
             console.log('🔄 [登录流程] 调用真实API...');
 
             new LoginUserMessage(formData.username, formData.password).send(
-                (info:string)=>{
-                    const token=JSON.parse(info)
-                    setUserToken(token)
+                (info: string) => {
+                    const token = JSON.parse(info);
+                    setUserToken(token);
+                    console.log('✅ [登录流程] 登录成功，跳转到游戏主页...');
+                    hideLoading();
+                    navigateWithTransition('/game');
+                },
+                (error: any) => {
+                    console.log('❌ [登录流程] 登录失败:', error);
+                    setError('登录失败，请检查用户名和密码');
+                    hideLoading();
                 }
-            )
+            );
         } catch (err: any) {
             //setMessage(err.message || "登录失败");
         }
