@@ -42,7 +42,7 @@ const tokenStore = create(
     )
 )
 
-export function getUserTokenSnap(): string {
+export function getUserToken(): string {
     return tokenStore.getState().userToken
 }
 
@@ -54,9 +54,9 @@ export function setUserToken(userToken: string) {
     tokenStore.setState({ userToken })
 }
 
-export function getUserInfoSnap(): UserInfo {
+/*export function getUserInfoSnap(): UserInfo {
     return userInfoStore.getState().userInfo
-}
+}*/
 
 export function useUserInfo(): UserInfo {
     return userInfoStore(s => s.userInfo)
@@ -66,7 +66,7 @@ export function setUserInfo(userInfo: UserInfo) {
     userInfoStore.setState({ userInfo: { ...userInfo } })
 }
 
-export function getUserInfo() {
+export function getUserInfo(): UserInfo {
     return userInfoStore.getState().userInfo
 }
 

@@ -11,11 +11,11 @@ import BattleRulesPage from '../pages/BattleRulesPage';
 import BattleTestPage from '../pages/BattleTestPage';
 import BattleRoom from '../pages/BattleRoom';
 import NavMenu from './NavMenu';
-import {useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useAuthStore } from "../store/authStore";
 
 const AppRouter: React.FC = () => {
-	const userToken = useUserToken();
-	const isAuthenticated = !!userToken;
+	const { token } = useAuthStore();
+	const isAuthenticated = !!token;
 
 	console.log('🧭 [AppRouter] 路由组件渲染，当前认证状态:', isAuthenticated);
 	console.log('🌐 [AppRouter] 当前路径:', window.location.pathname);

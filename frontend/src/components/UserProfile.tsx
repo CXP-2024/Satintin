@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import './UserProfile.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 interface UserProfileProps {
 	isOpen: boolean;
@@ -122,7 +122,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 					<div className="details-grid">
 						<div className="detail-item">
 							<span className="detail-label">用户ID</span>
-							<span className="detail-value">{user?.id || '12345'}</span>
+							<span className="detail-value">{user?.userID || '12345'}</span>
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">段位</span>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './RewardModal.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 interface RewardModalProps {
 	isOpen: boolean;

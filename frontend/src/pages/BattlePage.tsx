@@ -4,7 +4,7 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './BattlePage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 const BattlePage: React.FC = () => {
 	const { user } = useAuthStore();

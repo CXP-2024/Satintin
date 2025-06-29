@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RoundResult } from '../services/WebSocketService';
 import { useBattleStore } from '../store/battleStore';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 import './RoundResultModal.css';
 
 interface RoundResultModalProps {

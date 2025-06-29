@@ -4,7 +4,7 @@ import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './CardCollectionPage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 // 导入卡牌图片
 import nailongImg from '../assets/images/nailong.png';

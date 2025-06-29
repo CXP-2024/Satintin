@@ -20,7 +20,7 @@ import bingbingImage from '../assets/images/bingbing.png';
 import wlmImage from '../assets/images/wlm.png';
 
 import clickSound from '../assets/sound/yingxiao.mp3';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 
 interface WishResult {
 	id: string;

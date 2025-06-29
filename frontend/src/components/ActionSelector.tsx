@@ -2,7 +2,7 @@ import React from 'react';
 import { useBattleStore } from '../store/battleStore';
 import { webSocketService } from '../services/WebSocketService';
 import { useAuthStore } from '../store/authStore';
-import { SoundUtils } from '../utils/soundUtils';
+import { SoundUtils } from 'utils/soundUtils';
 import './ActionSelector.css';
 
 const ActionSelector: React.FC = () => {
@@ -64,7 +64,7 @@ const ActionSelector: React.FC = () => {
 		// 发送行动到服务器
 		webSocketService.sendAction({
 			type: selectedAction,
-			playerId: user.id
+			playerId: user.userID
 		});
 
 		// 更新本地状态

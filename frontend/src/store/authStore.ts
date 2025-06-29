@@ -1,12 +1,20 @@
 import create from 'zustand';
-import { persist } from 'zustand/middleware';
-import { User } from '../types/User';
+import {
+    useUserInfo,
+    useUserToken,
+    getUserToken,
+    setUserInfo,
+    setUserToken,
+    clearUserInfo,
+    initUserToken, UserInfo, getUserInfo
+} from 'Plugins/CommonUtils/Store/UserInfoStore';
+import {persist} from "zustand/middleware";
 
 interface AuthState {
-    user: User | null;
+    user: UserInfo | null;
     token: string | null;
     isAuthenticated: boolean;
-    setUser: (user: User) => void;
+    setUser: (user: UserInfo) => void;
     setToken: (token: string) => void;
     logout: () => void;
 }
@@ -15,21 +23,25 @@ interface AuthState {
 export const useAuthStore = create<AuthState>(
     persist(
         (set, get) => ({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            setUser: (user: User) => {
+            user: getUserInfo() || null,
+            token: getUserToken() || null,
+            isAuthenticated: !!getUserToken() || false,
+            setUser: (user: UserInfo) => {
                 console.log('🔄 [AuthStore] 设置用户信息:', user);
+                setUserInfo(user);
                 set({ user, isAuthenticated: true });
                 console.log('✅ [AuthStore] 用户状态已更新，认证状态:', true);
             },
             setToken: (token: string) => {
                 console.log('🔄 [AuthStore] 设置认证令牌:', token);
-                set({ token });
+                setUserToken(token);
+                set({token});
                 console.log('✅ [AuthStore] 令牌已保存');
             },
             logout: () => {
                 console.log('🚪 [AuthStore] 用户退出登录');
+                clearUserInfo();
+                initUserToken();
                 set({ user: null, token: null, isAuthenticated: false });
                 console.log('✅ [AuthStore] 用户状态已清除');
             },
