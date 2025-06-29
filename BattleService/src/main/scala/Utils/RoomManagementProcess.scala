@@ -22,6 +22,7 @@ import Common.Object.ParameterList
 import Common.API.{PlanContext}
 import Common.Object.{ParameterList, SqlParameter}
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import Utils.PlayerActionProcess.initializeBattleState
 
 case object RoomManagementProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -34,25 +35,14 @@ case object RoomManagementProcess {
       IO.raiseError(new IllegalArgumentException("playerOneID不能为空"))
     } else {
       for {
-        // Step 1.1: Log the validation of playerOneID
-        _ <- IO(logger.info(s"验证playerOneID: ${playerOneID}"))
+        // Step 1: Log the playerOneID (user validation is done in the planner)
+        _ <- IO(logger.info(s"开始创建房间，房主ID: ${playerOneID}"))
   
-        // Step 1.2: Verify if playerOneID exists in the user table
-        playerExists <- {
-          val sqlCheck = s"SELECT 1 FROM ${schemaName}.user WHERE user_id = ? LIMIT 1"
-          val params = List(SqlParameter("String", playerOneID))
-          readDBBoolean(sqlCheck, params)
-        }
-        _ <- if (!playerExists) 
-               IO.raiseError(new IllegalArgumentException(s"用户ID[${playerOneID}]不存在")) 
-             else 
-               IO(logger.info(s"用户ID[${playerOneID}] 验证通过"))
-  
-        // Step 2.1: Generate a unique roomID
+        // Step 2: Generate a unique roomID
         roomID <- IO(java.util.UUID.randomUUID().toString)
         _ <- IO(logger.info(s"生成的房间ID: ${roomID}"))
   
-        // Step 2.2: Insert a new record into the battle_room_table
+        // Step 3: Insert a new record into the battle_room_table
         currentTime <- IO(DateTime.now())
         _ <- {
           val sqlInsert = s"""
@@ -67,13 +57,13 @@ case object RoomManagementProcess {
             SqlParameter("String", playerOneID),       // playerOne is the room owner
             SqlParameter("String", ""),                // current_turn_player left empty
             SqlParameter("String", ""),                // winner_id left empty
-            SqlParameter("DateTime", currentTime.getMillis.toString) // Creation time
+            SqlParameter("DateTime", currentTime.getMillis.toString) // Creation time as DateTime
           )
           writeDB(sqlInsert, params)
         }
         _ <- IO(logger.info(s"对战房间记录创建成功，房间ID: ${roomID}"))
   
-        // Step 3: Return the generated roomID
+        // Step 4: Return the generated roomID
       } yield roomID
     }
   }
@@ -202,18 +192,20 @@ case object RoomManagementProcess {
         if (playerOneID == playerTwoID) {
           throw new IllegalArgumentException(s"玩家ID重复: playerTwoID=${playerTwoID} 和 playerOneID=${playerOneID}")
         }
-      }
-  
-      // Step 2: 验证通过，准备更新数据库
+      }      // Step 2: 验证通过，准备更新数据库
       _ <- IO(logger.info(s"[Step 2] 验证通过，准备将 playerTwoID=${playerTwoID} 添加到房间 roomID=${roomID}"))
       updateResult <- writeDB(updateRoomSQL, List(SqlParameter("String", playerTwoID), SqlParameter("String", roomID)))
-  
+
       _ <- IO {
         if (updateResult != "Operation(s) done successfully") {
           throw new IllegalStateException(s"[Step 3] 数据库更新失败: result=${updateResult}")
         }
       }
-  
+
+      // Step 3: Initialize battle state now that both players are in the room
+      _ <- IO(logger.info(s"[Step 3] 初始化战斗状态，房间: ${roomID}, 玩家1: ${playerOneID}, 玩家2: ${playerTwoID}"))
+      _ <- initializeBattleState(roomID, playerOneID, playerTwoID)
+
       // Step 4: 全部完成，准备返回成功结果
       _ <- IO(logger.info(s"[Step 4] 数据库更新成功，返回操作结果"))
     } yield "玩家加入成功!"
