@@ -8,9 +8,16 @@ import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
+import {clearUserInfo, getUserInfo, initUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const GameHomePage: React.FC = () => {
-	const { user, logout } = useAuthStore();
+	const user = getUserInfo();
+	function logout() {
+		console.log('🚪 [AuthStore] 用户退出登录');
+		clearUserInfo();
+		initUserToken();
+		console.log('✅ [AuthStore] 用户状态已清除')
+	}
 	const { navigateWithTransition } = usePageTransition();
 	const [showUserProfile, setShowUserProfile] = useState(false);
 	const [showRewardModal, setShowRewardModal] = useState(false);

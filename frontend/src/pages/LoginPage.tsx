@@ -9,8 +9,6 @@ import { SoundUtils } from 'utils/soundUtils';
 import {getUserToken, setUserInfo, setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
-import {GetUserStatusMessage} from "Plugins/UserService/APIs/GetUserStatusMessage";
-import {useAuthStore} from "../store/authStore";
 
 const LoginPage: React.FC = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -18,7 +16,6 @@ const LoginPage: React.FC = () => {
         username: '',
         password: ''
     });
-    const { user, setUser, setToken, token } = useAuthStore();
     const [error, setError] = useState<string>('');
     const { showLoading, hideLoading } = useGlobalLoading();
 
@@ -77,6 +74,7 @@ const LoginPage: React.FC = () => {
             setUserToken(testToken);
 
             console.log('🧭 [测试登录] 测试登录成功，跳转到游戏主页...');
+            
             await navigateWithTransition('/game');
         } catch (err: any) {
             console.error('💥 [测试登录] 发生错误:', err);
@@ -120,14 +118,15 @@ const LoginPage: React.FC = () => {
             new LoginUserMessage(formData.username, formData.password).send(
                 (Info) => {
                     const UserId = JSON.parse(Info);
-                    setToken(UserId);
+                    setUserToken(UserId);
                     console.log('Token set:',getUserToken() );
                     console.log('callback message', Info);
                     new GetUserInfoMessage(getUserToken(), getUserToken()).send(
-                        (userInfo) => {
+                        async (userInfo) => {
                             console.log('User info:', userInfo);
-                            setUser(userInfo);
-                            console.log('User set:', userInfo);
+                            setUserInfo(userInfo);
+                            console.log('User set successfully:', userInfo);
+                            await new Promise(resolve => setTimeout(resolve, 5000));
                             navigateWithTransition('/game');
                         }
                     )

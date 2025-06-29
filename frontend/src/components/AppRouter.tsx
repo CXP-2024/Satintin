@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -10,19 +10,17 @@ import WishResultPage from '../pages/WishResultPage';
 import BattleRulesPage from '../pages/BattleRulesPage';
 import BattleTestPage from '../pages/BattleTestPage';
 import BattleRoom from '../pages/BattleRoom';
-import NavMenu from './NavMenu';
-import { useAuthStore } from "../store/authStore";
+import {useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const AppRouter: React.FC = () => {
-	const { token } = useAuthStore();
-	const isAuthenticated = !!token;
+	const userToken = useUserToken();
+	const isAuthenticated = !!userToken;
 
 	console.log('🧭 [AppRouter] 路由组件渲染，当前认证状态:', isAuthenticated);
 	console.log('🌐 [AppRouter] 当前路径:', window.location.pathname);
 
 	return (
 		<Router>
-			<NavMenu />
 			<Routes>
 				<Route
 					path="/login"
