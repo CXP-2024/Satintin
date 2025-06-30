@@ -140,7 +140,7 @@ const GameHomePage: React.FC = () => {
 								<div className="stat-icon">🏆</div>
 								<div className="stat-content">
 									<span className="stat-label">当前段位</span>
-									<span className="stat-value">{user?.rank}</span>
+									<span className="stat-value">{useUserInfo().rank}</span>
 								</div>
 							</div>
 							<div className="stat-card currency">
@@ -149,7 +149,7 @@ const GameHomePage: React.FC = () => {
 								</div>
 								<div className="stat-content">
 									<span className="stat-label">原石</span>
-									<span className="stat-value">{user?.stoneAmount}</span>
+									<span className="stat-value">{useUserInfo().stoneAmount}</span>
 								</div>
 							</div>
 							<div className="stat-card cards">

@@ -7,7 +7,9 @@ import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserInfo, getUserToken, setUserInfo, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {DeductAssetMessage} from "Plugins/AssetService/APIs/DeductAssetMessage";
+import {QueryAssetStatusMessage} from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 
 
 const WishPage: React.FC = () => {
@@ -112,6 +114,34 @@ const WishPage: React.FC = () => {
 			return;
 		}
 
+		new DeductAssetMessage(getUserToken(),currentBanner.singleCost).send(
+			(info: string) => {
+				const successmessage  = JSON.parse(info)
+				console.log('success',successmessage)
+				new QueryAssetStatusMessage(getUserToken()).send(
+					(info: string) => {
+						const stoneAmount = JSON.parse(info)
+						console.log('remaining stoneAmoumt',stoneAmount)
+						setUserInfo({
+							...getUserInfo(),
+							stoneAmount: stoneAmount
+						});
+
+					},
+					(error: any)=> {
+						const errormessage  = JSON.parse(error)
+						console.log('error',errormessage)
+					}
+				)
+			},
+			(error: any)=> {
+				const errormessage  = JSON.parse(error)
+				console.log('error',errormessage)
+			}
+		)
+
+
+
 		// 跳转到抽卡结果页面
 		navigateQuick(`/wish-result?type=single&banner=${selectedBanner}`);
 	};
@@ -125,6 +155,34 @@ const WishPage: React.FC = () => {
 			alert('原石不足！');
 			return;
 		}
+		new DeductAssetMessage(getUserToken(),currentBanner.tenCost).send(
+			(info: string) => {
+				const successmessage  = JSON.parse(info)
+				console.log(successmessage)
+
+
+				new QueryAssetStatusMessage(getUserToken()).send(
+					(info: string) => {
+						const stoneAmount = JSON.parse(info)
+						console.log('remaining stoneAmoumt',stoneAmount)
+						setUserInfo({
+							...getUserInfo(),
+							stoneAmount: stoneAmount
+						});
+					},
+					(error: any)=> {
+						const errormessage  = JSON.parse(error)
+						console.log('error',errormessage)
+					}
+				)
+			},
+			(error: any)=> {
+				const errormessage  = JSON.parse(error)
+				console.log(errormessage)
+			}
+		)
+
+
 
 		// 跳转到抽卡结果页面
 		navigateQuick(`/wish-result?type=ten&banner=${selectedBanner}`);
