@@ -12,6 +12,7 @@ import BattleTestPage from '../pages/BattleTestPage';
 import BattleRoom from '../pages/BattleRoom';
 import ShopPage from "../pages/ShopPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
+import AdminRegisterPage from "../pages/AdminRegisterPage";
 import {useUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const AppRouter: React.FC = () => {
@@ -221,6 +222,22 @@ const AppRouter: React.FC = () => {
 							(() => {
 								console.log('🔒 [AppRouter] 未登录，重定向到登录页面');
 								return <Navigate to="/login" replace />;
+							})()
+						)
+					}
+				/>
+				<Route
+					path="/admin-register"
+					element={
+						!isAuthenticated ? (
+							(() => {
+								console.log('📄 [AppRouter] 渲染管理员注册页面');
+								return <AdminRegisterPage />;
+							})()
+						) : (
+							(() => {
+								console.log('↩️ [AppRouter] 已登录，重定向到游戏页面');
+								return <Navigate to="/game" replace />;
 							})()
 						)
 					}
