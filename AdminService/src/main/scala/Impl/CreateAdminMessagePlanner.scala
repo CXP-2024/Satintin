@@ -29,7 +29,7 @@ case class CreateAdminMessagePlanner(
       s"""
         SELECT admin_id
         FROM ${schemaName}.admin_account_table
-        WHERE token = ? AND is_active = true
+        WHERE token = ? AND is_active = true AND admin_id = '00000000-0000-0000-0000-000000000000'
       """.stripMargin
 
     val insertSql =

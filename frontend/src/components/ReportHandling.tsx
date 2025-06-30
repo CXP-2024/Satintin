@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SoundUtils } from 'utils/soundUtils';
+import {BanUserMessage} from "Plugins/AdminService/APIs/BanUserMessage";
+import {getUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 // 模拟数据 - 举报列表
 const mockReports = [
@@ -137,6 +139,18 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({ searchTerm }) => {
     playClickSound();
     console.log(`🔨 [AdminDashboard] 封禁玩家 ${playerId} ${days}天`);
     // 在实际应用中，这里会调用API来封禁玩家
+
+    new BanUserMessage(getUserToken(),playerId,days).send(
+        (info) => {
+          const successmessage = JSON.parse(info);
+          console.log(successmessage);
+        },
+        (error) => {
+          const errormessage = JSON.parse(error);
+          console.log(errormessage);
+        }
+    )
+
     handleCloseReportModal();
   };
 
@@ -332,3 +346,7 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({ searchTerm }) => {
 };
 
 export default ReportHandling;
+function handleCloseReportModal() {
+    throw new Error('Function not implemented.');
+}
+

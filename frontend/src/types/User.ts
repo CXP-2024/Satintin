@@ -10,6 +10,7 @@ export interface User {
     lastLoginTime?: string;
     rankPosition?: number;
     cardDrawCount?: number;
+    ppermissionLevel: number;
 }
 
 export interface LoginRequest {
