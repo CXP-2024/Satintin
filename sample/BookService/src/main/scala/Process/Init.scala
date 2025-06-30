@@ -48,6 +48,7 @@ object Init {
         """,
         List()
       )
+      _ <- Tickers.runTicker.start
     } yield ()
 
     program.handleErrorWith(err => IO {

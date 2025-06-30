@@ -1,17 +1,21 @@
 package Process
 
-import Process.Routes.service
+import Process.Routes.{service, serviceWithWebSocket}
+import cats.data.Kleisli
 import cats.effect.*
 import com.comcast.ip4s.*
 import org.http4s.*
 import org.http4s.ember.server.*
 import org.http4s.implicits.*
-import org.http4s.server.middleware.CORS
+import org.http4s.server.middleware.{CORS, CORSPolicy}
+import org.http4s.server.websocket.WebSocketBuilder
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.{Slf4jFactory, Slf4jLogger}
 
 import java.nio.channels.ClosedChannelException
 import scala.concurrent.duration.*
+import scala.concurrent.duration.*
+import cats.effect.unsafe.implicits.global
 
 
 object Server extends IOApp:
@@ -20,6 +24,7 @@ object Server extends IOApp:
   given Slf4jFactory[IO] = Slf4jFactory.create[IO]
 
   def httpApp: HttpApp[IO] = service.orNotFound
+
 
   override protected def reportFailure(err: Throwable): IO[Unit] =
     err match {
@@ -47,7 +52,7 @@ object Server extends IOApp:
             .withShutdownTimeout(30.minutes)
             .withRequestHeaderReceiveTimeout(30.minutes)
             .withMaxConnections(config.maximumServerConnection)
-            .withHttpApp(app)
+            .withHttpWebSocketApp((wsBuilder: WebSocketBuilder[IO]) => CORS.policy.withAllowOriginAll(serviceWithWebSocket(wsBuilder).orNotFound).unsafeRunSync())
             .build
         } yield server)
           .use(_ => IO.never)

@@ -2,6 +2,7 @@ const rules = require('./webpack.rules')
 const plugins = require('./webpack.plugins')
 const path = require('path')
 const TerserPlugin = require('terser-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 rules.push({
     test: /\.css$/,
@@ -26,7 +27,17 @@ module.exports = {
         ],
     },
 
-    plugins: plugins.rendererPlugins,
+    plugins: [
+        ...plugins.rendererPlugins,
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.resolve(__dirname, 'public/output.css'),
+                    to: 'output.css',
+                },
+            ],
+        }),
+    ],
     target: 'electron-renderer',
     resolve: {
         alias: {
