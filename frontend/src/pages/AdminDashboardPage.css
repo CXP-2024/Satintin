@@ -2,9 +2,25 @@
 .admin-dashboard {
   width: 100%;
   min-height: 100vh;
-  background-color: #f0f2f5;
+  background-color: rgba(240, 242, 245, 0.7);
   color: #333;
   font-family: 'Arial', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-dashboard::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../assets/images/nailong.png');
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px);
+  z-index: -1;
 }
 
 .admin-container {
@@ -20,10 +36,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   margin-bottom: 20px;
+  backdrop-filter: blur(5px);
 }
 
 .admin-header-left h1 {
@@ -52,21 +69,23 @@
 .admin-badge {
   background-color: #8e44ad;
   color: white;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: bold;
+  box-shadow: 0 2px 5px rgba(142, 68, 173, 0.3);
 }
 
 .admin-logout-btn {
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 8px 15px;
-  border-radius: 4px;
+  padding: 10px 18px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 
 .admin-logout-btn:hover {
@@ -75,10 +94,11 @@
 
 /* 主内容区域 */
 .admin-main {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 25px;
+  backdrop-filter: blur(5px);
 }
 
 /* 标签页导航 */
@@ -93,59 +113,69 @@
 .admin-tab-btn {
   background-color: transparent;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
   color: #666;
-  border-radius: 4px 4px 0 0;
+  border-radius: 12px 12px 0 0;
   position: relative;
   transition: all 0.2s;
+  margin-right: 5px;
 }
 
 .admin-tab-btn:hover {
-  background-color: #f5f5f5;
+  background-color: rgba(245, 245, 245, 0.8);
   color: #8e44ad;
+  transform: translateY(-2px);
 }
 
 .admin-tab-btn.active {
   color: #8e44ad;
   border-bottom: 3px solid #8e44ad;
+  background-color: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .admin-badge-notification {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: -8px;
+  right: -8px;
   background-color: #e74c3c;
   color: white;
-  width: 20px;
-  height: 20px;
+  min-width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: bold;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.4);
+  padding: 0 4px;
 }
 
 /* 搜索栏 */
 .admin-search {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .admin-search input {
   width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 14px 20px;
+  border: 1px solid rgba(221, 221, 221, 0.7);
+  border-radius: 12px;
   font-size: 16px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.3s;
+  background-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .admin-search input:focus {
   border-color: #8e44ad;
+  box-shadow: 0 2px 15px rgba(142, 68, 173, 0.2);
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 /* 内容区域 */
@@ -174,7 +204,7 @@
 .admin-data-table th {
   background-color: #f5f5f5;
   padding: 12px 15px;
-  text-align: left;
+  text-align: center;
   font-weight: bold;
   color: #333;
   border-bottom: 2px solid #ddd;
@@ -183,6 +213,7 @@
 .admin-data-table td {
   padding: 12px 15px;
   border-bottom: 1px solid #eee;
+  text-align: center;
 }
 
 .admin-data-table tr:hover {
@@ -192,99 +223,126 @@
 /* 状态标签 */
 .admin-status-badge {
   display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: bold;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .admin-status-normal {
   background-color: #2ecc71;
   color: white;
+  box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
 }
 
 .admin-status-banned {
   background-color: #e74c3c;
   color: white;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
 }
 
 .admin-status-pending {
   background-color: #f39c12;
   color: white;
+  box-shadow: 0 2px 5px rgba(243, 156, 18, 0.3);
 }
 
 .admin-status-resolved {
   background-color: #3498db;
   color: white;
+  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
 }
 
 .admin-status-success {
   background-color: #2ecc71;
   color: white;
+  box-shadow: 0 2px 5px rgba(46, 204, 113, 0.3);
 }
 
 .admin-status-failed {
   background-color: #e74c3c;
   color: white;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
 }
 
 .admin-reports-badge {
   background-color: #e74c3c;
   color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 4px 8px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: bold;
+  box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
 }
 
 /* 操作按钮 */
 .admin-action-btn {
-  padding: 6px 12px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 3px;
 }
 
 .admin-view-btn {
   background-color: #3498db;
   color: white;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
 }
 
 .admin-view-btn:hover {
   background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
 }
 
 .admin-ban-btn {
   background-color: #e74c3c;
   color: white;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
 }
 
 .admin-ban-btn:hover {
   background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
 }
 
 .admin-ban-btn.severe {
   background-color: #c0392b;
+  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.3);
+}
+
+.admin-ban-btn.severe:hover {
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.4);
 }
 
 .admin-resolve-btn {
   background-color: #2ecc71;
   color: white;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
 }
 
 .admin-resolve-btn:hover {
   background-color: #27ae60;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
 }
 
 .admin-reset-btn {
   background-color: #f39c12;
   color: white;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.3);
 }
 
 .admin-reset-btn:hover {
   background-color: #d35400;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
 }
 
 /* 原石图标 */
@@ -317,21 +375,91 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.admin-modal-overlay.closing {
+  animation: fadeOut 0.3s ease-in forwards;
 }
 
 .admin-modal-container {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
+  max-height: 80vh;
   overflow-y: auto;
+  transform: translateY(0);
+  animation: zoomIn 0.3s ease-out;
+  position: relative;
+}
+
+.admin-modal-overlay.closing .admin-modal-container {
+  animation: zoomOut 0.3s ease-in forwards;
+}
+
+/* 居中显示的模态框 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-overlay.closing {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 16px; /* 四边都是圆角 */
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  transform: translateY(0);
+  animation: zoomIn 0.3s ease-out;
+  position: relative; /* 为关闭按钮定位做准备 */
+}
+
+.modal-overlay.closing .modal-container {
+  animation: zoomOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes zoomIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes zoomOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
 }
 
 .admin-modal-header {
@@ -340,43 +468,170 @@
   align-items: center;
   padding: 15px 20px;
   border-bottom: 1px solid #eee;
+  position: relative;
+  background-color: #f9f9f9;
+  border-radius: 16px 16px 0 0;
 }
 
 .admin-modal-header h3 {
   margin: 0;
-  color: #333;
+  color: #8e44ad;
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
 }
 
 .admin-close-btn {
-  background: none;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background-color: #f1f1f1;
   border: none;
-  font-size: 24px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  color: #999;
+  color: #666;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  z-index: 10;
 }
 
 .admin-close-btn:hover {
-  color: #333;
+  background-color: #e74c3c;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.admin-close-btn span {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .admin-modal-content {
   padding: 20px;
+  background-color: white;
+  border-radius: 0 0 16px 16px;
+}
+
+/* 模态框头部和关闭按钮 */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+  position: relative;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  width: 100%;
+  text-align: center;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background-color: #f1f1f1;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #666;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  background-color: #e74c3c;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+/* 分页控件样式 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 5px;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background-color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #333;
+  font-weight: bold;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #f5f5f5;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn.active {
+  background-color: #8e44ad;
+  color: white;
+  border-color: #8e44ad;
+  box-shadow: 0 2px 5px rgba(142, 68, 173, 0.3);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 信息行 */
 .admin-info-row {
   display: flex;
   margin-bottom: 10px;
+  justify-content: center;
+  text-align: center;
 }
 
 .admin-info-label {
   width: 100px;
   font-weight: bold;
   color: #666;
+  text-align: center;
 }
 
 .admin-info-value {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.report-details {
+  display: flex;
+  background-color: rgba(245, 245, 245, 0.7);
+  border-radius: 18px;
+  font-style: italic;
+  line-height: 1.0;
+  text-align: center;
 }
 
 /* 管理操作区域 */
@@ -390,12 +645,40 @@
   margin-top: 0;
   margin-bottom: 15px;
   color: #333;
+  text-align: center;
 }
 
 .admin-action-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
+  justify-content: center;
+}
+
+.report-modal .admin-action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.report-modal .admin-action-btn {
+  padding: 12px 15px;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.report-modal .admin-action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .report-modal .admin-action-buttons {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* 响应式调整 */
@@ -437,4 +720,49 @@
   .admin-action-btn {
     width: 100%;
   }
+}
+
+/* 举报处理模态框特殊样式 */
+.report-modal {
+  border: 1px solid rgba(142, 68, 173, 0.2);
+  box-shadow: 0 5px 25px rgba(142, 68, 173, 0.2);
+}
+
+.report-modal .admin-actions {
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 25px;
+}
+
+.report-modal .admin-actions h4 {
+  color: #8e44ad;
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.report-modal .admin-info-row {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+  justify-content: center;
+  text-align: center;
+}
+
+.report-modal .admin-info-label {
+  color: #8e44ad;
+  font-weight: bold;
+  width: 120px;
+  text-align: center;
+}
+
+.report-modal .report-details {
+  background-color: #f5f5f5;
+  border-left: 3px solid #8e44ad;
+  padding: 12px;
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  color: #555;
+  text-align: center;
 }

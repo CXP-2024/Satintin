@@ -129,8 +129,15 @@
 }
 
 .primogem-icon {
-	width: 70px;
-	height: 80px;
+	width: 25px;
+	height: 25px;
+}
+
+.primogem-icon-small {
+	width: 16px;
+	height: 16px;
+	margin-right: 5px;
+	vertical-align: middle;
 }
 
 .charge-btn {
