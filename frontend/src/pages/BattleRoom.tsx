@@ -72,7 +72,9 @@ const BattleRoom: React.FC = () => {
 				setRoomStatus('waiting');
 
 				// 设置事件监听器
+				console.log('🔌 [BattleRoom] 设置事件监听器');
 				setupWebSocketListeners();
+				console.log('🎮 [BattleRoom] 事件监听器已设置');
 
 			} catch (error) {
 				console.error('❌ [BattleRoom] 连接失败:', error);
@@ -81,16 +83,17 @@ const BattleRoom: React.FC = () => {
 			}
 		};
 
+		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接');
 		initializeConnection();
+		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接完成');
 
 		// 清理函数
 		return () => {
-			webSocketService.disconnect();
-			resetBattle();
-			// 停止测试模式
-			battleTestSimulator.stopTestMode();
+			console.log('🔌 [BattleRoom] useEffect return 清理WebSocket连接, 暂时无需断开连接');
+			// 停止测试模式, // 如果有必要的话
+			// battleTestSimulator.stopTestMode();
 		};
-	}, [user, getUserToken(), navigate, setRoomId, setConnectionStatus, resetBattle]);
+	}, [user]);
 
 	// 设置WebSocket事件监听器
 	const setupWebSocketListeners = () => {
@@ -162,6 +165,7 @@ const BattleRoom: React.FC = () => {
 
 	// 离开房间
 	const handleLeaveRoom = () => {
+		console.log('🔙 [BattleRoom] 离开房间');
 		SoundUtils.playClickSound(0.5);
 		webSocketService.disconnect();
 		resetBattle();

@@ -1,5 +1,8 @@
 import { config } from 'Globals/Config'
 
+
+// THis is not use anymore, use WebsocketConnect in frontend/src/services/ files
+
 export function websocketConnect(
     url: string,
     onmessage: (stream: any, ws: WebSocket) => void,

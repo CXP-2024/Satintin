@@ -42,11 +42,11 @@ function getEnvironmentConfig(): ServiceConfig {
     return {
       protocol: 'http',
       userServiceUrl: 'localhost:10010',
-      battleServiceUrl: 'localhost:10011',
-      cardServiceUrl: 'localhost:10012',
+      cardServiceUrl: 'localhost:10011',
+      assetServiceUrl: 'localhost:10012',
       adminServiceUrl: 'localhost:10013',
-      assetServiceUrl: 'localhost:10014',
-      wsBaseUrl: 'ws://localhost:10015',
+      battleServiceUrl: 'localhost:10014',
+      wsBaseUrl: 'ws://localhost:10015', // maybe error this is not true, we don't use this
       apiBaseUrl: 'localhost:10016',
       environment: 'development',
       serviceName: 'Satintin',
