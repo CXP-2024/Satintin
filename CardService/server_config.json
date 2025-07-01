@@ -4,7 +4,7 @@
   "maximumClientConnection": 10000,
   "gitlabHost": "http://10.1.18.188:2000",
   "gitlabNameSpace": "repos",
-  "jdbcUrl":  "jdbc:postgresql://localhost:5432/",
+  "jdbcUrl":  "jdbc:postgresql://localhost:5432/?useUnicode=true&characterEncoding=UTF-8",
   "username": "db",
   "password": "root",
   "prepStmtCacheSize": 250,

@@ -7,21 +7,28 @@ import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserInfo, getUserToken, setUserInfo, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
-import {DeductAssetMessage} from "Plugins/AssetService/APIs/DeductAssetMessage";
-import {QueryAssetStatusMessage} from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
+import {useUserInfo, useUserToken, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { DrawCardMessage } from '../Plugins/CardService/APIs/DrawCardMessage';
+import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 添加导入
+import { QueryCardDrawCountMessage } from '../Plugins/AssetService/APIs/QueryCardDrawCountMessage'; // 添加抽卡次数查询
+import { GetDrawHistoryMessage, DrawHistoryEntry } from '../Plugins/CardService/APIs/GetDrawHistoryMessage';
 
 
 const WishPage: React.FC = () => {
 	const user = useUserInfo();
+	const userToken = useUserToken();
 	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured'>('featured');
 	const [showHistory, setShowHistory] = useState(false);
 	const [showRules, setShowRules] = useState(false);
-	const [isHistoryClosing, setIsHistoryClosing] = useState(false);
-	const [isRulesClosing, setIsRulesClosing] = useState(false);
+	const [isHistoryClosing, setIsHistoryClosing] = useState(false);	const [isRulesClosing, setIsRulesClosing] = useState(false);
 	const [animationClass, setAnimationClass] = useState<string>('');
-	const [isAnimating, setIsAnimating] = useState<boolean>(false);
+	const [isAnimating, setIsAnimating] = useState<boolean>(false);	const [wishHistory, setWishHistory] = useState<{featured: any[], standard: any[]}>({
+		featured: [],
+		standard: []
+	});
+	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+	const [cardDrawCount, setCardDrawCount] = useState<number>(0); // 当前抽卡次数
 
 	// 初始化音效
 	useEffect(() => {
@@ -34,8 +41,7 @@ const WishPage: React.FC = () => {
 	};
 
 	const handleNavigateToShop = () => {
-		playClickSound();
-		console.log('going to shop...')
+		playClickSound();		
 		navigateQuick('/shop');
 	}
 
@@ -66,11 +72,12 @@ const WishPage: React.FC = () => {
 			}, 600); // 匹配CSS动画时长
 		}, 300); // 退出动画一半时间后切换内容
 	};
-
-	const handleShowHistory = () => {
+	const handleShowHistory = async () => {
 		playClickSound();
 		setShowHistory(true);
 		setIsHistoryClosing(false);
+		// 显示历史记录时刷新数据
+		await loadDrawHistory();
 	};
 
 	const handleCloseHistory = () => {
@@ -103,89 +110,139 @@ const WishPage: React.FC = () => {
 		playClickSound();
 		navigateQuick('/game');
 	};
+	// 添加刷新用户资产状态的函数
+	const refreshUserAssets = async () => {
+		if (!user?.userID) return;
 
-	const handleSingleWish = () => {
-		// 播放点击音效
+		try {
+			// wrap send() so `response` is what your callback receives
+			const response: any = await new Promise((resolve, reject) => {
+			new QueryAssetStatusMessage(user.userID).send(
+				(res: any)  => resolve(res),
+				(err: any) => reject(err)
+			);			});
+			
+			// 2. normalize to number
+			let stoneAmount: number;
+			stoneAmount = +response;
+					// 3. update store using setUserInfoField to properly trigger state updates
+			setUserInfoField('stoneAmount', stoneAmount);
+		} catch (err) {
+			console.error('刷新用户资产失败:', err);
+		}
+	};
+
+	// 获取用户当前抽卡次数
+	const fetchCardDrawCount = async () => {
+		if (!userToken) return;
+
+		try {
+			const response: any = await new Promise((resolve, reject) => {
+				new QueryCardDrawCountMessage(userToken).send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+
+			// 解析响应数据
+			const drawCount = typeof response === 'string' ? parseInt(response) : Number(response);
+			setCardDrawCount(drawCount);
+		} catch (err) {
+			console.error('获取抽卡次数失败:', err);
+			setCardDrawCount(0);
+		}
+	};
+
+	const handleSingleWish = async () => {
 		playClickSound();
 
 		// 检查用户是否有足够的原石
 		if (!user || user.stoneAmount < currentBanner.singleCost) {
 			alert('原石不足！');
 			return;
-		}
-
-		new DeductAssetMessage(getUserToken(),currentBanner.singleCost).send(
-			(info: string) => {
-				const successmessage  = JSON.parse(info)
-				console.log('success',successmessage)
-				new QueryAssetStatusMessage(getUserToken()).send(
-					(info: string) => {
-						const stoneAmount = JSON.parse(info)
-						console.log('remaining stoneAmoumt',stoneAmount)
-						setUserInfo({
-							...getUserInfo(),
-							stoneAmount: stoneAmount
-						});
-
-					},
-					(error: any)=> {
-						const errormessage  = JSON.parse(error)
-						console.log('error',errormessage)
+		}		try {
+			// 调用后端抽卡API
+			const drawResult = await new Promise((resolve, reject) => {
+				new DrawCardMessage(
+					user.userID, // 使用 userID
+					1, // 抽卡数量
+					selectedBanner // 传入卡池类型
+				).send((response: any) => {
+					if (response.error) {
+						reject(new Error(response.error));
+					} else {
+						resolve(response);
 					}
-				)
-			},
-			(error: any)=> {
-				const errormessage  = JSON.parse(error)
-				console.log('error',errormessage)
-			}
-		)
-
-
-
-		// 跳转到抽卡结果页面
-		navigateQuick(`/wish-result?type=single&banner=${selectedBanner}`);
+				});			});
+			
+			// 抽卡成功后立即刷新抽卡次数（单抽+1）
+			setCardDrawCount(prev => prev + 1);
+			
+			// 抽卡成功后刷新用户资产状态
+			await refreshUserAssets();
+			
+			// 刷新抽卡历史和抽卡次数（从服务器获取最新数据）
+			await loadDrawHistory();
+			await fetchCardDrawCount();
+			
+			// 先跳转到结果页面，然后可以通过其他方式传递数据
+			localStorage.setItem('drawResult', JSON.stringify({
+				drawResult,
+				type: 'single',
+				banner: selectedBanner
+			}));
+			
+			navigateQuick('/wish-result');
+		} catch (error) {
+			console.error('抽卡失败:', error);
+			alert('抽卡失败，请重试！');
+		}
 	};
 
-	const handleTenWish = () => {
-		// 播放点击音效
+	const handleTenWish = async () => {
 		playClickSound();
 
 		// 检查用户是否有足够的原石
 		if (!user || user.stoneAmount < currentBanner.tenCost) {
 			alert('原石不足！');
 			return;
-		}
-		new DeductAssetMessage(getUserToken(),currentBanner.tenCost).send(
-			(info: string) => {
-				const successmessage  = JSON.parse(info)
-				console.log(successmessage)
-
-
-				new QueryAssetStatusMessage(getUserToken()).send(
-					(info: string) => {
-						const stoneAmount = JSON.parse(info)
-						console.log('remaining stoneAmoumt',stoneAmount)
-						setUserInfo({
-							...getUserInfo(),
-							stoneAmount: stoneAmount
-						});
-					},
-					(error: any)=> {
-						const errormessage  = JSON.parse(error)
-						console.log('error',errormessage)
+		}		try {
+			// 调用后端抽卡API
+			const drawResult = await new Promise((resolve, reject) => {
+				new DrawCardMessage(
+					user.userID, // 使用 userID
+					10, // 抽卡数量
+					selectedBanner // 传入卡池类型
+				).send((response: any) => {
+					if (response.error) {
+						reject(new Error(response.error));
+					} else {
+						resolve(response);
 					}
-				)
-			},
-			(error: any)=> {
-				const errormessage  = JSON.parse(error)
-				console.log(errormessage)
-			}
-		)
+				});
+			});			
+			// 抽卡成功后立即刷新抽卡次数（十连+10）
+			setCardDrawCount(prev => prev + 10);
+			
+			// 抽卡成功后刷新用户资产状态
+			await refreshUserAssets();
 
+			// 刷新抽卡历史和抽卡次数（从服务器获取最新数据）
+			await loadDrawHistory();
+			await fetchCardDrawCount();
 
-
-		// 跳转到抽卡结果页面
-		navigateQuick(`/wish-result?type=ten&banner=${selectedBanner}`);
+			// 先跳转到结果页面，然后可以通过其他方式传递数据
+			localStorage.setItem('drawResult', JSON.stringify({
+				drawResult,
+				type: 'ten',
+				banner: selectedBanner
+			}));
+			
+			navigateQuick('/wish-result');
+		} catch (error) {
+			console.error('抽卡失败:', error);
+			alert('抽卡失败，请重试！');
+		}
 	};
 
 	const banners = {
@@ -210,26 +267,134 @@ const WishPage: React.FC = () => {
 			endTime: '永久开放',
 		},
 	};
-
 	const currentBanner = banners[selectedBanner];
+	// 加载抽卡历史记录
+	const loadDrawHistory = async () => {
+		if (!userToken) {
+			console.warn('用户token不存在，无法加载抽卡历史');
+			return;
+		}
 
-	// 模拟历史记录数据
-	const wishHistory = {
-		featured: [
-			{ id: 1, name: '盖亚——！！', rarity: 5, time: '2024-12-25 14:30', type: '限定祈愿' },
-			{ id: 2, name: 'Paimon', rarity: 4, time: '2024-12-25 14:25', type: '限定祈愿' },
-			{ id: 3, name: '冰', rarity: 3, time: '2024-12-25 14:20', type: '限定祈愿' },
-			{ id: 4, name: 'Dragon Nai', rarity: 5, time: '2024-12-24 20:15', type: '限定祈愿' },
-			{ id: 5, name: '坤', rarity: 4, time: '2024-12-24 20:10', type: '限定祈愿' },
-		],
-		standard: [
-			{ id: 6, name: '杰哥', rarity: 5, time: '2024-12-25 10:45', type: '常驻祈愿' },
-			{ id: 7, name: 'man', rarity: 4, time: '2024-12-25 10:40', type: '常驻祈愿' },
-			{ id: 8, name: 'wlm', rarity: 3, time: '2024-12-25 10:35', type: '常驻祈愿' },
-			{ id: 9, name: 'Paimon', rarity: 4, time: '2024-12-24 16:20', type: '常驻祈愿' },
-			{ id: 10, name: '冰', rarity: 3, time: '2024-12-24 16:15', type: '常驻祈愿' },
-		]
-	};
+		setIsLoadingHistory(true);		try {
+			const historyData = await new Promise<any>((resolve, reject) => {
+				new GetDrawHistoryMessage(userToken).send(
+					(response: any) => {
+						if (response.error) {
+							reject(new Error(response.error));
+						} else {
+							resolve(response);
+						}
+					}
+				);			});
+
+			// 尝试各种情况的解包
+			let drawHistoryArray: DrawHistoryEntry[] = [];
+
+			// 尝试解析为 JSON
+			if (typeof historyData === 'string') {
+				try {
+					drawHistoryArray = JSON.parse(historyData);
+				} catch (e) {
+					console.warn('解析 historyData 字符串失败', e);
+					drawHistoryArray = [];
+				}
+			}
+			else if (Array.isArray(historyData)) {
+				drawHistoryArray = historyData;
+			}
+			else if (Array.isArray((historyData as any).drawHistory)) {
+				drawHistoryArray = (historyData as any).drawHistory;			}
+			else {
+				drawHistoryArray = [];
+			}
+			
+			// 稀有度映射函数
+			const mapRarityToNumber = (rarity: string): number => {
+				switch (rarity) {
+					case '传说': return 5;
+					case '稀有': return 4;
+					case '普通': return 3;
+					default: return 3;
+				}
+			};
+					// 将历史记录按卡池类型分组
+			const groupedHistory = {
+				featured: drawHistoryArray
+					.filter(item => item.poolType === 'featured')
+					.map(item => ({
+						id: item.cardId,  // cardId 现在是 string
+						name: item.cardName,
+						rarity: mapRarityToNumber(item.rarity),
+						time: new Date(item.drawTime).toLocaleString('zh-CN'),
+						description: item.cardDescription,
+						type: '限定祈愿'
+					})),
+				standard: drawHistoryArray
+					.filter(item => item.poolType === 'standard')
+					.map(item => ({
+						id: item.cardId,  // cardId 现在是 string
+						name: item.cardName,
+						rarity: mapRarityToNumber(item.rarity),
+						time: new Date(item.drawTime).toLocaleString('zh-CN'),
+						description: item.cardDescription,
+						type: '常驻祈愿'
+					}))			};
+
+			setWishHistory(groupedHistory);
+		} catch (error) {
+			console.error('加载抽卡历史失败:', error);
+			// 使用模拟数据作为降级处理
+			setWishHistory({
+				featured: [
+					{ id: 1, name: '盖亚——！！', rarity: 5, time: '2024-12-25 14:30', type: '限定祈愿' },
+					{ id: 2, name: 'Paimon', rarity: 4, time: '2024-12-25 14:25', type: '限定祈愿' },
+					{ id: 3, name: '冰', rarity: 3, time: '2024-12-25 14:20', type: '限定祈愿' },
+					{ id: 4, name: 'Dragon Nai', rarity: 5, time: '2024-12-24 20:15', type: '限定祈愿' },
+					{ id: 5, name: '坤', rarity: 4, time: '2024-12-24 20:10', type: '限定祈愿' },
+				],
+				standard: [
+					{ id: 6, name: '杰哥', rarity: 5, time: '2024-12-25 10:45', type: '常驻祈愿' },
+					{ id: 7, name: 'man', rarity: 4, time: '2024-12-25 10:40', type: '常驻祈愿' },
+					{ id: 8, name: 'wlm', rarity: 3, time: '2024-12-25 10:35', type: '常驻祈愿' },
+					{ id: 9, name: 'Paimon', rarity: 4, time: '2024-12-24 16:20', type: '常驻祈愿' },
+					{ id: 10, name: '冰', rarity: 3, time: '2024-12-24 16:15', type: '常驻祈愿' },
+				]
+			});
+		} finally {
+			setIsLoadingHistory(false);
+		}	};	// 组件加载时获取抽卡历史和抽卡次数
+	useEffect(() => {
+		if (userToken) {
+			loadDrawHistory();
+			fetchCardDrawCount();
+		}
+	}, [userToken]);
+
+	// 监听页面重新可见时刷新抽卡次数（从抽卡结果页返回时）
+	useEffect(() => {
+		const handleVisibilityChange = () => {
+			if (!document.hidden && userToken) {
+				// 页面重新可见时刷新抽卡次数
+				fetchCardDrawCount();
+			}
+		};
+
+		document.addEventListener('visibilitychange', handleVisibilityChange);
+		
+		// 组件焦点重新获得时也刷新（针对页面路由返回）
+		const handleFocus = () => {
+			if (userToken) {
+				fetchCardDrawCount();
+			}
+		};
+		
+		window.addEventListener('focus', handleFocus);
+
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
+			window.removeEventListener('focus', handleFocus);
+		};
+	}, [userToken]);
 
 	const renderBannerSelector = () => (
 		<div className="banner-selector">
@@ -322,11 +487,9 @@ const WishPage: React.FC = () => {
 							</div>
 						</button>
 					</div>
-				</div>
-
-				<div className="pity-info">
+				</div>				<div className="pity-info">
 					<div className="pity-label">距离保底还需:</div>
-					<div className="pity-count">73次</div>
+					<div className="pity-count">{Math.max(0, 90 - cardDrawCount)}次</div>
 				</div>
 			</div>
 		</div>
@@ -343,9 +506,7 @@ const WishPage: React.FC = () => {
 				case 3: return '#4169E1'; // 蓝色
 				default: return '#808080'; // 灰色
 			}
-		};
-
-		const renderHistoryList = (records: any[], title: string) => (
+		};		const renderHistoryList = (records: any[], title: string) => (
 			<div className="history-column">
 				<h3>{title}</h3>
 				<div className="history-list">
@@ -365,6 +526,7 @@ const WishPage: React.FC = () => {
 										))}
 									</div>
 								</div>
+								<div className="history-item-description">{record.description}</div>
 								<div className="history-item-time">{record.time}</div>
 							</div>
 						))

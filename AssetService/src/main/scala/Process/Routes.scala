@@ -19,6 +19,8 @@ import Impl.CreateAssetTransactionMessagePlanner
 import Impl.RewardAssetMessagePlanner
 import Impl.DeductAssetMessagePlanner
 import Impl.QueryAssetStatusMessagePlanner
+import Impl.UpdateCardDrawCountMessagePlanner
+import Impl.QueryCardDrawCountMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -44,17 +46,30 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "DeductAssetMessage" =>
-        IO(
+      case "DeductAssetMessage" =>        IO(
           decode[DeductAssetMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for DeductAssetMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
+        
       case "QueryAssetStatusMessage" =>
         IO(
           decode[QueryAssetStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryAssetStatusMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "UpdateCardDrawCountMessage" =>
+        IO(
+          decode[UpdateCardDrawCountMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for UpdateCardDrawCountMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "QueryCardDrawCountMessage" =>
+        IO(
+          decode[QueryCardDrawCountMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryCardDrawCountMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        

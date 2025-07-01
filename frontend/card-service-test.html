@@ -23,15 +23,14 @@
       <input id="baseUrl" type="text"
              value="http://localhost:10011"
              placeholder="http://localhost:10011" />
-    </label>
-
-    <!-- 2. 接口类型保持和后端 Routes.scala 中匹配 -->
+    </label>    <!-- 2. 接口类型保持和后端 Routes.scala 中匹配 -->
     <label>接口类型：
       <select id="apiType">
         <option value="DrawCardMessage">DrawCardMessage</option>
         <option value="GetPlayerCardsMessage">GetPlayerCardsMessage</option>
         <option value="UpgradeCardMessage">UpgradeCardMessage</option>
         <option value="ConfigureBattleDeckMessage">ConfigureBattleDeckMessage</option>
+        <option value="CreateCardTemplateMessage">CreateCardTemplateMessage</option>
       </select>
     </label>
     <label>userToken：<input id="token" type="text" placeholder="有效或无效的 token"></label>
@@ -40,25 +39,37 @@
     </div>
     <div id="cardIdBox" class="hidden">
       <label>cardID：<input id="cardId" type="text" placeholder="要升级的卡牌ID"></label>
-    </div>
-    <div id="cardIdsBox" class="hidden">
+    </div>    <div id="cardIdsBox" class="hidden">
       <label>cardIDs (JSON 数组)：<textarea id="cardIds" rows="3">["card-001","card-002"]</textarea></label>
+    </div>
+    <div id="createTemplateBox" class="hidden">
+      <label>卡牌名称：<input id="cardName" type="text" placeholder="请输入卡牌名称"></label>
+      <label>卡牌稀有度：
+        <select id="cardRarity">
+          <option value="普通">普通</option>
+          <option value="稀有">稀有</option>
+          <option value="传说">传说</option>
+        </select>
+      </label>
+      <label>卡牌描述：<textarea id="cardDescription" rows="3" placeholder="请输入卡牌技能描述"></textarea></label>
     </div>
     <button id="send">发送请求</button>
     <h3>响应状态：</h3><div id="status"></div>
     <h3>响应内容：</h3><pre id="response"></pre>
   </div>
 
-  <script>
-    const apiType = document.getElementById('apiType');
+  <script>    const apiType = document.getElementById('apiType');
     const drawCountBox = document.getElementById('drawCountBox');
     const cardIdBox   = document.getElementById('cardIdBox');
     const cardIdsBox  = document.getElementById('cardIdsBox');
+    const createTemplateBox = document.getElementById('createTemplateBox');
+    
     apiType.addEventListener('change', () => {
       const v = apiType.value;
       drawCountBox.classList.toggle('hidden', v!=='DrawCardMessage');
       cardIdBox.classList.toggle('hidden', v!=='UpgradeCardMessage');
       cardIdsBox.classList.toggle('hidden', v!=='ConfigureBattleDeckMessage');
+      createTemplateBox.classList.toggle('hidden', v!=='CreateCardTemplateMessage');
     });
 
     document.getElementById('send').addEventListener('click', async () => {
@@ -74,12 +85,25 @@
       }
       if (api === 'UpgradeCardMessage') {
         payload.cardID = document.getElementById('cardId').value.trim();
-      }
-      if (api === 'ConfigureBattleDeckMessage') {
+      }      if (api === 'ConfigureBattleDeckMessage') {
         try {
           payload.cardIDs = JSON.parse(document.getElementById('cardIds').value);
         } catch {
           alert('cardIDs 不是合法 JSON');
+          return;
+        }
+      }
+      if (api === 'CreateCardTemplateMessage') {
+        payload.cardName = document.getElementById('cardName').value.trim();
+        payload.rarity = document.getElementById('cardRarity').value;
+        payload.description = document.getElementById('cardDescription').value.trim();
+        
+        if (!payload.cardName) {
+          alert('卡牌名称不能为空');
+          return;
+        }
+        if (!payload.description) {
+          alert('卡牌描述不能为空');
           return;
         }
       }

@@ -5,7 +5,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess.{fetchAssetStatus, createTransactionRecord}
+import Utils.AssetTransactionProcess.{fetchAssetStatus, modifyAsset, createTransactionRecord}
 import cats.effect.IO
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -94,13 +94,17 @@ case class DeductAssetMessagePlanner(
       _ <- IO(logger.info(s"[checkAssetSufficiency] 用户资产检查通过，当前资产: ${currentAsset}, 扣减金额: ${deductAmount}"))
     } yield ()
   }
-
   private def executeDeductionAndRecord(userID: String, deductAmount: Int)(using PlanContext): IO[String] = {
     for {
-      // Execute deduction and record transaction in one go
-      _ <- IO(logger.info(s"[executeDeductionAndRecord] 扣减用户资产并记录交易，用户ID=${userID}, 扣减金额=${deductAmount}"))
-      result <- createTransactionRecord(userID, "PURCHASE", -deductAmount, "资产扣减")
-      _ <- IO(logger.info(s"[executeDeductionAndRecord] 资产扣减和记录成功，结果=${result}"))
+      // Step 1: Modify asset first
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 扣减用户资产，用户ID=${userID}, 扣减金额=${deductAmount}"))
+      _ <- modifyAsset(userID, -deductAmount)
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 资产扣减成功"))
+
+      // Step 2: Create transaction record for logging
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 记录交易日志"))
+      transactionID <- createTransactionRecord(userID, "PURCHASE", -deductAmount, "资产扣减")
+      _ <- IO(logger.info(s"[executeDeductionAndRecord] 交易记录成功，交易ID=${transactionID}"))
     } yield "资产扣减成功！"
   }
 }

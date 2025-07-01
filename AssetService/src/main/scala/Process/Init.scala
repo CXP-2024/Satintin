@@ -22,9 +22,10 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
-            /** 用户资产状态表，记录用户的原石数量以及最近更新时间
+      /** 用户资产状态表，记录用户的原石数量、抽卡次数以及最近更新时间
        * user_id: 用户的唯一ID
        * stone_amount: 当前用户的原石数量
+       * card_draw_count: 用户抽卡次数
        * last_updated: 最近更新时间
        */
       _ <- writeDB(
@@ -32,6 +33,7 @@ object Init {
         CREATE TABLE IF NOT EXISTS "${schemaName}"."user_asset_status_table" (
             user_id VARCHAR NOT NULL PRIMARY KEY,
             stone_amount INT NOT NULL,
+            card_draw_count INT NOT NULL DEFAULT 0,
             last_updated TIMESTAMP NOT NULL
         );
          

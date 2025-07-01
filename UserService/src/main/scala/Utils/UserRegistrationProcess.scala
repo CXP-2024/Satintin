@@ -86,24 +86,6 @@ case object UserRegistrationProcess {
       )
       _ <- IO(logger.info(s"[Step 2.3] 用户信息写入数据库成功：writeResult=${writeResult}"))
 
-      // Step 2.4: Create user asset record with default values
-      _ <- IO(logger.info("[Step 2.4] 开始写入用户资产信息到数据库"))
-      assetResult <- writeDB(
-        s"""
-        INSERT INTO ${schemaName}.user_asset_table
-        (user_id, stone_amount, card_draw_count, rank, rank_position)
-        VALUES (?, ?, ?, ?, ?)
-        """.stripMargin,
-        List(
-          SqlParameter("String", userRecord.userID),
-          SqlParameter("Int", userRecord.stoneAmount.toString),
-          SqlParameter("Int", userRecord.cardDrawCount.toString),
-          SqlParameter("String", userRecord.rank),
-          SqlParameter("Int", userRecord.rankPosition.toString)
-        )
-      )
-      _ <- IO(logger.info(s"[Step 2.4] 用户资产信息写入数据库成功：assetResult=${assetResult}"))
-
       // Step 2.5: Create user social record with empty lists
       _ <- IO(logger.info("[Step 2.5] 开始写入用户社交信息到数据库"))
       socialResult <- writeDB(

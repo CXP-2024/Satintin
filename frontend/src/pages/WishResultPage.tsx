@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
-import { useLocation } from 'react-router-dom';
 import PageTransition from '../components/PageTransition';
 import './WishResultPage.css';
 import danziVideo from '../assets/videos/danzi.mp4';
@@ -32,7 +31,6 @@ interface WishResult {
 
 const WishResultPage: React.FC = () => {
 	const { navigateQuick } = usePageTransition();
-	const location = useLocation();
 	const videoRef = useRef<HTMLVideoElement>(null);
 
 	const [showVideo, setShowVideo] = useState(true);
@@ -41,16 +39,13 @@ const WishResultPage: React.FC = () => {
 	const [currentCardIndex, setCurrentCardIndex] = useState(0);
 	const [showAllCards, setShowAllCards] = useState(false);
 	const [selectedVideo, setSelectedVideo] = useState<string>(danziVideo);
-
-	// 从路由参数获取抽卡类型
-	const searchParams = new URLSearchParams(location.search);
-	const wishType = searchParams.get('type') || 'single';
-	const bannerType = searchParams.get('banner') || 'featured';
-
+  
+	// Backend data settings
+	const [wishType, setWishType] = useState<'single' | 'ten'>('single');
+	const [bannerType, setBannerType] = useState<'featured' | 'standard'>('featured');
+	const isTenWish = wishType === 'ten';
 	// 当前显示的卡牌
 	const currentWishResult = wishResults[currentCardIndex];
-	// 是否为十连抽
-	const isTenWish = wishType === 'ten';
 
 	// 初始化音效
 	useEffect(() => {
@@ -87,112 +82,55 @@ const WishResultPage: React.FC = () => {
 		}
 	}, []);
 
-	const generateWishResult = useCallback(() => {
-		const count = isTenWish ? 10 : 1;
-		const results: WishResult[] = [];
-
-		for (let i = 0; i < count; i++) {
-			// 模拟抽卡概率
-			const random = Math.random() * 100;
-			let rarity: number;
-
-			if (random < 0.6) { // 0.6% 概率出5星
-				rarity = 5;
-			} else if (random < 6.1) { // 5.5% 概率出4星
-				rarity = 4;
-			} else {
-				rarity = 3; // 93.9% 概率出3星
-			}
-
-			// 根据卡池类型和稀有度生成不同的卡牌
-			let mockCards;
-
-			if (bannerType === 'featured') {
-				// 限定卡池
-				mockCards = {
-					5: [
-						{ id: '5001', name: '盖亚——！！', image: gaiyaImage, type: 'character' as const },
-						{ id: '5002', name: 'Dragon Nai', image: nailongImage, type: 'character' as const },
-						{ id: '5003', name: 'Go', image: mygoImage, type: 'character' as const },
-					],
-					4: [
-						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
-						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
-						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
-					],
-					3: [
-						{ id: '3001', name: '冰', image: bingbingImage, type: 'character' as const },
-						{ id: '3002', name: 'wlm', image: wlmImage, type: 'character' as const },
-					],
-				};
-			} else {
-				// 常驻卡池
-				mockCards = {
-					5: [
-						{ id: '5101', name: '杰哥', image: jiegeImage, type: 'character' as const },
-					],
-					4: [
-						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
-						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
-						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
-					],
-					3: [
-						{ id: '3001', name: '冰', image: bingbingImage, type: 'character' as const },
-						{ id: '3002', name: 'wlm', image: wlmImage, type: 'character' as const },
-					],
-				};
-			}
-
-			const cardsOfRarity = mockCards[rarity as keyof typeof mockCards];
-			const randomCard = cardsOfRarity[Math.floor(Math.random() * cardsOfRarity.length)];
-
-			results.push({
-				...randomCard,
-				id: `${randomCard.id}_${i}`, // 确保每张卡的ID唯一
-				rarity,
-			});
-		}
-
-		// 十连抽保底机制：确保至少有一个4星或以上
-		if (isTenWish) {
-			const hasHighRarity = results.some(card => card.rarity >= 4);
-			if (!hasHighRarity) {
-				// 如果没有4星或5星，将最后一张卡强制设为4星
-				const lastIndex = results.length - 1;
-				const mockCards = bannerType === 'featured' ? {
-					4: [
-						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
-						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
-						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
-					],
-				} : {
-					4: [
-						{ id: '4001', name: 'Paimon', image: paimengImage, type: 'character' as const },
-						{ id: '4002', name: '坤', image: kunImage, type: 'character' as const },
-						{ id: '4003', name: 'man', image: manImage, type: 'character' as const },
-					],
-				};
-
-				const randomCard = mockCards[4][Math.floor(Math.random() * mockCards[4].length)];
-				results[lastIndex] = {
-					...randomCard,
-					id: `${randomCard.id}_${lastIndex}`,
-					rarity: 4,
-				};
-			}
-		}
-
-		setWishResults(results);
-
-		// 根据抽卡结果选择合适的视频
-		const video = selectWishVideo(results, isTenWish);
-		setSelectedVideo(video);
-	}, [isTenWish, bannerType, selectWishVideo]);
-
+	// Read draw results from backend storage
 	useEffect(() => {
-		// 生成随机抽卡结果
-		generateWishResult();
-	}, [generateWishResult]);
+		const stored = localStorage.getItem('drawResult');
+		console.log('Stored drawResult:', stored); // 调试日志
+
+		if (stored) {
+			const { drawResult, type, banner } = JSON.parse(stored);
+			console.log('Parsed drawResult:', drawResult); // 调试日志
+
+			setWishType(type || 'single');
+			setBannerType(banner || 'featured');
+
+			// drawResult 是字符串，需要再次解析
+			let parsedDrawResult;
+			if (typeof drawResult === 'string') {
+				parsedDrawResult = JSON.parse(drawResult);
+			} else {
+				parsedDrawResult = drawResult;
+			}
+			
+			console.log('Final parsed drawResult:', parsedDrawResult); // 调试日志
+
+			// Map backend DrawCardInfo to WishResult
+			const rarityMap: Record<string, number> = { '传说': 5, '稀有': 4, '普通': 3 };
+			const imageMap: Record<string, string> = {
+				'Dragon Nai': nailongImage,
+				'盖亚': gaiyaImage,
+				'Go': mygoImage,
+				'杰哥': jiegeImage,
+				'Paimon': paimengImage,
+				'坤': kunImage,
+				'man': manImage,
+				'冰': bingbingImage,
+				'wlm': wlmImage,
+			};			const mapped = (parsedDrawResult.cardList || []).map((card: any, index: number) => ({
+				id: `${card.cardID}-${index}`, // 使用 cardID + index 确保唯一性
+				name: card.cardName,
+				rarity: rarityMap[card.rarity] || 3,
+				image: imageMap[card.cardName] || '',
+				type: 'character' as const
+			}));
+
+			console.log('Mapped results:', mapped); // 调试日志
+			setWishResults(mapped);
+
+			const video = selectWishVideo(mapped, type === 'ten');
+			setSelectedVideo(video);
+		} 
+	}, [selectWishVideo]);
 
 	// 当结果显示时播放闪光音效
 	useEffect(() => {
