@@ -14,7 +14,7 @@ export class ManageReportMessage extends TongWenMessage {
     constructor(
         public  adminToken: string,
         public  reportID: string,
-        public  resolutionStatus: string
+        public  isResolved: boolean // ✅ Changed from "resolutionStatus" to "isResolved" for clarity
     ) {
         super()
     }

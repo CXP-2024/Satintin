@@ -22,62 +22,50 @@ case object ReportManagementProcess {
   //process plan code 预留标志位，不要删除
   
   
-  def updateReportStatus(reportID: String, resolutionStatus: String)(using PlanContext): IO[String] = {
-    // 定义合法状态集合
-    val validStatuses = Set("已处理", "未处理")
-  
+  def updateReportStatus(reportID: String, isResolved: Boolean)(using PlanContext): IO[String] = {
     // 检查输入参数有效性
     if (reportID.isEmpty) {
       return IO.raiseError(new IllegalArgumentException("非法的 reportID: 不能为空"))
     }
-    if (!validStatuses.contains(resolutionStatus)) {
-      return IO.raiseError(new IllegalArgumentException(s"非法的 resolutionStatus: '${resolutionStatus}'，有效状态为: ${validStatuses.mkString(", ")}"))
-    }
-  
-    // 获取日志器
-  // val logger = LoggerFactory.getLogger("updateReportStatus")  // 同文后端处理: logger 统一
-  
+
     for {
       _ <- IO(logger.info(s"开始查询举报记录: reportID=${reportID}"))
-  
+
       // 查询举报记录
       optionalReport <- readDBJsonOptional(
-        s"SELECT report_id, resolution_status FROM ${schemaName}.cheating_report_table WHERE report_id = ?",
+        s"SELECT report_id, is_resolved FROM ${schemaName}.cheating_report_table WHERE report_id = ?",
         List(SqlParameter("String", reportID))
       )
-  
+
       _ <- optionalReport match {
         case None =>
           val errMsg = s"未找到 reportID=${reportID} 的举报记录"
           IO(logger.error(errMsg)) >>
           IO.raiseError(new IllegalStateException(errMsg))
-  
+
         case Some(json) =>
-          val currentStatus = decodeField[String](json, "resolution_status")
+          val currentStatus = decodeField[Boolean](json, "is_resolved")
           IO(logger.info(s"报告查询成功: reportID=${reportID}, 当前状态=${currentStatus}"))
       }
-  
+
       // 更新举报记录的处理状态
       updateResult <- {
-        IO(logger.info(s"准备更新举报状态: reportID=${reportID}, resolutionStatus=${resolutionStatus}")) >>
+        IO(logger.info(s"准备更新举报状态: reportID=${reportID}, isResolved=${isResolved}")) >>
         writeDB(
-          s"UPDATE ${schemaName}.cheating_report_table SET resolution_status = ?, is_resolved = ? WHERE report_id = ?",
+          s"UPDATE ${schemaName}.cheating_report_table SET is_resolved = ? WHERE report_id = ?",
           List(
-            SqlParameter("String", resolutionStatus),
-            SqlParameter("Boolean", (resolutionStatus == "已处理").toString),
+            SqlParameter("Boolean", isResolved.toString),
             SqlParameter("String", reportID)
           )
         )
       }
-  
-      _ <- IO(logger.info(s"举报状态更新成功: reportID=${reportID}, resolutionStatus=${resolutionStatus}, 数据库结果=${updateResult}"))
-  
+
       // 记录操作日志
       _ <- {
         val logID = java.util.UUID.randomUUID().toString
         val userID = "system" // 假设由系统更新，具体用户ID可替换
         val actionType = "更新举报状态"
-        val actionDetail = s"更新举报记录 (reportID=${reportID}) 的处理状态为 ${resolutionStatus}"
+        val actionDetail = s"更新举报记录 (reportID=${reportID}) 的处理状态为 ${isResolved}"
         val actionTime = DateTime.now().getMillis.toString
   
         IO(logger.info(s"准备记录操作日志: logID=${logID}, userID=${userID}, actionType=${actionType}, actionDetail=${actionDetail}, actionTime=${actionTime}")) >>
@@ -97,7 +85,7 @@ case object ReportManagementProcess {
       }
   
       _ <- IO(logger.info(s"操作日志记录完成: reportID=${reportID}, actionType=更新举报状态"))
-  
+
     } yield "举报状态已修改！"
   }
     
