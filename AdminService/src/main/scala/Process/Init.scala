@@ -50,7 +50,7 @@ object Init {
           '00000000-0000-0000-0000-000000000000',
           'admin',
           '$$2a$$10$$eImiTXuWVxfM37uY4JANjQ==',
-          '1111',
+          'a1b2c3d4-e5f6-7890-abcd-1234567890ab',
           TRUE,
           NOW()
         WHERE NOT EXISTS (
@@ -108,7 +108,6 @@ object Init {
        * report_reason: 举报的原因
        * is_resolved: 举报是否已处理
        * report_time: 举报时间
-       * resolution_status: 举报处理状态
        */
       _ <- writeDB(
         s"""
@@ -118,8 +117,7 @@ object Init {
             reported_user_id TEXT NOT NULL,
             report_reason TEXT NOT NULL,
             is_resolved BOOLEAN DEFAULT false,
-            report_time TIMESTAMP NOT NULL,
-            resolution_status TEXT DEFAULT '未处理'
+            report_time TIMESTAMP NOT NULL
         );
          
         """,
@@ -142,6 +140,13 @@ object Init {
         """,
         List()
       )
+      
+      _ <- ScheduledTasks.startBanDayDecreaseTask().use { _ =>
+        IO(println("[Init] Started ban day decrease task (every 24 hours)")) *>
+        IO.never // Keep the resource alive
+      }.start // Start as background fiber
+
+
     } yield ()
 
     program.handleErrorWith(err => IO {

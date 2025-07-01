@@ -11,6 +11,7 @@ const BattlePage: React.FC = () => {
 	const { navigateQuick, navigateWithTransition } = usePageTransition();
 	const [isMatching, setIsMatching] = useState(false);
 	const [matchingMode, setMatchingMode] = useState<'quick' | 'ranked' | null>(null);
+	const [roomIdInput, setRoomIdInput] = useState('');
 
 	// 初始化音效
 	useEffect(() => {
@@ -44,10 +45,21 @@ const BattlePage: React.FC = () => {
 		}, 3000); // 3秒后匹配成功
 	};
 
-	// 创建房间
+ // 创建房间
 	const handleCreateRoom = () => {
 		playClickSound();
 		navigateWithTransition('/battle-room', '创建房间中...');
+	};
+
+	// 加入房间
+	const handleJoinRoom = () => {
+		if (!roomIdInput.trim()) {
+			alert('请输入房间ID');
+			return;
+		}
+
+		playClickSound();
+		navigateWithTransition(`/battle-room?roomId=${roomIdInput.trim()}`, '加入房间中...');
 	};
 
 	return (
@@ -105,13 +117,31 @@ const BattlePage: React.FC = () => {
 							<div className="mode-rewards">
 								<span>无奖励，纯粹的友谊切磋</span>
 							</div>
-							<button
-								className="mode-btn friend"
-								onClick={handleCreateRoom}
-								disabled={isMatching}
-							>
-								创建房间
-							</button>
+							<div className="friend-battle-actions">
+								<button
+									className="mode-btn friend"
+									onClick={handleCreateRoom}
+									disabled={isMatching}
+								>
+									创建房间
+								</button>
+								<div className="join-room-container">
+									<input
+										type="text"
+										placeholder="输入房间ID"
+										value={roomIdInput}
+										onChange={(e) => setRoomIdInput(e.target.value)}
+										className="room-id-input"
+									/>
+									<button
+										className="mode-btn join"
+										onClick={handleJoinRoom}
+										disabled={isMatching}
+									>
+										加入房间
+									</button>
+								</div>
+							</div>
 						</div>
 					</div>
 

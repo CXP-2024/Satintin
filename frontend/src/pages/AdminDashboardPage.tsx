@@ -4,73 +4,123 @@ import PageTransition from '../components/PageTransition';
 import './AdminDashboardPage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { clearUserInfo, useUserInfo, initUserToken, getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { clearUserInfo, useUserInfo, initUserToken, getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import PlayerManagement from '../components/PlayerManagement';
 import ReportHandling from '../components/ReportHandling';
-
-// 模拟数据 - 举报列表 (仅用于显示通知数量)
-const mockReports = [
-  {
-    id: 'report-001',
-    status: '待处理'
-  },
-  {
-    id: 'report-002',
-    status: '待处理'
-  },
-  {
-    id: 'report-003',
-    status: '待处理'
-  },
-  {
-    id: 'report-004',
-    status: '待处理'
-  },
-  {
-    id: 'report-005',
-    status: '待处理'
-  },
-  {
-    id: 'report-006',
-    status: '待处理'
-  },
-  {
-    id: 'report-007',
-    status: '已处理'
-  },
-  {
-    id: 'report-008',
-    status: '已处理'
-  }
-];
+import { ViewAllReportsMessage } from 'Plugins/AdminService/APIs/ViewAllReportsMessage';
+import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
 
 const AdminDashboardPage: React.FC = () => {
   const user = useUserInfo();
   const { navigateWithTransition } = usePageTransition();
   const [activeTab, setActiveTab] = useState<'players' | 'reports'>('players');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // 替换 mockReports 为真实数据
+  const [reports, setReports] = useState<CheatingReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsError, setReportsError] = useState<string | null>(null);
 
   // 初始化音效
   useEffect(() => {
     SoundUtils.setClickSoundSource(clickSound);
   }, []);
 
+  // 加载举报数据
+  const loadReports = () => {
+    if (!user || user.permissionLevel < 1) return;
+    
+    setReportsLoading(true);
+    setReportsError(null);
+
+    // 使用管理员token，从多个可能的来源获取
+    const adminToken = getUserToken();
+    
+    if (!adminToken) {
+      setReportsError('管理员token不存在，请重新登录');
+      setReportsLoading(false);
+      return;
+    }
+
+    console.log('📋 [AdminDashboard] 开始加载举报记录，使用token:', adminToken);
+    
+    new ViewAllReportsMessage(adminToken).send(
+      (response: string) => {
+        try {
+          console.log('📋 [AdminDashboard] 原始响应:', response);
+          
+          // 第一次解析
+          let firstParse = JSON.parse(response);
+          console.log('📋 [AdminDashboard] 第一次解析结果:', firstParse);
+          console.log('📋 [AdminDashboard] 第一次解析类型:', typeof firstParse);
+          
+          // 如果第一次解析后还是字符串，再解析一次
+          let reportData = firstParse;
+          if (typeof firstParse === 'string') {
+            reportData = JSON.parse(firstParse);
+            console.log('📋 [AdminDashboard] 第二次解析结果:', reportData);
+          }
+          
+          console.log('📋 [AdminDashboard] 最终数据类型:', typeof reportData);
+          console.log('📋 [AdminDashboard] 是否为数组:', Array.isArray(reportData));
+          
+          if (!Array.isArray(reportData)) {
+            throw new Error(`期望数组，但得到: ${typeof reportData}`);
+          }
+          
+          const reportObjects = reportData.map((data: any) => 
+            new CheatingReport(
+              data.reportID,
+              data.reportingUserID,
+              data.reportedUserID,
+              data.reportReason,
+              data.isResolved,
+              data.reportTime
+            )
+          );
+          
+          console.log('📋 [AdminDashboard] 成功创建举报对象:', reportObjects);
+          setReports(reportObjects);
+          setReportsLoading(false);
+        } catch (error) {
+          console.error('❌ [AdminDashboard] 解析举报数据失败:', error);
+          setReportsError('解析举报数据失败');
+          setReportsLoading(false);
+        }
+      },
+      (error: any) => {
+        console.error('❌ [AdminDashboard] 获取举报记录失败:', error);
+        setReportsError('获取举报记录失败');
+        setReportsLoading(false);
+      }
+    );
+  };
+
   // 播放按钮点击音效
   const playClickSound = () => {
     SoundUtils.playClickSound(0.5);
   };
 
-  // 检查是否为管理员
+  // 检查管理员权限并加载数据
   useEffect(() => {
-    if (user && user.permissionLevel < 1) {
-      console.log('⚠️ [AdminDashboard] 非管理员用户尝试访问管理页面');
-      navigateWithTransition('/game');
+    console.log('🔍 [AdminDashboard] 权限检查 - 用户:', user);
+    console.log('🔍 [AdminDashboard] 权限等级:', user?.permissionLevel);
+
+    
+    // 如果是管理员，加载举报数据
+    if (user && user.permissionLevel >= 1) {
+      console.log('✅ [AdminDashboard] 管理员权限验证通过，开始加载数据');
+      loadReports();
+    } else {
+      console.log('⏳ [AdminDashboard] 用户信息未加载或权限不足');
     }
-  }, [user, navigateWithTransition]);
+  }, [user]);
 
   const handleLogout = () => {
     console.log('🚪 [AdminDashboard] 管理员退出登录');
     playClickSound();
+    // 清除所有认证信息
+    localStorage.removeItem('adminToken');
     clearUserInfo();
     initUserToken();
     navigateWithTransition('/login');
@@ -85,6 +135,21 @@ const AdminDashboardPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
+  // 刷新举报数据 - 传递给子组件使用
+  const refreshReports = () => {
+    console.log('🔄 [AdminDashboard] 手动刷新举报数据');
+    loadReports();
+  };
+
+  // 处理举报状态更新的回调
+  const onReportUpdated = () => {
+    console.log('📝 [AdminDashboard] 举报状态已更新，刷新列表');
+    loadReports(); // 重新加载数据以反映最新状态
+  };
+
+  // 计算待处理举报数量
+  const pendingReportsCount = reports.filter(report => !report.isResolved).length;
+
   return (
     <PageTransition className="admin-dashboard">
       <div className="admin-container">
@@ -92,6 +157,8 @@ const AdminDashboardPage: React.FC = () => {
         <header className="admin-header">
           <div className="admin-header-left">
             <h1>管理员控制台</h1>
+            {reportsLoading && <span className="loading-indicator">加载中...</span>}
+            {reportsError && <span className="error-indicator">错误: {reportsError}</span>}
           </div>
           <div className="admin-header-right">
             <div className="admin-user-info">
@@ -119,8 +186,8 @@ const AdminDashboardPage: React.FC = () => {
               onClick={() => handleTabChange('reports')}
             >
               举报处理
-              {mockReports.filter(r => r.status === '待处理').length > 0 && (
-                <span className="admin-badge-notification">{mockReports.filter(r => r.status === '待处理').length}</span>
+              {pendingReportsCount > 0 && (
+                <span className="admin-badge-notification">{pendingReportsCount}</span>
               )}
             </button>
           </div>
@@ -133,6 +200,30 @@ const AdminDashboardPage: React.FC = () => {
               value={searchTerm}
               onChange={handleSearch}
             />
+            <button 
+              className={`refresh-btn ${reportsLoading ? 'loading' : ''}`}
+              onClick={() => {
+                playClickSound();
+                refreshReports();
+              }}
+              disabled={reportsLoading}
+              title="刷新举报数据"
+            >
+              <svg 
+                className="refresh-icon" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+              >
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+              </svg>
+              <span className="refresh-text">
+                {reportsLoading ? '刷新中...' : '刷新'}
+              </span>
+            </button>
           </div>
 
           {/* 内容区域 */}
@@ -144,7 +235,14 @@ const AdminDashboardPage: React.FC = () => {
 
             {/* 举报处理 */}
             {activeTab === 'reports' && (
-              <ReportHandling searchTerm={searchTerm} />
+              <ReportHandling 
+                searchTerm={searchTerm}
+                reports={reports}
+                loading={reportsLoading}
+                error={reportsError}
+                onRefresh={refreshReports}
+                onReportUpdated={onReportUpdated}
+              />
             )}
           </div>
         </main>

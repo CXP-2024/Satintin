@@ -33,7 +33,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 case class ManageReportMessagePlanner(
     adminToken: String,
     reportID: String,
-    resolutionStatus: String,
+    isResolved: Boolean,  // 改为布尔值
     override val planContext: PlanContext
 ) extends Planner[String] {
 
@@ -43,20 +43,18 @@ case class ManageReportMessagePlanner(
     for {
       // Step 1: Validate adminToken
       _ <- IO(logger.info(s"验证管理员Token: adminToken=${adminToken}"))
-      adminAccount <- validateAdminToken(adminToken)
+      _ <- validateAdminToken(adminToken)
 
       // Step 2: Verify report existence
       _ <- IO(logger.info(s"根据reportID查询举报记录: reportID=${reportID}"))
       _ <- verifyReportExistence(reportID)
 
       // Step 3: Update report status
-      _ <- IO(logger.info(s"更新举报记录状态: reportID=${reportID}, resolutionStatus=${resolutionStatus}"))
-      updateResult <- updateReportStatus(reportID, resolutionStatus)
+      _ <- IO(logger.info(s"更新举报记录状态: reportID=${reportID}, isResolved=${isResolved}"))
+      _ <- updateReportStatus(reportID, isResolved)
 
-      _ <- IO(logger.info(s"举报记录状态更新成功: reportID=${reportID}, resolutionStatus=${resolutionStatus}, updateResult=${updateResult}"))
-
-      // Step 4: Build and return result
-    } yield "处理成功！"
+      _ <- IO(logger.info(s"举报记录状态更新成功: reportID=${reportID}, isResolved=${isResolved}"))
+    } yield s"举报记录状态已更新为: ${if (isResolved) "已处理" else "未处理"}"
   }
 
   /**
@@ -104,5 +102,24 @@ WHERE report_id = ?
           IO.raiseError(new IllegalStateException(errorMessage))
       }
     }
+  }
+
+  private def updateReportStatus(reportID: String, isResolved: Boolean)(using PlanContext): IO[Unit] = {
+    val sql = 
+      s"""
+        UPDATE ${schemaName}.cheating_report_table 
+        SET is_resolved = ?
+        WHERE report_id = ?
+      """
+    
+    val params = List(
+      SqlParameter("Boolean", isResolved.toString),
+      SqlParameter("String", reportID)
+    )
+
+    for {
+      _ <- writeDB(sql, params)
+      _ <- IO(logger.info(s"更新举报状态完成: reportID=${reportID}, isResolved=${isResolved}"))
+    } yield ()
   }
 }

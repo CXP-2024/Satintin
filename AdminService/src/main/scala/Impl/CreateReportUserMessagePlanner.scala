@@ -115,8 +115,8 @@ case class CreateReportUserMessagePlanner(
     val insertSql =
       s"""
         INSERT INTO ${schemaName}.cheating_report_table 
-        (report_id, reporting_user_id, reported_user_id, report_reason, is_resolved, report_time, resolution_status)
-        VALUES (?, ?, ?, ?, false, NOW(), '未处理')
+        (report_id, reporting_user_id, reported_user_id, report_reason, is_resolved, report_time)
+        VALUES (?, ?, ?, ?, false, NOW())
       """.stripMargin
 
     val params = List(

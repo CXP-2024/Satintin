@@ -34,10 +34,3 @@ export interface RegisterFormData {
     phoneNumber: string;
     confirmPassword: string;  // 只在前端使用
 }
-
-export interface AuthResponse {
-    success: boolean;
-    message: string;
-    user?: User;
-    token?: string;
-}

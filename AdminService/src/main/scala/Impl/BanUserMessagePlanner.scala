@@ -2,6 +2,7 @@ package Impl
 
 
 import Utils.ReportManagementProcess.banUser
+import APIs.UserService.ModifyUserStatusMessage
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter

@@ -20,6 +20,9 @@ import Impl.LoginAdminMessagePlanner
 import Impl.ManageReportMessagePlanner
 import Impl.UnbanUserMessagePlanner
 import Impl.ViewSystemStatsMessagePlanner
+import Impl.CreateReportUserMessagePlanner
+import Impl.ViewAllReportsMessagePlanner
+import APIs.AdminService.CreateReportMessage
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -71,6 +74,20 @@ object Routes:
         IO(
           decode[CreateAdminMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateAdminMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+      
+      case "CreateReportMessage" =>
+      IO(
+        decode[CreateReportUserMessagePlanner](str) match
+          case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateReportMessage[${err.getMessage}]")
+          case Right(value) => value.fullPlan.map(_.asJson.toString)
+      ).flatten
+
+      case "ViewAllReportsMessage" =>
+        IO(
+          decode[ViewAllReportsMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewAllReportsMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 

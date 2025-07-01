@@ -92,7 +92,7 @@ export class WebSocketService {
 	connect(roomId: string, userToken: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.roomId = roomId;
-			const wsUrl = `ws://${new URL(config.battleServiceUrl).host}/battle/${roomId}?token=${userToken}`;
+			const wsUrl = `ws://${config.battleServiceUrl}/battle/${roomId}?token=${userToken}`;
 
 			console.log('🔌 [WebSocket] 连接到对战房间:', wsUrl);
 
@@ -228,7 +228,7 @@ export class WebSocketService {
 
 			setTimeout(() => {
 				if (this.roomId) {
-					// 这里需要重新获取token，实际实现中需要从auth store获取
+					// 这里需要重新获取token，
 					// this.connect(this.roomId, token);
 				}
 			}, this.reconnectInterval);
