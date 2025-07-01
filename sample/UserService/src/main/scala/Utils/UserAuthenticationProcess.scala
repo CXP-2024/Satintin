@@ -115,7 +115,7 @@ case object UserAuthenticationProcess {
   
     // Step 2: 设置Token的生效时间和过期时间
     val issuedAt = DateTime.now() // 当前Token生成时间
-    val expiresAt = issuedAt.plusHours(2) // Token有效期为2小时
+    val expiresAt = issuedAt.plusHours(360) // Token有效期为2小时
     logger.info(s"[GenerateToken] Token生效时间: ${issuedAt}, 过期时间: ${expiresAt}")
   
     // Step 3: 构造插入Token的SQL语句

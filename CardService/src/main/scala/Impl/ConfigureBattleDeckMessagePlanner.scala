@@ -105,11 +105,10 @@ case class ConfigureBattleDeckMessagePlanner(
          ON CONFLICT (user_id)
          DO UPDATE SET card_ids = EXCLUDED.card_ids, configuration_time = EXCLUDED.configuration_time
        """
-    for {
-      parameters <- IO {
+    for {      parameters <- IO {
         List(
           SqlParameter("String", userID),
-          SqlParameter("Array[String]", cardIDs.asJson.noSpaces),
+          SqlParameter("String", cardIDs.asJson.noSpaces),
           SqlParameter("DateTime", DateTime.now.getMillis.toString)
         )
       }

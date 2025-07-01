@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GetDrawHistoryMessage API 测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .history-item {
+            background: #e9ecef;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GetDrawHistoryMessage API 测试</h1>
+        
+        <div class="form-group">
+            <label for="userToken">用户Token:</label>
+            <input type="text" id="userToken" value="test_user_123" placeholder="输入用户Token">
+        </div>
+        
+        <button onclick="testGetDrawHistory()">测试获取抽卡历史</button>
+        <button onclick="clearResponse()">清除响应</button>
+        
+        <div id="response"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:10011';
+
+        async function testGetDrawHistory() {
+            const userToken = document.getElementById('userToken').value;
+            const responseDiv = document.getElementById('response');
+            
+            if (!userToken.trim()) {
+                showResponse('请输入用户Token', true);
+                return;
+            }
+
+            try {
+                showResponse('正在发送请求...', false);
+                
+                const requestBody = {
+                    userToken: userToken
+                };
+
+                console.log('发送请求:', requestBody);
+
+                const response = await fetch(`${API_BASE_URL}/api/GetDrawHistoryMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const responseText = await response.text();
+                console.log('响应文本:', responseText);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${responseText}`);
+                }
+
+                try {
+                    const result = JSON.parse(responseText);
+                    console.log('解析后的响应:', result);
+                    displayHistoryResult(result);
+                } catch (parseError) {
+                    showResponse(`JSON解析错误: ${parseError.message}\n原始响应: ${responseText}`, true);
+                }
+
+            } catch (error) {
+                console.error('请求错误:', error);
+                showResponse(`请求失败: ${error.message}`, true);
+            }
+        }
+
+        function displayHistoryResult(data) {
+            if (Array.isArray(data)) {
+                let html = `<div class="response">
+                    <h3>抽卡历史记录 (${data.length} 条)</h3>`;
+                
+                if (data.length === 0) {
+                    html += '<p>暂无抽卡历史记录</p>';
+                } else {
+                    // 按卡池类型分组显示
+                    const featured = data.filter(item => item.poolType === 'featured');
+                    const standard = data.filter(item => item.poolType === 'standard');
+                    
+                    if (featured.length > 0) {
+                        html += '<h4>限定祈愿 (' + featured.length + ' 条)</h4>';
+                        featured.forEach(item => {
+                            html += `<div class="history-item">
+                                <strong>${item.cardName}</strong> (${item.rarity}星) 
+                                - ${new Date(item.drawTime).toLocaleString()}
+                                <br><small>ID: ${item.cardId}, 抽卡ID: ${item.drawId}</small>
+                            </div>`;
+                        });
+                    }
+                    
+                    if (standard.length > 0) {
+                        html += '<h4>常驻祈愿 (' + standard.length + ' 条)</h4>';
+                        standard.forEach(item => {
+                            html += `<div class="history-item">
+                                <strong>${item.cardName}</strong> (${item.rarity}星) 
+                                - ${new Date(item.drawTime).toLocaleString()}
+                                <br><small>ID: ${item.cardId}, 抽卡ID: ${item.drawId}</small>
+                            </div>`;
+                        });
+                    }
+                }
+                
+                html += '</div>';
+                document.getElementById('response').innerHTML = html;
+            } else {
+                showResponse(`获取抽卡历史成功，但数据格式异常:\n${JSON.stringify(data, null, 2)}`, false);
+            }
+        }
+
+        function showResponse(message, isError = false) {
+            const responseDiv = document.getElementById('response');
+            responseDiv.innerHTML = `<div class="response ${isError ? 'error' : ''}">
+                <pre>${message}</pre>
+            </div>`;
+        }
+
+        function clearResponse() {
+            document.getElementById('response').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

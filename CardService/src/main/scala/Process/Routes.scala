@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.PlanContext
@@ -19,6 +18,10 @@ import Impl.UpgradeCardMessagePlanner
 import Impl.GetPlayerCardsMessagePlanner
 import Impl.DrawCardMessagePlanner
 import Impl.ConfigureBattleDeckMessagePlanner
+import Impl.LoadBattleDeckMessagePlanner
+import Impl.CreateCardTemplateMessagePlanner
+import Impl.GetDrawHistoryMessagePlanner
+import Impl.GetAllCardTemplatesMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -27,7 +30,6 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 object Routes:
   val projects: TrieMap[String, Topic[IO, String]] = TrieMap.empty
-
   private def executePlan(messageType: String, str: String): IO[String] =
     messageType match {
       case "UpgradeCardMessage" =>
@@ -50,7 +52,6 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for DrawCardMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
       case "ConfigureBattleDeckMessage" =>
         IO(
           decode[ConfigureBattleDeckMessagePlanner](str) match
@@ -58,7 +59,33 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-
+      case "LoadBattleDeckMessage" =>
+        IO(
+          decode[LoadBattleDeckMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for LoadBattleDeckMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "CreateCardTemplateMessage" =>
+        IO(
+          decode[CreateCardTemplateMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateCardTemplateMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+      case "GetDrawHistoryMessage" =>
+        IO(
+          decode[GetDrawHistoryMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetDrawHistoryMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "GetAllCardTemplatesMessage" =>
+        IO(
+          decode[GetAllCardTemplatesMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetAllCardTemplatesMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
       case "test" =>
         for {
           output  <- Utils.Test.test(str)(using  PlanContext(TraceID(""), 0))
@@ -113,4 +140,3 @@ object Routes:
           BadRequest(e.getMessage.asJson.toString)
       }
   }
-  

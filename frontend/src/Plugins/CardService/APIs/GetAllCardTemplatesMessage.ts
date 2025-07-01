@@ -1,0 +1,18 @@
+/**
+ * GetAllCardTemplatesMessage
+ * desc: 获取全部卡牌模板信息，用于展示所有可用的卡牌。
+ * @param userToken: String (用户认证的令牌，用于验证用户身份。)
+ * @return result: String (JSON格式的卡牌模板列表)
+ */
+import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+
+export class GetAllCardTemplatesMessage extends TongWenMessage {
+    constructor(
+        public userToken: string
+    ) {
+        super()
+    }
+    getAddress(): string {
+        return "127.0.0.1:10011"
+    }
+}
