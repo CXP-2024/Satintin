@@ -25,10 +25,10 @@ function getEnvironmentConfig(): ServiceConfig {
     return {
       protocol: 'https',
       userServiceUrl: 'your-production-domain.com:10010',
-      battleServiceUrl: 'your-production-domain.com:10011',
-      cardServiceUrl: 'your-production-domain.com:10012',
+      battleServiceUrl: 'your-production-domain.com:10014',
+      cardServiceUrl: 'your-production-domain.com:10011',
       adminServiceUrl: 'your-production-domain.com:10013',
-      assetServiceUrl: 'your-production-domain.com:10014',
+      assetServiceUrl: 'your-production-domain.com:10012',
       wsBaseUrl: 'wss://your-production-domain.com:10015',
       apiBaseUrl: 'your-production-domain.com:10016',
       environment: 'production',

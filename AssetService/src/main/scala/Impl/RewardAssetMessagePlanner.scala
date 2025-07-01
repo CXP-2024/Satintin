@@ -11,7 +11,7 @@ package Impl
  * @param planContext PlanContext
  */
 import APIs.UserService.GetUserInfoMessage
-import Utils.AssetTransactionProcess.createTransactionRecord
+import Utils.AssetTransactionProcess.{modifyAsset, createTransactionRecord}
 import Common.API.{PlanContext, Planner}
 import org.slf4j.LoggerFactory
 import cats.effect.IO
@@ -56,20 +56,26 @@ case class RewardAssetMessagePlanner(
    * Main execution plan.
    *
    * @return IO[String]
-   */
-  override def plan(using planContext: PlanContext): IO[String] = {
+   */  override def plan(using planContext: PlanContext): IO[String] = {
     for {
       _ <- IO(logger.info("开始执行 RewardAssetMessagePlanner"))
 
       // Step 1: Verify user identity
       userID <- verifyUserToken(userToken)
 
-      // Step 2: Create transaction record and update asset in one go
-      result <- createTransactionRecord(userID, "REWARD", rewardAmount, "REWARD发放")
+      // Step 2: Modify asset first
+      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 增加用户资产，用户ID=${userID}, 奖励金额=${rewardAmount}"))
+      _ <- modifyAsset(userID, rewardAmount)
+      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 资产增加成功"))
 
-      // Step 3: Return result
+      // Step 3: Create transaction record for logging
+      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 记录交易日志"))
+      transactionID <- createTransactionRecord(userID, "REWARD", rewardAmount, "REWARD发放")
+      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 交易记录成功，交易ID=${transactionID}"))
+
+      // Step 4: Return result
       _ <- IO(logger.info("REWARD发放成功"))
-    } yield result
+    } yield "REWARD发放成功"
   }
 
   /**

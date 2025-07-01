@@ -19,7 +19,7 @@ const AppRouter: React.FC = () => {
 	const userToken = useUserToken();
 	const user = useUserInfo();
 	const isAuthenticated = !!userToken;
-	const isAdmin = user?.permissionLevel >= 10;
+	const isAdmin = user.permissionLevel >= 1;
 
 	console.log('🧭 [AppRouter] 路由组件渲染，当前认证状态:', isAuthenticated);
 	console.log('🌐 [AppRouter] 当前路径:', window.location.pathname);
@@ -53,7 +53,7 @@ const AppRouter: React.FC = () => {
 							})()
 						) : (
 							(() => {
-								console.log('↩️ [AppRouter] 已登录，重定向到游戏页面');
+								console.log('↩️ [AppRouter] (from register) 已登录，重定向到游戏页面');
 								return <Navigate to="/game" replace />;
 							})()
 						)
@@ -214,7 +214,7 @@ const AppRouter: React.FC = () => {
 								})()
 							) : (
 								(() => {
-									console.log('⛔ [AppRouter] 非管理员用户尝试访问管理页面，重定向到游戏页面');
+									console.log('⛔ [AppRouter] 非管理员用户尝试访问管理页面，重定向到游戏页面',isAuthenticated,user.permissionLevel);
 									return <Navigate to="/game" replace />;
 								})()
 							)
@@ -236,7 +236,7 @@ const AppRouter: React.FC = () => {
 							})()
 						) : (
 							(() => {
-								console.log('↩️ [AppRouter] 已登录，重定向到游戏页面');
+								console.log('↩️ [AppRouter] （from admin register)已登录，重定向到游戏页面');
 								return <Navigate to="/game" replace />;
 							})()
 						)

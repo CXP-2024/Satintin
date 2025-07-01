@@ -92,28 +92,17 @@ case class GetUserInfoMessagePlanner(
       )
     }
   }
-
   private def fetchUserAssets()(using PlanContext): IO[(Int, Int, String, Int)] = {
-    val sql =
-      s"""
-         |SELECT stone_amount, card_draw_count, COALESCE(rank, '') as rank, COALESCE(rank_position, 0) as rank_position
-         |FROM ${schemaName}.user_asset_table
-         |WHERE user_id = ?;
-      """.stripMargin
-    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
-      jsonOpt match {
-        case Some(json) =>
-          (
-            decodeField[Int](json, "stone_amount"),
-            decodeField[Int](json, "card_draw_count"),
-            decodeField[String](json, "rank"),
-            decodeField[Int](json, "rank_position")
-          )
-        case None =>
-          // Return default values if no asset record exists
-          logger.info(s"[fetchUserAssets] No asset record found for userID: ${userID}, using default values")
-          (0, 0, "Bronze", 0) // Default values: 0 stones, 0 card draws, Bronze rank, position 0
-      }
+    // TODO: All asset data should be queried from AssetService instead of local database
+    // For now, return placeholder values
+    IO {
+      logger.info(s"[fetchUserAssets] Using placeholder values for userID: ${userID} - assets should be queried from AssetService")
+      (
+        0, // stone_amount - To be completed: query from AssetService
+        0, // card_draw_count - To be completed: query from AssetService  
+        "Bronze", // rank - To be completed: implement ranking system
+        0  // rank_position - To be completed: implement ranking system
+      )
     }
   }
 

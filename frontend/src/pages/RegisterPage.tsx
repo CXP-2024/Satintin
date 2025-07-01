@@ -9,6 +9,7 @@ import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage"
 import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
+import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -140,6 +141,22 @@ const RegisterPage: React.FC = () => {
                     const userID = JSON.parse(info);
 
                     new RewardAssetMessage(userID,10000).send(
+                        (info: string) => {
+                            const successmessage = JSON.parse(info);
+                            console.log(successmessage)
+
+                            new CreateReportMessage(userID, userID, 'test').send(
+                                (info: string) => {
+                                    const successmessage = JSON.parse(info);
+                                    console.log(successmessage)
+                                },
+                                (error: any) => {
+                                    const errormessage = JSON.parse(error);
+                                    console.log(errormessage)
+                                }
+                            )
+
+                        },
                         (error: any) => {
                             const errormessage = JSON.parse(error);
                             if(errormessage.include("失败","错误") ){

@@ -7,10 +7,13 @@ import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {clearUserInfo, useUserInfo, initUserToken, getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {clearUserInfo, useUserInfo, initUserToken, getUserInfo, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
 
 const GameHomePage: React.FC = () => {
 	const user = useUserInfo();
+	const userToken = useUserToken();
+	const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
 	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
 	function logout() {
 		console.log('🚪 [AuthStore] 用户退出登录');
@@ -21,11 +24,43 @@ const GameHomePage: React.FC = () => {
 	const { navigateWithTransition } = usePageTransition();
 	const [showUserProfile, setShowUserProfile] = useState(false);
 	const [showRewardModal, setShowRewardModal] = useState(false);
-
 	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
+
+	// 获取用户卡牌数量
+	const fetchCardCount = async () => {
+		if (!userToken) return;
+		
+		try {
+			console.log('🃏 [GameHomePage] 开始获取用户卡牌数量');
+			const response: any = await new Promise((resolve, reject) => {
+				new GetPlayerCardsMessage(userToken).send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+			
+			// 解析响应数据
+			const cardEntries = typeof response === 'string' ? JSON.parse(response) : response;
+			const totalCards = cardEntries.length; // 计算包含重复卡牌的总数
+			
+			console.log('🃏 [GameHomePage] 获取到卡牌数量:', totalCards);
+			setCardCount(totalCards);
+			
+		} catch (err) {
+			console.error('🃏 [GameHomePage] 获取卡牌数量失败:', err);
+			setCardCount(0);
+		}
+	};
+
+	// 在组件挂载时获取卡牌数量
+	useEffect(() => {
+		if (userToken) {
+			fetchCardCount();
+		}
+	}, [userToken]);
 
 	// 播放按钮点击音效
 	const playClickSound = () => {
@@ -140,7 +175,7 @@ const GameHomePage: React.FC = () => {
 								<div className="stat-icon">🏆</div>
 								<div className="stat-content">
 									<span className="stat-label">当前段位</span>
-									<span className="stat-value">{user?.rank}</span>
+									<span className="stat-value">{useUserInfo().rank}</span>
 								</div>
 							</div>
 							<div className="stat-card currency">
@@ -149,14 +184,13 @@ const GameHomePage: React.FC = () => {
 								</div>
 								<div className="stat-content">
 									<span className="stat-label">原石</span>
-									<span className="stat-value">{user?.stoneAmount}</span>
+									<span className="stat-value">{useUserInfo().stoneAmount}</span>
 								</div>
-							</div>
-							<div className="stat-card cards">
+							</div>							<div className="stat-card cards">
 								<div className="stat-icon">🃏</div>
 								<div className="stat-content">
 									<span className="stat-label">卡牌数量</span>
-									<span className="stat-value">45</span>
+									<span className="stat-value">{cardCount}</span>
 								</div>
 							</div>
 							<div className="stat-card wins">

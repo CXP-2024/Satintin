@@ -82,29 +82,15 @@ case object UserStatusProcess {
                     (List.empty[FriendEntry], List.empty[BlackEntry], List.empty[MessageEntry])
                 }
               }
-              (friendList, blackList, messageBox) = socialInfo
-  
-              // Step 3: 获取资产信息
+              (friendList, blackList, messageBox) = socialInfo              // Step 3: 获取资产信息 - To be completed: query from AssetService
               assetInfo <- {
-                val assetSQL =
-                  s"""
-                     SELECT stone_amount, card_draw_count, rank, rank_position
-                     FROM ${schemaName}.user_asset_table
-                     WHERE user_id = ?;
-                   """
-                logger.info(s"查询用户资产信息 SQL: ${assetSQL}")
-                readDBJsonOptional(assetSQL, List(SqlParameter("String", userID))).map {
-                  case Some(json) =>
-                    (
-                      decodeField[Int](json, "stone_amount"),
-                      decodeField[Int](json, "card_draw_count"),
-                      decodeField[String](json, "rank"),
-                      decodeField[Int](json, "rank_position")
-                    )
-                  case None =>
-                    logger.warn(s"userID [${userID}] 的资产数据未找到，将使用默认值 0 或空！")
-                    (0, 0, "", 0)
-                }
+                logger.info(s"[fetchUserStatus] Using placeholder asset values for userID: ${userID} - should query from AssetService")
+                IO.pure((
+                  0, // stone_amount - To be completed: query from AssetService
+                  0, // card_draw_count - To be completed: query from AssetService
+                  "Bronze", // rank - To be completed: implement ranking system
+                  0  // rank_position - To be completed: implement ranking system
+                ))
               }
               (stoneAmount, cardDrawCount, rank, rankPosition) = assetInfo
   

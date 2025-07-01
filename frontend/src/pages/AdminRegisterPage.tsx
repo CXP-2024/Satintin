@@ -9,6 +9,7 @@ import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage"
 import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
+import {CreateAdminMessage} from "Plugins/AdminService/APIs/CreateAdminMessage";
 
 // Extended form data interface to include adminToken
 interface AdminRegisterFormData extends RegisterFormData {
@@ -140,12 +141,10 @@ const AdminRegisterPage: React.FC = () => {
             console.log('✅ [安全] 密码哈希完成');
 
             // 发送注册请求，使用哈希后的密码，并包含管理员Token
-            new RegisterUserMessage(
+            new CreateAdminMessage(
+                formData.adminToken,
                 formData.username,
                 passwordHash,
-                formData.email,
-                formData.phoneNumber,
-                //formData.adminToken // 传递管理员Token
             ).send(
                 (info: string) => {
                     console.log('✅ [管理员注册流程] 注册成功');
