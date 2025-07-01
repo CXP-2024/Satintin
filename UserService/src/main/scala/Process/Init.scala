@@ -22,6 +22,26 @@ object Init {
       _ <- API.init(config.maximumClientConnection)
       _ <- Common.DBAPI.SwitchDataSourceMessage(projectName = Global.ServiceCenter.projectName).send
       _ <- initSchema(schemaName)
+            /** 用户资产表，记录用户的资产相关信息
+       * user_id: 用户的唯一ID
+       * stone_amount: 当前原石数量
+       * card_draw_count: 抽卡次数
+       * rank: 段位名称
+       * rank_position: 段位排名
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."user_asset_table" (
+            user_id VARCHAR NOT NULL PRIMARY KEY,
+            stone_amount INT NOT NULL DEFAULT 0,
+            card_draw_count INT NOT NULL DEFAULT 0,
+            rank TEXT,
+            rank_position INT DEFAULT 0
+        );
+         
+        """,
+        List()
+      )
       /** 用户数据表，存储用户的基本信息
        * user_id: 用户的唯一标识
        * username: 用户名
