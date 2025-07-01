@@ -62,7 +62,7 @@ const AdminDashboardPage: React.FC = () => {
 
   // 检查是否为管理员
   useEffect(() => {
-    if (user && user.permissionLevel < 10) {
+    if (user && user.permissionLevel < 1) {
       console.log('⚠️ [AdminDashboard] 非管理员用户尝试访问管理页面');
       navigateWithTransition('/game');
     }

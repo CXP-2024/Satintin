@@ -1,10 +1,13 @@
 // LoginPage.tsx
-import React, { useState } from "react";
+import React, {useEffect, useState } from "react";
 import {useHistory} from "react-router";
 import { setUserToken } from "Globals/GlobalStore";
 import {bookPagePath} from "Pages/BookPage";
 import {registerPagePath} from "Pages/RegisterPage";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
+import {initSSEConnection} from "Plugins/CommonUtils/Send/SSEConnection";
+import {processSyncMessage} from "Utils/SSEFunction";
+import {websocketPath} from "Pages/WebsocketDemo";
 
 export const loginPagePath="/login"
 export default function LoginPage() {
@@ -62,10 +65,16 @@ export default function LoginPage() {
             <div className="mt-4 text-center">
                 <span className="text-sm text-gray-600">还没有账号？</span>
                 <button
-                    onClick={()=>history.push(registerPagePath)}
+                    onClick={() => history.push(registerPagePath)}
                     className="ml-2 text-sm text-blue-600 hover:underline"
                 >
                     前往注册
+                </button>
+                <button
+                    onClick={() => history.push(websocketPath)}
+                    className="ml-2 text-sm text-blue-600 hover:underline"
+                >
+                    前往websocket测试
                 </button>
             </div>
         </div>

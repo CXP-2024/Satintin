@@ -5,13 +5,15 @@
     "description": "My Electron application description",
     "main": ".webpack/main",
     "scripts": {
-        "start": "electron-forge start",
+        "tailwind:watch": "tailwindcss -i ./src/index.css -o ./public/output.css --watch",
+        "start": "concurrently \"yarn tailwind:watch\" \"electron-forge start\"",
         "package": "electron-forge package",
         "make": "electron-forge make --platform=win32 --arch=x64",
         "publish": "electron-forge publish",
         "lint": "eslint . --cache --ext .js,.jsx,.ts,.tsx --max-warnings 0",
         "prepare": "husky install",
-        "build": "node webpack.cicd.config.js"
+        "build": "node webpack.cicd.config.js",
+        "web:dev": "concurrently \"yarn tailwind:watch\" \"webpack serve --config webpack.web.config.js\""
     },
     "husky": {
         "hooks": {
@@ -106,6 +108,7 @@
         "@typescript-eslint/parser": "^4.0.1",
         "@vercel/webpack-asset-relocator-loader": "1.6.0",
         "axios": "^1.7.2",
+        "concurrently": "^9.2.0",
         "css-loader": "^6.0.0",
         "electron": "13.1.7",
         "electron-squirrel-startup": "^1.0.0",
@@ -124,8 +127,10 @@
         "react-router-dom": "^5.2.0",
         "react-star-ratings": "^2.3.0",
         "style-loader": "^3.0.0",
+        "tailwindcss": "^3.4.1",
         "ts-loader": "^9.2.2",
         "typescript": "^4.0.2",
+        "webpack-cli": "^6.0.1",
         "xlsx": "^0.17.0"
     },
     "dependencies": {
