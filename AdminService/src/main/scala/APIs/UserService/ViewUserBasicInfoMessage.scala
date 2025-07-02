@@ -29,7 +29,7 @@ case class UserBasicInfo(
  */
 case class ViewUserBasicInfoMessage(
   userID: String = "" // 空字符串表示查询所有用户
-) extends API[String](UserServiceCode) // 改为String类型
+) extends API[String](UserServiceCode)
 
 case object ViewUserBasicInfoMessage {
   

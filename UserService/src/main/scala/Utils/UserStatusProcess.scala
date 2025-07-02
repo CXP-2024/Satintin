@@ -203,4 +203,39 @@ case object UserStatusProcess {
   
     } yield "状态更新成功！"
   }
+  
+  /**
+   * 获取所有用户ID列表
+   */
+  def getAllUserIDs()(using PlanContext): IO[List[String]] = {
+    val sql = s"""
+      SELECT user_id 
+      FROM ${schemaName}.user_table 
+      ORDER BY register_time DESC
+    """.stripMargin
+
+    for {
+      _ <- IO(logger.info("查询所有用户ID"))
+      rows <- readDBRows(sql, List())
+      _ <- IO(logger.info(s"查询到 ${rows.length} 行数据"))
+      _ <- IO(logger.info(s"第一行数据示例: ${rows.headOption}"))
+      
+      userIDs <- IO {
+        val ids = rows.map { json =>
+          // 修改：使用正确的字段名 "userID" 而不是 "user_id"
+          val userID = json.hcursor.downField("userID").as[String].getOrElse("")
+          logger.info(s"解析用户ID: ${userID}")
+          userID
+        }.filter(_.nonEmpty)
+        
+        logger.info(s"解析出 ${ids.length} 个有效用户ID")
+        if (ids.nonEmpty) {
+          logger.info(s"前几个用户ID: ${ids.take(3)}")
+        }
+        ids
+      }
+      
+      _ <- IO(logger.info(s"获取到 ${userIDs.length} 个用户ID"))
+    } yield userIDs
+  }
 }
