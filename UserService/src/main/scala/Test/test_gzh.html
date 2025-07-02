@@ -10,45 +10,205 @@
     pre { background: #f4f4f4; padding: 10px; }
     .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; }
     .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; }
+    .info { background: #d1ecf1; color: #0c5460; padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+    .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    .section h2 { margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+    .btn-primary { background: #007bff; color: white; border: none; }
+    .btn-success { background: #28a745; color: white; border: none; }
+    .btn-danger { background: #dc3545; color: white; border: none; }
+    .btn-secondary { background: #6c757d; color: white; border: none; }
+    .user-token { font-family: monospace; background: #f8f9fa; padding: 5px; border-radius: 3px; }
   </style>
 </head>
 <body>
   <h1>UserService API Testing</h1>
 
-  <!-- Login -->
-  <h2>Login</h2>
-  <input id="username" placeholder="Username" value="zzz"/><br/>
-  <input id="password" type="password" placeholder="Password" value="zhengyang815"/><br/>
-  <button id="loginBtn">Login</button>
-  <h3>Response:</h3><pre id="loginOutput"></pre>
+  <div class="info">
+    <h3>📋 Test Instructions</h3>
+    <p><strong>Social Features Testing:</strong></p>
+    <ol>
+      <li>First login with your account to get your User Token</li>
+      <li>Use the User Token for all social operations (adding/removing friends)</li>
+      <li>To add friends, you need their User ID (not username)</li>
+      <li>The system uses UUID-based user IDs for social interactions</li>
+    </ol>
+  </div>
 
-  <!-- Get User Info -->
-  <h2>Fetch User Info</h2>
-  <input id="userID" placeholder="User ID (from login)"/><br/>
-  <button id="infoBtn">Get Info</button>
-  <h3>Response:</h3><pre id="infoOutput"></pre>
+  <div class="section">
+    <h2>🔐 Login</h2>
+    <input id="username" placeholder="Username" value="zzz"/><br/>
+    <input id="password" type="password" placeholder="Password" value=""/><br/>
+    <button id="loginBtn" class="btn-primary">Login</button>
+    <div style="margin-top: 10px;">
+      <strong>Your User Token:</strong> <span id="currentUserToken" class="user-token">Not logged in</span>
+    </div>
+    <h3>Response:</h3><pre id="loginOutput"></pre>
+  </div>
 
-  <!-- Register -->
-  <h2>Register</h2>
-  <input id="regUsername" placeholder="Username"/><br/>
-  <input id="regPassword" type="password" placeholder="Password"/><br/>
-  <input id="regEmail" type="email" placeholder="Email"/><br/>
-  <input id="regPhone" placeholder="Phone Number"/><br/>
-  <button id="registerBtn">Register</button>
-  <h3>Response:</h3><pre id="registerOutput"></pre>
+  <div class="section">
+    <h2>👤 Get User Info</h2>
+    <input id="userID" placeholder="User ID (from login or target user)"/><br/>
+    <button id="infoBtn" class="btn-secondary">Get Info</button>
+    <h3>Response:</h3><pre id="infoOutput"></pre>
+  </div>
 
-  <!-- Additional Operations -->
-  <h2>User Operations</h2>
-  <input id="opUserToken" placeholder="User Token (userID)"/><br/>
-  <input id="actionType" placeholder="Action Type" value="LOGIN"/><br/>
-  <input id="actionDetail" placeholder="Action Detail" value="User logged in via web"/><br/>
-  <button id="logOpBtn">Log Operation</button>
-  <button id="logoutBtn">Logout</button>
-  <h3>Response:</h3><pre id="operationOutput"></pre>
+  <div class="section">
+    <h2>📝 Register</h2>
+    <input id="regUsername" placeholder="Username"/><br/>
+    <input id="regPassword" type="password" placeholder="Password"/><br/>
+    <input id="regEmail" type="email" placeholder="Email"/><br/>
+    <input id="regPhone" placeholder="Phone Number"/><br/>
+    <button id="registerBtn" class="btn-success">Register</button>
+    <h3>Response:</h3><pre id="registerOutput"></pre>
+  </div>
+
+  <!-- NEW SOCIAL FEATURES SECTION -->
+  <div class="section">
+    <h2>👥 Social Features - Friend Management</h2>
+    
+    <div style="margin-bottom: 20px;">
+      <h3>➕ Add Friend</h3>
+      <input id="addFriendUserToken" placeholder="Your User Token (from login above)"/><br/>
+      <input id="addFriendTargetID" placeholder="Friend's User ID (UUID)"/><br/>
+      <button id="addFriendBtn" class="btn-success">Add Friend</button>
+      <h4>Response:</h4><pre id="addFriendOutput"></pre>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <h3>➖ Remove Friend</h3>
+      <input id="removeFriendUserToken" placeholder="Your User Token (from login above)"/><br/>
+      <input id="removeFriendTargetID" placeholder="Friend's User ID to remove"/><br/>
+      <button id="removeFriendBtn" class="btn-danger">Remove Friend</button>
+      <h4>Response:</h4><pre id="removeFriendOutput"></pre>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <h3>🚫 Block User</h3>
+      <input id="blockUserToken" placeholder="Your User Token (from login above)"/><br/>
+      <input id="blockTargetID" placeholder="User ID to block"/><br/>
+      <button id="blockUserBtn" class="btn-danger">Block User</button>
+      <h4>Response:</h4><pre id="blockUserOutput"></pre>
+    </div>
+  </div>
+
+  <!-- QUICK TEST SECTION -->
+  <div class="section">
+    <h2>🧪 Quick Social Test</h2>
+    <p><strong>Two-User Test:</strong> Test social features between two users</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <!-- User 1 -->
+      <div style="border: 2px solid #007bff; padding: 15px; border-radius: 8px;">
+        <h4>👤 Test User 1</h4>
+        <input id="testUser1Username" placeholder="Username" value="TestUser1"/><br/>
+        <input id="testUser1Password" type="password" placeholder="Password" value="password123"/><br/>
+        <input id="testUser1Email" placeholder="Email" value="user1@test.com"/><br/>
+        <input id="testUser1Phone" placeholder="Phone" value="13800000001"/><br/>
+        <button id="registerUser1Btn" class="btn-success">Register User 1</button>
+        <button id="loginUser1Btn" class="btn-primary">Login User 1</button>
+        <div style="margin-top: 10px;">
+          <strong>User 1 Token:</strong> <span id="user1Token" class="user-token">Not logged in</span>
+        </div>
+        <h5>Response:</h5><pre id="user1Output"></pre>
+      </div>
+
+      <!-- User 2 -->
+      <div style="border: 2px solid #28a745; padding: 15px; border-radius: 8px;">
+        <h4>👤 Test User 2</h4>
+        <input id="testUser2Username" placeholder="Username" value="TestUser2"/><br/>
+        <input id="testUser2Password" type="password" placeholder="Password" value="password456"/><br/>
+        <input id="testUser2Email" placeholder="Email" value="user2@test.com"/><br/>
+        <input id="testUser2Phone" placeholder="Phone" value="13800000002"/><br/>
+        <button id="registerUser2Btn" class="btn-success">Register User 2</button>
+        <button id="loginUser2Btn" class="btn-primary">Login User 2</button>
+        <div style="margin-top: 10px;">
+          <strong>User 2 Token:</strong> <span id="user2Token" class="user-token">Not logged in</span>
+        </div>
+        <h5>Response:</h5><pre id="user2Output"></pre>
+      </div>
+    </div>
+
+    <!-- Social Actions Between Test Users -->
+    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+      <h4>🤝 Social Actions Between Test Users</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+        <button id="user1AddUser2Btn" class="btn-success">User 1 → Add User 2</button>
+        <button id="user2AddUser1Btn" class="btn-success">User 2 → Add User 1</button>
+        <button id="user1RemoveUser2Btn" class="btn-danger">User 1 → Remove User 2</button>
+        <button id="user2RemoveUser1Btn" class="btn-danger">User 2 → Remove User 1</button>
+        <button id="checkUser1InfoBtn" class="btn-secondary">Check User 1 Info</button>
+        <button id="checkUser2InfoBtn" class="btn-secondary">Check User 2 Info</button>
+      </div>
+      <h5>Social Actions Response:</h5><pre id="socialActionsOutput"></pre>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>🔧 User Operations</h2>
+    <input id="opUserToken" placeholder="User Token (userID)"/><br/>
+    <input id="actionType" placeholder="Action Type" value="LOGIN"/><br/>
+    <input id="actionDetail" placeholder="Action Detail" value="User logged in via web"/><br/>
+    <button id="logOpBtn" class="btn-secondary">Log Operation</button>
+    <button id="logoutBtn" class="btn-secondary">Logout</button>
+    <h3>Response:</h3><pre id="operationOutput"></pre>
+  </div>
 
   <script>
     const apiBase = 'http://localhost:10010';
+    
+    // State management for test users
+    let currentUserToken = '';
+    let user1Token = '';
+    let user2Token = '';
 
+    // Utility function to generate planContext
+    function generatePlanContext() {
+      return {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+    }
+
+    // Utility function to make API calls
+    async function makeAPICall(endpoint, payload, outputElement) {
+      try {
+        const response = await fetch(`${apiBase}/api/${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...payload,
+            planContext: generatePlanContext()
+          })
+        });
+        
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+          outputElement.textContent = `❌ Error ${response.status}: ${responseText}`;
+          outputElement.className = 'error';
+          return null;
+        }
+
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          result = responseText;
+        }
+
+        outputElement.textContent = JSON.stringify(result, null, 2);
+        outputElement.className = 'success';
+        
+        return result;
+        
+      } catch (error) {
+        outputElement.textContent = `❌ Network Error: ${error.message}`;
+        outputElement.className = 'error';
+        return null;
+      }
+    }
+
+    // Original login function (enhanced)
     async function doLogin() {
       const user = document.getElementById('username').value;
       const pass = document.getElementById('password').value;
@@ -60,10 +220,7 @@
         return;
       }
 
-      const planContext = {
-        traceID: crypto.randomUUID(),
-        transactionLevel: 0
-      };
+      const planContext = generatePlanContext();
 
       try {
         const resp = await fetch(`${apiBase}/api/LoginUserMessage`, {
@@ -71,7 +228,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             username: user,
-            passwordHash: pass, // Send as plain text, your backend handles hashing
+            passwordHash: pass,
             planContext
           })
         });
@@ -85,7 +242,6 @@
           return;
         }
 
-        // Parse the response
         let loginResult;
         try {
           loginResult = JSON.parse(responseText);
@@ -95,13 +251,20 @@
 
         out.textContent = JSON.stringify(loginResult, null, 2);
         
-        if (loginResult === true || loginResult === "true") {
+        // Check if loginResult is a UUID (successful login returns user ID)
+        if (loginResult === true || loginResult === "true" || loginResult === "" || 
+            (typeof loginResult === 'string' && loginResult.length >= 30 && loginResult.includes('-'))) {
           out.className = 'success';
-          // For subsequent operations, use the username as userToken
-          // or set userID field if available
-          document.getElementById('userID').value = user; // Use username as userID for now
-          document.getElementById('opUserToken').value = user;
-          out.textContent += '\n\n✅ Login successful! You can now use other operations.';
+          // Store the user token
+          currentUserToken = loginResult;
+          document.getElementById('currentUserToken').textContent = loginResult;
+          // Auto-fill token fields
+          document.getElementById('userID').value = loginResult;
+          document.getElementById('opUserToken').value = loginResult;
+          document.getElementById('addFriendUserToken').value = loginResult;
+          document.getElementById('removeFriendUserToken').value = loginResult;
+          document.getElementById('blockUserToken').value = loginResult;
+          out.textContent += '\n\n✅ Login successful! Token auto-filled in social feature fields.';
         } else {
           out.className = 'error';
           out.textContent += '\n\n❌ Login failed - check credentials';
@@ -113,6 +276,160 @@
       }
     }
 
+    // Social feature functions
+    async function addFriend() {
+      const userToken = document.getElementById('addFriendUserToken').value;
+      const friendID = document.getElementById('addFriendTargetID').value;
+      const out = document.getElementById('addFriendOutput');
+
+      if (!userToken || !friendID) {
+        out.textContent = 'Please enter both User Token and Friend ID';
+        out.className = 'error';
+        return;
+      }
+
+      await makeAPICall('AddFriendMessage', {
+        userToken,
+        friendID
+      }, out);
+    }
+
+    async function removeFriend() {
+      const userToken = document.getElementById('removeFriendUserToken').value;
+      const friendID = document.getElementById('removeFriendTargetID').value;
+      const out = document.getElementById('removeFriendOutput');
+
+      if (!userToken || !friendID) {
+        out.textContent = 'Please enter both User Token and Friend ID';
+        out.className = 'error';
+        return;
+      }
+
+      await makeAPICall('RemoveFriendMessage', {
+        userToken,
+        friendID
+      }, out);
+    }
+
+    async function blockUser() {
+      const userToken = document.getElementById('blockUserToken').value;
+      const blackUserID = document.getElementById('blockTargetID').value;
+      const out = document.getElementById('blockUserOutput');
+
+      if (!userToken || !blackUserID) {
+        out.textContent = 'Please enter both User Token and User ID to block';
+        out.className = 'error';
+        return;
+      }
+
+      await makeAPICall('BlockUserMessage', {
+        userToken,
+        blackUserID
+      }, out);
+    }
+
+    // Test user functions
+    async function registerTestUser(userNum) {
+      const username = document.getElementById(`testUser${userNum}Username`).value;
+      const password = document.getElementById(`testUser${userNum}Password`).value;
+      const email = document.getElementById(`testUser${userNum}Email`).value;
+      const phone = document.getElementById(`testUser${userNum}Phone`).value;
+      const out = document.getElementById(`user${userNum}Output`);
+
+      const result = await makeAPICall('RegisterUserMessage', {
+        username,
+        passwordHash: password,
+        email,
+        phoneNumber: phone
+      }, out);
+
+      return result;
+    }
+
+    async function loginTestUser(userNum) {
+      const username = document.getElementById(`testUser${userNum}Username`).value;
+      const password = document.getElementById(`testUser${userNum}Password`).value;  
+      const out = document.getElementById(`user${userNum}Output`);
+
+      const result = await makeAPICall('LoginUserMessage', {
+        username,
+        passwordHash: password
+      }, out);
+
+      // Store the token if login successful
+      if (result && typeof result === 'string' && result.length >= 30 && result.includes('-')) {
+        if (userNum === 1) {
+          user1Token = result;
+          document.getElementById('user1Token').textContent = result;
+        } else {
+          user2Token = result;
+          document.getElementById('user2Token').textContent = result;
+        }
+        out.textContent += `\n\n✅ Login successful! User ${userNum} token stored.`;
+        out.className = 'success';
+      }
+
+      return result;
+    }
+
+    // Social actions between test users
+    async function socialActionBetweenTestUsers(action) {
+      const out = document.getElementById('socialActionsOutput');
+      
+      if (!user1Token || !user2Token) {
+        out.textContent = '❌ Please login both test users first!';
+        out.className = 'error';
+        return;
+      }
+
+      let result;
+      switch(action) {
+        case 'user1AddUser2':
+          out.textContent = '🔄 User 1 adding User 2 as friend...';
+          result = await makeAPICall('AddFriendMessage', {
+            userToken: user1Token,
+            friendID: user2Token
+          }, out);
+          break;
+        case 'user2AddUser1':
+          out.textContent = '🔄 User 2 adding User 1 as friend...';
+          result = await makeAPICall('AddFriendMessage', {
+            userToken: user2Token,
+            friendID: user1Token
+          }, out);
+          break;
+        case 'user1RemoveUser2':
+          out.textContent = '🔄 User 1 removing User 2 from friends...';
+          result = await makeAPICall('RemoveFriendMessage', {
+            userToken: user1Token,
+            friendID: user2Token
+          }, out);
+          break;
+        case 'user2RemoveUser1':
+          out.textContent = '🔄 User 2 removing User 1 from friends...';
+          result = await makeAPICall('RemoveFriendMessage', {
+            userToken: user2Token,
+            friendID: user1Token
+          }, out);
+          break;
+        case 'checkUser1':
+          out.textContent = '🔄 Checking User 1 info and social status...';
+          result = await makeAPICall('GetUserInfoMessage', {
+            userToken: user1Token,
+            userID: user1Token
+          }, out);
+          break;
+        case 'checkUser2':
+          out.textContent = '🔄 Checking User 2 info and social status...';
+          result = await makeAPICall('GetUserInfoMessage', {
+            userToken: user2Token,
+            userID: user2Token
+          }, out);
+          break;
+      }
+    }
+
+    // Original functions (unchanged)
     async function getUserInfo() {
       const userID = document.getElementById('userID').value;
       const out = document.getElementById('infoOutput');
@@ -123,43 +440,10 @@
         return;
       }
 
-      const planContext = {
-        traceID: crypto.randomUUID(),
-        transactionLevel: 0
-      };
-
-      try {
-        const resp = await fetch(`${apiBase}/api/GetUserInfoMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userToken: userID, // Using userID as token
-            userID: userID,
-            planContext
-          })
-        });
-        
-        const responseText = await resp.text();
-        
-        if (!resp.ok) {
-          out.textContent = `Error ${resp.status}: ${responseText}`;
-          out.className = 'error';
-          return;
-        }
-
-        try {
-          const data = JSON.parse(responseText);
-          out.textContent = JSON.stringify(data, null, 2);
-          out.className = 'success';
-        } catch {
-          out.textContent = responseText;
-          out.className = 'success';
-        }
-        
-      } catch (e) {
-        out.textContent = 'Network Error: ' + e.message;
-        out.className = 'error';
-      }
+      await makeAPICall('GetUserInfoMessage', {
+        userToken: userID,
+        userID: userID
+      }, out);
     }
 
     async function doRegister() {
@@ -175,47 +459,12 @@
         return;
       }
 
-      const planContext = {
-        traceID: crypto.randomUUID(),
-        transactionLevel: 0
-      };
-
-      const payload = {
+      await makeAPICall('RegisterUserMessage', {
         username,
         passwordHash: password,
         email,
-        phoneNumber,
-        planContext
-      };
-
-      try {
-        const resp = await fetch(`${apiBase}/api/RegisterUserMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        const responseText = await resp.text();
-        
-        if (!resp.ok) {
-          out.textContent = `Error ${resp.status}: ${responseText}`;
-          out.className = 'error';
-          return;
-        }
-
-        try {
-          const data = JSON.parse(responseText);
-          out.textContent = JSON.stringify(data, null, 2);
-          out.className = 'success';
-        } catch {
-          out.textContent = responseText;
-          out.className = 'success';
-        }
-        
-      } catch (e) {
-        out.textContent = `Network Error: ${e.message}`;
-        out.className = 'error';
-      }
+        phoneNumber
+      }, out);
     }
 
     async function logUserOperation() {
@@ -224,50 +473,17 @@
       const actionDetail = document.getElementById('actionDetail').value;
       const out = document.getElementById('operationOutput');
 
-      if (!userToken || !actionType || !actionDetail) {
-        out.textContent = 'Please fill all operation fields';
+      if (!userToken) {
+        out.textContent = 'Please enter User Token';
         out.className = 'error';
         return;
       }
 
-      const planContext = {
-        traceID: crypto.randomUUID(),
-        transactionLevel: 0
-      };
-
-      try {
-        const resp = await fetch(`${apiBase}/api/LogUserOperationMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userToken,
-            actionType,
-            actionDetail,
-            planContext
-          })
-        });
-        
-        const responseText = await resp.text();
-        
-        if (!resp.ok) {
-          out.textContent = `Error ${resp.status}: ${responseText}`;
-          out.className = 'error';
-          return;
-        }
-
-        try {
-          const data = JSON.parse(responseText);
-          out.textContent = JSON.stringify(data, null, 2);
-          out.className = 'success';
-        } catch {
-          out.textContent = responseText;
-          out.className = 'success';
-        }
-        
-      } catch (e) {
-        out.textContent = `Network Error: ${e.message}`;
-        out.className = 'error';
-      }
+      await makeAPICall('LogUserOperationMessage', {
+        userToken,
+        actionType,
+        actionDetail
+      }, out);
     }
 
     async function logoutUser() {
@@ -275,47 +491,14 @@
       const out = document.getElementById('operationOutput');
 
       if (!userToken) {
-        out.textContent = 'Please enter user token';
+        out.textContent = 'Please enter User Token';
         out.className = 'error';
         return;
       }
 
-      const planContext = {
-        traceID: crypto.randomUUID(),
-        transactionLevel: 0
-      };
-
-      try {
-        const resp = await fetch(`${apiBase}/api/LogoutUserMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userToken,
-            planContext
-          })
-        });
-        
-        const responseText = await resp.text();
-        
-        if (!resp.ok) {
-          out.textContent = `Error ${resp.status}: ${responseText}`;
-          out.className = 'error';
-          return;
-        }
-
-        try {
-          const data = JSON.parse(responseText);
-          out.textContent = JSON.stringify(data, null, 2);
-          out.className = 'success';
-        } catch {
-          out.textContent = responseText;
-          out.className = 'success';
-        }
-        
-      } catch (e) {
-        out.textContent = `Network Error: ${e.message}`;
-        out.className = 'error';
-      }
+      await makeAPICall('LogoutUserMessage', {
+        userToken
+      }, out);
     }
 
     // Event listeners
@@ -324,6 +507,25 @@
     document.getElementById('registerBtn').onclick = doRegister;
     document.getElementById('logOpBtn').onclick = logUserOperation;
     document.getElementById('logoutBtn').onclick = logoutUser;
+
+    // Social feature event listeners
+    document.getElementById('addFriendBtn').onclick = addFriend;
+    document.getElementById('removeFriendBtn').onclick = removeFriend;
+    document.getElementById('blockUserBtn').onclick = blockUser;
+
+    // Test user event listeners
+    document.getElementById('registerUser1Btn').onclick = () => registerTestUser(1);
+    document.getElementById('loginUser1Btn').onclick = () => loginTestUser(1);
+    document.getElementById('registerUser2Btn').onclick = () => registerTestUser(2);
+    document.getElementById('loginUser2Btn').onclick = () => loginTestUser(2);
+
+    // Social actions between test users
+    document.getElementById('user1AddUser2Btn').onclick = () => socialActionBetweenTestUsers('user1AddUser2');
+    document.getElementById('user2AddUser1Btn').onclick = () => socialActionBetweenTestUsers('user2AddUser1');
+    document.getElementById('user1RemoveUser2Btn').onclick = () => socialActionBetweenTestUsers('user1RemoveUser2');
+    document.getElementById('user2RemoveUser1Btn').onclick = () => socialActionBetweenTestUsers('user2RemoveUser1');
+    document.getElementById('checkUser1InfoBtn').onclick = () => socialActionBetweenTestUsers('checkUser1');
+    document.getElementById('checkUser2InfoBtn').onclick = () => socialActionBetweenTestUsers('checkUser2');
   </script>
 </body>
 </html>

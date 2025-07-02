@@ -11,6 +11,7 @@ import java.util.UUID
 import Global.DBConfig
 import Process.ProcessUtils.server2DB
 import Global.GlobalVariables
+import Utils.BattleRoomTicker
 
 object Init {
   def init(config: ServerConfig): IO[Unit] = {
@@ -40,7 +41,7 @@ object Init {
             player_one_status TEXT NOT NULL,
             player_two_status TEXT NOT NULL
         );
-         
+
         """,
         List()
       )
@@ -64,7 +65,7 @@ object Init {
             winner_id TEXT,
             create_time TIMESTAMP NOT NULL
         );
-         
+
         """,
         List()
       )
@@ -86,10 +87,14 @@ object Init {
             target_id TEXT,
             action_time TIMESTAMP NOT NULL
         );
-         
+
         """,
         List()
       )
+
+      // Start the battle room ticker for periodic updates
+      _ <- IO.println("Starting BattleRoomTicker...")
+      _ <- BattleRoomTicker.start.start.void
     } yield ()
 
     program.handleErrorWith(err => IO {
@@ -98,4 +103,3 @@ object Init {
     })
   }
 }
-    

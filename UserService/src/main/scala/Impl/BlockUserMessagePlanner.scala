@@ -29,62 +29,88 @@ case class BlockUserMessagePlanner(
       _ <- IO(logger.info(s"开始验证用户身份，userToken=${userToken}"))
       userID <- validateUserToken(userToken)
 
-      // Step 2. Add blackUserID to blacklist
-      _ <- IO(logger.info(s"将用户[${blackUserID}]加入用户[${userID}]的黑名单中"))
-      _ <- performAddToBlacklist(userID, blackUserID)
+      // Step 2. Ensure user exists in social table
+      _ <- IO(logger.info(s"检查并确保用户${userID}在user_social_table中存在"))
+      _ <- ensureUserExistsInSocialTable(userID)
 
-      // Step 3. Return the result
-      resultMessage <- IO("用户已加入黑名单！")
+      // Step 3. Add blackUserID to blacklist using the existing utility function
+      _ <- IO(logger.info(s"将用户[${blackUserID}]加入用户[${userID}]的黑名单中"))
+      resultMessage <- addToBlacklist(userID, blackUserID)
+
+      // Step 4. Return the result
       _ <- IO(logger.info(s"操作完成，返回结果：${resultMessage}"))
     } yield resultMessage
   }
 
   private def validateUserToken(userToken: String)(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"调用authenticateUser方法验证用户Token"))
-      authenticationResult <- authenticateUser(userToken, "")
-      user <- authenticationResult match {
-        case Some(user) => IO.pure(user)
+      _ <- IO(logger.info(s"开始验证userToken: ${userToken}"))
+      // First try to treat it as a user_id (UUID)
+      userIdResult <- readDBRows(
+        s"SELECT * FROM ${schemaName}.user_table WHERE user_id = ?;",
+        List(SqlParameter("String", userToken))
+      )
+      _ <- IO(logger.info(s"按user_id查询结果数量: ${userIdResult.length}"))
+      
+      // If not found, try to treat it as a username
+      userNameResult <- if (userIdResult.isEmpty) {
+        for {
+          _ <- IO(logger.info(s"user_id未找到，尝试按username查询: ${userToken}"))
+          result <- readDBRows(
+            s"SELECT * FROM ${schemaName}.user_table WHERE username = ?;",
+            List(SqlParameter("String", userToken))
+          )
+          _ <- IO(logger.info(s"按username查询结果数量: ${result.length}"))
+        } yield result
+      } else IO(List.empty)
+      
+      // Use whichever query returned results
+      finalResult = if (userIdResult.nonEmpty) userIdResult else userNameResult
+      _ <- if (finalResult.nonEmpty) IO(logger.info(s"找到用户数据: ${finalResult.head}")) else IO(logger.info("未找到用户数据"))
+      
+      userID <- finalResult.headOption match {
+        case Some(userJson) =>
+          // Parse the user data and extract userID
+          for {
+            user <- IO.fromEither(userJson.as[User])
+            _ <- IO(logger.info(s"用户验证成功，用户ID: ${user.userID}, 用户名: ${user.userName}"))
+          } yield user.userID
         case None =>
-          IO.raiseError(new IllegalArgumentException("用户身份验证失败！"))
+          val errorMessage = s"无效的userToken，既不是有效的用户ID也不是有效的用户名: ${userToken}"
+          IO(logger.error(errorMessage)) >>
+            IO.raiseError(new IllegalArgumentException(errorMessage))
       }
-    } yield user.userID
+    } yield userID
   }
 
-  
-  private def performAddToBlacklist(userID: String, blackUserID: String)(using PlanContext): IO[Unit] = {
+  // Helper function: Ensure user exists in user_social_table
+  private def ensureUserExistsInSocialTable(userID: String)(using PlanContext): IO[Unit] = {
     for {
-      // Step 1: Retrieve user's blacklist from the database
-      _ <- IO(logger.info(s"查询用户[userID=${userID}]的黑名单信息"))
-      sqlQuery <- IO(s"SELECT black_list FROM ${schemaName}.user_social_table WHERE user_id = ?")
-      params <- IO(List(SqlParameter("String", userID)))
-      blackListJsonOpt <- readDBJsonOptional(sqlQuery, params)
-
-      // Step 2: Decode the blacklist and validate input
-      currentBlacklist <- IO {
-        blackListJsonOpt match {
-          case Some(blacklistJson) =>
-            decodeField[List[String]](blacklistJson, "black_list")
-          case None =>
-            throw new IllegalStateException(s"未找到用户[userID=${userID}]的黑名单记录")
-        }
-      }
-      _ <- IO(logger.info(s"用户当前的黑名单列表: ${currentBlacklist.mkString("[",", ", "]")}"))
-      _ <- if (currentBlacklist.contains(blackUserID)) {
-        IO.raiseError(new IllegalArgumentException(s"用户[blackUserID=${blackUserID}]已在黑名单中"))
-      } else IO.unit
-
-      // Step 3: Add the blackUserID to the blacklist and update the database
-      updatedBlacklist <- IO(blackUserID :: currentBlacklist)
-      _ <- IO(logger.info(s"更新后的黑名单: ${updatedBlacklist.mkString("[", ", ", "]")}"))
-      updateSql <- IO(s"UPDATE ${schemaName}.user_social_table SET black_list = ? WHERE user_id = ?")
-      updateParams <- IO(
-        List(
-          SqlParameter("Array[String]", updatedBlacklist.asJson.noSpaces),
-          SqlParameter("String", userID)
-        )
+      // Check if user exists in social table
+      socialResult <- readDBRows(
+        s"SELECT * FROM ${schemaName}.user_social_table WHERE user_id = ?;",
+        List(SqlParameter("String", userID))
       )
-      _ <- writeDB(updateSql, updateParams)
+      _ <- if (socialResult.isEmpty) {
+        // User doesn't exist in social table, create entry with proper JSON format
+        for {
+          _ <- IO(logger.info(s"用户${userID}在user_social_table中不存在，正在创建默认条目"))
+          _ <- writeDB(
+            s"""INSERT INTO ${schemaName}.user_social_table 
+                (user_id, friend_list, black_list, message_box) 
+                VALUES (?, ?::jsonb, ?::jsonb, ?::jsonb)""",
+            List(
+              SqlParameter("String", userID),
+              SqlParameter("String", "[]"),
+              SqlParameter("String", "[]"),
+              SqlParameter("String", "[]")
+            )
+          )
+          _ <- IO(logger.info(s"已为用户${userID}创建user_social_table条目"))
+        } yield ()
+      } else {
+        IO(logger.info(s"用户${userID}在user_social_table中已存在"))
+      }
     } yield ()
   }
 }

@@ -12,7 +12,7 @@ import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAsset
 const ShopPage: React.FC = () => {
     const user = useUserInfo();
     const { navigateWithTransition } = usePageTransition();
-    const [isRecharging, setIsRecharging] = useState(false);
+    const [rechargingIndex, setRechargingIndex] = useState<number | null>(null);
 
     // 初始化音效
     useEffect(() => {
@@ -57,11 +57,10 @@ const ShopPage: React.FC = () => {
             console.log('用户原石数量已更新:', stoneAmount);
         } catch (err) {
             console.error('刷新用户资产失败:', err);
-        }
-    };
+        }    };
     // —— end 新增 ——
 
-    const handleRecharge = async (amount: number, crystals: number) => {
+    const handleRecharge = async (amount: number, crystals: number, index: number) => {
         console.log(`💰 [ShopPage] 用户充值: ${amount}元, ${crystals}原石`);
         playClickSound();
         
@@ -70,7 +69,7 @@ const ShopPage: React.FC = () => {
             return;
         }
 
-        setIsRecharging(true);
+        setRechargingIndex(index);
         
         try {
             const result = await new Promise((resolve, reject) => {
@@ -88,7 +87,7 @@ const ShopPage: React.FC = () => {
             console.error('充值失败:', error);
             alert('充值失败，请重试');
         } finally {
-            setIsRecharging(false);
+            setRechargingIndex(null);
         }
     };
 
@@ -138,13 +137,12 @@ const ShopPage: React.FC = () => {
                                 <div className="price">
                                     <span className="price-label">¥</span>
                                     <span className="price-amount">{option.amount}</span>
-                                </div>
-                                <button
+                                </div>                                <button
                                     className="recharge-btn"
-                                    onClick={() => handleRecharge(option.amount, option.crystals)}
-                                    disabled={isRecharging}
+                                    onClick={() => handleRecharge(option.amount, option.crystals, index)}
+                                    disabled={rechargingIndex === index}
                                 >
-                                    {isRecharging ? '充值中...' : '立即充值'}
+                                    {rechargingIndex === index ? '充值中...' : '立即充值'}
                                 </button>
                             </div>
                         ))}

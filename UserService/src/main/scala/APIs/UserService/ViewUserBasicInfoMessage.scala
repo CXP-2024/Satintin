@@ -21,6 +21,12 @@ case class UserBasicInfo(
   isOnline: Boolean
 )
 
+// UserBasicInfo 的编码器和解码器需要在使用前定义
+object UserBasicInfo {
+  given Encoder[UserBasicInfo] = deriveEncoder
+  given Decoder[UserBasicInfo] = deriveDecoder
+}
+
 /**
  * ViewUserBasicInfoMessage
  * desc: 查询用户基本信息（用户名、ID、封禁天数、在线状态）
