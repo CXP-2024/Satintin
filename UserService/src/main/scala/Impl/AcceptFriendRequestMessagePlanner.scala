@@ -1,17 +1,18 @@
 package Impl
 
-import Utils.FriendManagementProcess.addFriendEntry
+import Utils.FriendManagementProcess.{ addFriendEntry}
+import Objects.UserService.User
 import Common.API.{API, PlanContext, Planner}
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import cats.effect.IO
 import cats.implicits.*
 import org.slf4j.LoggerFactory
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.syntax.*
+import io.circe.generic.auto.*
 import org.joda.time.DateTime
 
 case class AcceptFriendRequestMessage(userToken: String, friendID: String) extends API[String]("AcceptFriendRequest")

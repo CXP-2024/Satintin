@@ -17,19 +17,15 @@ import scala.util.Try
 import org.joda.time.DateTime
 import java.util.UUID
 
-
 /**
  * QueryAssetStatusMessage
  * desc: 返回用户当前的原石数量。处理查询资产状态的需求。
  * @param userToken: String (用户凭证，用于验证用户身份的合法性)
  * @return stoneAmount: Int (用户当前的原石数量)
  */
-
 case class QueryAssetStatusMessage(
   userToken: String
 ) extends API[Int](AssetServiceCode)
-
-
 
 case object QueryAssetStatusMessage{
     
@@ -48,7 +44,7 @@ case object QueryAssetStatusMessage{
     try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[QueryAssetStatusMessage]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
-  
+
   // Circe + Jackson 兜底的 Encoder
   given queryAssetStatusMessageEncoder: Encoder[QueryAssetStatusMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
@@ -58,7 +54,5 @@ case object QueryAssetStatusMessage{
   given queryAssetStatusMessageDecoder: Decoder[QueryAssetStatusMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
-
-
 }
 

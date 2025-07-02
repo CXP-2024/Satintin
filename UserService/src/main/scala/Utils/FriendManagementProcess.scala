@@ -18,6 +18,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.API.PlanContext
 import Common.Object.ParameterList
 import io.circe.Json
+import Utils.JsonDecodingUtils.decodeListField
 
 case object FriendManagementProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -52,7 +53,7 @@ case object FriendManagementProcess {
       // Step 3: 获取现有好友列表
       currentFriendList <- IO {
         friendListJson
-          .map(json => decodeField[List[String]](json, "friend_list"))
+          .map(json => decodeListField(json, "friend_list"))
           .getOrElse(List.empty)
       }
       _ <- IO(logger.info(s"当前的好友列表为：${currentFriendList.mkString(", ")}"))
@@ -60,14 +61,12 @@ case object FriendManagementProcess {
       // Step 4: 检查好友ID是否已经存在于好友列表中
       _ <- if (currentFriendList.contains(friendID))
         IO.raiseError(new IllegalStateException("好友已存在"))
-      else IO(logger.info(s"好友 ${friendID} 不在好友列表中，可以添加"))
-  
-      // Step 5.1: 将新的friendID加入好友列表
+      else IO(logger.info(s"好友 ${friendID} 不在好友列表中，可以添加"))      // Step 5.1: 将新的friendID加入好友列表
       updatedFriendList <- IO { currentFriendList :+ friendID }
       _ <- IO(logger.info(s"更新后的好友列表为：${updatedFriendList.mkString(", ")}"))
-  
+
       // Step 5.2: 保存更新后的好友列表到数据库
-      updateSQL <- IO { s"UPDATE ${schemaName}.user_social_table SET friend_list = ? WHERE user_id = ?" }
+      updateSQL <- IO { s"UPDATE ${schemaName}.user_social_table SET friend_list = ?::jsonb WHERE user_id = ?" }
       updateParameters <- IO {
         List(
           SqlParameter("String", updatedFriendList.asJson.noSpaces),
@@ -75,10 +74,54 @@ case object FriendManagementProcess {
         )
       }
       _ <- writeDB(updateSQL, updateParameters)
-  
-      // Step 6: 返回操作结果
+      
+      // Step 6: 添加互相好友关系 - 将当前用户加入到好友的好友列表中
+      _ <- IO(logger.info(s"开始添加互相好友关系，将用户 ${userID} 添加到 ${friendID} 的好友列表"))
+      _ <- addMutualFriend(friendID, userID)
+
+      // Step 7: 返回操作结果
       _ <- IO(logger.info("好友添加成功"))
     } yield "好友添加成功"
+  }
+  
+  // Helper function to add mutual friend relationship (without creating infinite loop)
+  private def addMutualFriend(userID: String, friendID: String)(using PlanContext): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"开始为用户 ${userID} 添加好友 ${friendID} (互相关系)"))
+      
+      // Query friend's current friend list
+      querySQL <- IO { s"SELECT friend_list FROM ${schemaName}.user_social_table WHERE user_id = ?" }
+      parameters <- IO { List(SqlParameter("String", userID)) }
+      friendListJson <- readDBJsonOptional(querySQL, parameters)
+      
+      // Get current friend list
+      currentFriendList <- IO {
+        friendListJson
+          .map(json => decodeListField(json, "friend_list"))
+          .getOrElse(List.empty)
+      }
+      
+      // Check if friendID is already in the list to avoid duplicates
+      _ <- if (!currentFriendList.contains(friendID)) {
+        for {
+          // Add friendID to the list
+          updatedFriendList <- IO { currentFriendList :+ friendID }
+          _ <- IO(logger.info(s"为用户 ${userID} 添加好友 ${friendID}，更新后列表: ${updatedFriendList.mkString(", ")}"))
+          
+          // Update database
+          updateSQL <- IO { s"UPDATE ${schemaName}.user_social_table SET friend_list = ?::jsonb WHERE user_id = ?" }
+          updateParameters <- IO {
+            List(
+              SqlParameter("String", updatedFriendList.asJson.noSpaces),
+              SqlParameter("String", userID)
+            )
+          }
+          _ <- writeDB(updateSQL, updateParameters)
+        } yield ()
+      } else {
+        IO(logger.info(s"用户 ${userID} 的好友列表中已包含 ${friendID}，跳过添加"))
+      }
+    } yield ()
   }
   
   
@@ -100,7 +143,7 @@ case object FriendManagementProcess {
       // Step 3: 移除好友ID
       updatedFriendList <- maybeJson match {
         case Some(json) =>
-          val originalFriendList = decodeField[List[String]](json, "friend_list")
+          val originalFriendList = decodeListField(json, "friend_list")
           IO(logger.info(s"当前好友列表：${originalFriendList.mkString(", ")}")) *>
             IO(originalFriendList.filterNot(_ == friendID))
         case None =>
@@ -109,18 +152,61 @@ case object FriendManagementProcess {
       _ <- IO(logger.info(s"更新后的好友列表（移除 friendID=${friendID}）：${updatedFriendList.mkString(", ")}"))
   
       // Step 4: 更新好友列表到数据库
-      updateSql <- IO(s"UPDATE ${schemaName}.user_social_table SET friend_list = ? WHERE user_id = ?")
+      updateSql <- IO(s"UPDATE ${schemaName}.user_social_table SET friend_list = ?::jsonb WHERE user_id = ?")
       updateParams <- IO(
         List(
-          SqlParameter("Array[String]", updatedFriendList.asJson.noSpaces),
+          SqlParameter("String", updatedFriendList.asJson.noSpaces),
           SqlParameter("String", userID)
         )
       )
       updateResult <- writeDB(updateSql, updateParams)
       _ <- IO(logger.info(s"数据库更新结果：${updateResult}"))
   
-      // Step 5: 返回操作结果
+      // Step 5: 移除互相好友关系 - 从好友的好友列表中移除当前用户
+      _ <- IO(logger.info(s"开始移除互相好友关系，从用户 ${friendID} 的好友列表中移除 ${userID}"))
+      _ <- removeMutualFriend(friendID, userID)
+
+      // Step 6: 返回操作结果
     } yield Some("操作成功！")
+  }
+  
+  // Helper function to remove mutual friend relationship (without creating infinite loop)
+  private def removeMutualFriend(userID: String, friendID: String)(using PlanContext): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"开始为用户 ${userID} 移除好友 ${friendID} (互相关系)"))
+      
+      // Query friend's current friend list
+      querySQL <- IO { s"SELECT friend_list FROM ${schemaName}.user_social_table WHERE user_id = ?" }
+      parameters <- IO { List(SqlParameter("String", userID)) }
+      friendListJson <- readDBJsonOptional(querySQL, parameters)
+      
+      // Get current friend list and remove friendID
+      _ <- friendListJson match {
+        case Some(json) =>
+          val originalFriendList = decodeListField(json, "friend_list")
+          val updatedFriendList = originalFriendList.filterNot(_ == friendID)
+          
+          if (originalFriendList.contains(friendID)) {
+            for {
+              _ <- IO(logger.info(s"为用户 ${userID} 移除好友 ${friendID}，更新后列表: ${updatedFriendList.mkString(", ")}"))
+              
+              // Update database
+              updateSQL <- IO { s"UPDATE ${schemaName}.user_social_table SET friend_list = ?::jsonb WHERE user_id = ?" }
+              updateParameters <- IO {
+                List(
+                  SqlParameter("String", updatedFriendList.asJson.noSpaces),
+                  SqlParameter("String", userID)
+                )
+              }
+              _ <- writeDB(updateSQL, updateParameters)
+            } yield ()
+          } else {
+            IO(logger.info(s"用户 ${userID} 的好友列表中不包含 ${friendID}，跳过移除"))
+          }
+        case None =>
+          IO(logger.info(s"用户 ${userID} 在社交表中不存在，跳过移除"))
+      }
+    } yield ()
   }
   
   
@@ -145,7 +231,7 @@ case object FriendManagementProcess {
       blackList <- IO {
         blackListJsonOpt match {
           case Some(json) =>
-            decodeField[List[String]](json, "black_list")
+            decodeListField(json, "black_list")
           case None =>
             throw new IllegalStateException(s"用户ID[userID=${userID}]的黑名单信息不存在")
         }
@@ -163,11 +249,11 @@ case object FriendManagementProcess {
       }
       _ <- IO(logger.info(s"更新后的黑名单列表=${updatedBlackList.mkString("[", ", ", "]")}"))
       updateSql <- IO {
-        s"UPDATE ${schemaName}.user_social_table SET black_list = ? WHERE user_id = ?"
+        s"UPDATE ${schemaName}.user_social_table SET black_list = ?::jsonb WHERE user_id = ?"
       }
       updateParams <- IO {
         List(
-          SqlParameter("Array[String]", updatedBlackList.asJson.noSpaces),
+          SqlParameter("String", updatedBlackList.asJson.noSpaces),
           SqlParameter("String", userID)
         )
       }

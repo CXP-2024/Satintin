@@ -103,7 +103,7 @@ case class RegisterUserMessagePlanner(
       email = email,
       phoneNumber = phoneNumber,
       registerTime = currentTime,
-      permissionLevel = 1, // Default permission level for a new user
+      permissionLevel = 0, // Default permission level for a new user
       banDays = 0,
       isOnline = false,
       matchStatus = "Idle",
