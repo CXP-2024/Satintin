@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.PlanContext
@@ -21,6 +20,7 @@ import Impl.DeductAssetMessagePlanner
 import Impl.QueryAssetStatusMessagePlanner
 import Impl.UpdateCardDrawCountMessagePlanner
 import Impl.QueryCardDrawCountMessagePlanner
+import Impl.GetAssetTransactionMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -70,6 +70,13 @@ object Routes:
         IO(
           decode[QueryCardDrawCountMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryCardDrawCountMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "GetAssetTransactionMessage" =>
+        IO(
+          decode[GetAssetTransactionMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetAssetTransactionMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
@@ -128,4 +135,3 @@ object Routes:
           BadRequest(e.getMessage.asJson.toString)
       }
   }
-  

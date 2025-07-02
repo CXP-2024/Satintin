@@ -40,7 +40,7 @@ WHERE account_name = ? AND password_hash = ? AND is_active = true
           }
         case None =>
           logger.error(s"管理员登录失败: 无效账号或密码")
-          IO.raiseError(new IllegalArgumentException("账号或密码错误或账户未激活"))
+          IO.raiseError(new IllegalArgumentException("非管理员账号或密码错误"))
       }
       _    <- IO(logger.info(s"管理员登录成功, token=$token"))
     } yield token

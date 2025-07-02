@@ -251,4 +251,49 @@ case object AssetTransactionProcess {
       }
     } yield result
   }
+
+  def fetchTransactionHistory(userID: String)(using PlanContext): IO[List[Objects.AssetService.AssetTransaction]] = {
+    for {
+      // Step 1: Validate input parameter
+      _ <- IO {
+        if (userID == null || userID.trim.isEmpty)
+          throw new IllegalArgumentException("用户ID不能为空或无效")
+      }
+      _ <- IO(logger.info(s"[fetchTransactionHistory] 开始查询用户交易记录，userID='${userID}'"))
+
+      // Step 2: Construct SQL query to fetch all transactions for the user
+      querySQL <- IO {
+        s"""
+        SELECT transaction_id, user_id, transaction_type, change_amount, change_reason, timestamp
+        FROM ${schemaName}.asset_transaction_table
+        WHERE user_id = ?
+        ORDER BY timestamp DESC
+        """
+      }
+      parameters <- IO {
+        List(SqlParameter("String", userID))
+      }
+      _ <- IO(logger.info(s"[fetchTransactionHistory] 查询SQL: ${querySQL}，参数: ${parameters}"))
+
+      // Step 3: Execute database query and retrieve transaction records
+      transactionRows <- readDBRows(querySQL, parameters)
+      _ <- IO(logger.info(s"[fetchTransactionHistory] 查询到 ${transactionRows.length} 条交易记录"))
+
+      // Step 4: Convert rows to AssetTransaction objects
+      transactions <- IO {
+        transactionRows.map { row =>
+          Objects.AssetService.AssetTransaction(
+            transactionID = decodeField[String](row, "transaction_id"),
+            userID = decodeField[String](row, "user_id"),
+            transactionType = decodeField[String](row, "transaction_type"),
+            changeAmount = decodeField[Int](row, "change_amount"),
+            changeReason = decodeField[String](row, "change_reason"),
+            timestamp = new DateTime(decodeField[Long](row, "timestamp"))
+          )
+        }
+      }
+      _ <- IO(logger.info(s"[fetchTransactionHistory] 成功转换交易记录，共 ${transactions.length} 条"))
+
+    } yield transactions
+  }
 }
