@@ -51,33 +51,36 @@ case object AssetTransactionProcess {
             createInitialAssetRecord(userID).flatMap { _ =>
               IO {
                 logger.info(s"[fetchAssetStatus] 创建初始资产记录成功，返回默认原石数量: 0")
-              } >> IO.pure(0)
+              } >> IO.pure(0)            
             }
         }
       }
     }
   }
-    def createInitialAssetRecord(userID: String)(using PlanContext): IO[Unit] = {
+
+  def createInitialAssetRecord(userID: String)(using PlanContext): IO[Unit] = {
     for {
       _ <- IO(logger.info(s"[createInitialAssetRecord] 为用户 ${userID} 创建初始资产记录"))
       currentTime <- IO(DateTime.now())
       insertSQL <- IO {
         s"""
-        INSERT INTO ${schemaName}.user_asset_status_table (user_id, stone_amount, card_draw_count, last_updated)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO ${schemaName}.user_asset_status_table 
+        (user_id, stone_amount, standard_card_draw_count, featured_card_draw_count, last_updated)
+        VALUES (?, ?, ?, ?, ?)
         """
       }
       insertParams <- IO {
         List(
           SqlParameter("String", userID),
           SqlParameter("Int", "0"),  // Initial stone amount is 0
-          SqlParameter("Int", "0"),  // Initial card draw count is 0
+          SqlParameter("Int", "0"),  // Initial standard pool draw count is 0
+          SqlParameter("Int", "0"),  // Initial featured pool draw count is 0
           SqlParameter("DateTime", currentTime.getMillis.toString)
         )
       }
       _ <- IO(logger.info(s"[createInitialAssetRecord] 执行SQL: ${insertSQL}, 参数: ${insertParams}"))
       _ <- writeDB(insertSQL, insertParams)
-      _ <- IO(logger.info(s"[createInitialAssetRecord] 初始资产记录创建成功，用户: ${userID}，初始原石数量: 0，初始抽卡次数: 0"))
+      _ <- IO(logger.info(s"[createInitialAssetRecord] 初始资产记录创建成功，用户: ${userID}，初始原石数量: 0，初始标准池抽卡次数: 0，初始限定池抽卡次数: 0"))
     } yield ()
   }
     def createTransactionRecord(
@@ -168,39 +171,31 @@ case object AssetTransactionProcess {
       }
       _ <- IO(logger.info(s"[modifyAsset] 正在更新用户资产，SQL: ${updateAssetSql}, 参数: ${updateAssetParams}"))
       _ <- writeDB(updateAssetSql, updateAssetParams)
-      _ <- IO(logger.info(s"[modifyAsset] 资产更新成功，用户ID=${userID}, 新资产数量=${newAssetAmount}"))
-
+      _ <- IO(logger.info(s"[modifyAsset] 资产更新成功，用户ID=${userID}, 新资产数量=${newAssetAmount}"))    
     } yield "资产数量更新成功!"
   }
 
-  def updateCardDrawCount(userID: String, drawCount: Int, isIncrement: Boolean = true)(using PlanContext): IO[String] = {
+  def updateCardDrawCount(userID: String, poolType: String, drawCount: Int)(using PlanContext): IO[String] = {
     for {
       // Step 1: Validate input parameters
       _ <- IO {
         if (userID == null || userID.trim.isEmpty)
           throw new IllegalArgumentException("用户ID不能为空或无效")
-        if (isIncrement && drawCount <= 0)
-          throw new IllegalArgumentException("增量抽卡次数必须大于0")
-        if (!isIncrement && drawCount < 0)
+        if (!Set("standard", "featured").contains(poolType))
+          throw new IllegalArgumentException(s"池类型不支持: ${poolType}，只支持 'standard' 或 'featured'")
+        if (drawCount < 0)
           throw new IllegalArgumentException("设定抽卡次数不能小于0")
       }
-      _ <- IO(logger.info(s"[updateCardDrawCount] 输入参数验证成功，userID=${userID}, drawCount=${drawCount}, isIncrement=${isIncrement}"))
+      _ <- IO(logger.info(s"[updateCardDrawCount] 输入参数验证成功，userID=${userID}, poolType=${poolType}, drawCount=${drawCount}"))
 
-      // Step 2: Update card draw count in user_asset_status_table
+      // Step 2: Set card draw count in user_asset_status_table
       updateDrawCountSql <- IO {
-        if (isIncrement) {
-          s"""
-          UPDATE ${schemaName}.user_asset_status_table
-          SET card_draw_count = card_draw_count + ?, last_updated = ?
-          WHERE user_id = ?
-          """
-        } else {
-          s"""
-          UPDATE ${schemaName}.user_asset_status_table
-          SET card_draw_count = ?, last_updated = ?
-          WHERE user_id = ?
-          """
-        }
+        val columnName = if (poolType == "standard") "standard_card_draw_count" else "featured_card_draw_count"
+        s"""
+        UPDATE ${schemaName}.user_asset_status_table
+        SET ${columnName} = ?, last_updated = ?
+        WHERE user_id = ?
+        """
       }
       updateDrawCountParams <- IO {
         List(
@@ -209,26 +204,27 @@ case object AssetTransactionProcess {
           SqlParameter("String", userID)
         )
       }
-      actionType = if (isIncrement) "增加" else "设置"
-      _ <- IO(logger.info(s"[updateCardDrawCount] 正在${actionType}用户抽卡次数，SQL: ${updateDrawCountSql}, 参数: ${updateDrawCountParams}"))
+      _ <- IO(logger.info(s"[updateCardDrawCount] 正在设置用户${poolType}池抽卡次数，SQL: ${updateDrawCountSql}, 参数: ${updateDrawCountParams}"))
       _ <- writeDB(updateDrawCountSql, updateDrawCountParams)
-      _ <- IO(logger.info(s"[updateCardDrawCount] 抽卡次数${actionType}成功，用户ID=${userID}, ${actionType}抽卡次数=${drawCount}"))
+      _ <- IO(logger.info(s"[updateCardDrawCount] ${poolType}池抽卡次数设置成功，用户ID=${userID}, 抽卡次数=${drawCount}"))
 
-    } yield "抽卡次数更新成功!"
+    } yield s"${poolType}池抽卡次数更新成功!"
   }
-
-  def fetchCardDrawCount(userID: String)(using PlanContext): IO[Int] = {
+  def fetchCardDrawCount(userID: String, poolType: String)(using PlanContext): IO[Int] = {
     for {
       // Step 1: Validate input parameter
       _ <- IO {
         if (userID == null || userID.trim.isEmpty)
           throw new IllegalArgumentException("用户ID不能为空或无效")
+        if (!Set("standard", "featured").contains(poolType))
+          throw new IllegalArgumentException(s"池类型不支持: ${poolType}，只支持 'standard' 或 'featured'")
       }
-      _ <- IO(logger.info(s"[fetchCardDrawCount] 开始查询用户抽卡次数，userID='${userID}'"))
+      _ <- IO(logger.info(s"[fetchCardDrawCount] 开始查询用户${poolType}池抽卡次数，userID='${userID}'"))
 
       // Step 2: Query card draw count from database
       querySQL <- IO {
-        s"SELECT card_draw_count FROM ${schemaName}.user_asset_status_table WHERE user_id = ?"
+        val columnName = if (poolType == "standard") "standard_card_draw_count" else "featured_card_draw_count"
+        s"SELECT ${columnName} FROM ${schemaName}.user_asset_status_table WHERE user_id = ?"
       }
       parameters <- IO(List(SqlParameter("String", userID)))
       _ <- IO(logger.info(s"[fetchCardDrawCount] 查询SQL: ${querySQL}，参数: ${parameters}"))
@@ -236,16 +232,17 @@ case object AssetTransactionProcess {
       // Step 3: Execute query and handle result
       result <- readDBJsonOptional(querySQL, parameters).flatMap {
         case Some(json) =>
-          val drawCount = decodeField[Int](json, "card_draw_count")
+          val columnName = if (poolType == "standard") "standard_card_draw_count" else "featured_card_draw_count"
+          val drawCount = decodeField[Int](json, columnName)
           IO {
-            logger.info(s"[fetchCardDrawCount] 查询成功，用户抽卡次数为: ${drawCount}")
+            logger.info(s"[fetchCardDrawCount] 查询成功，用户${poolType}池抽卡次数为: ${drawCount}")
           } >> IO.pure(drawCount)
         case None =>
           // User doesn't have an asset record yet, create one with 0 draw count
           IO(logger.info(s"[fetchCardDrawCount] 用户 ${userID} 暂无资产记录，创建默认记录")) >>
           createInitialAssetRecord(userID).flatMap { _ =>
             IO {
-              logger.info(s"[fetchCardDrawCount] 创建初始资产记录成功，返回默认抽卡次数: 0")
+              logger.info(s"[fetchCardDrawCount] 创建初始资产记录成功，返回默认${poolType}池抽卡次数: 0")
             } >> IO.pure(0)
           }
       }

@@ -20,17 +20,17 @@ import java.util.UUID
 
 /**
  * UpdateCardDrawCountMessage
- * desc: 更新用户的抽卡次数记录
+ * desc: 设置用户在指定卡池的抽卡次数记录
  * @param userToken: String (用户的身份令牌，用于验证用户身份)
- * @param drawCount: Int (抽卡次数数值)
- * @param isIncrement: Boolean (true为增加，false为设置，默认为true)
+ * @param poolType: String (卡池类型，"standard"为标准池，"featured"为限定池)
+ * @param drawCount: Int (要设置的抽卡次数数值)
  * @return result: String (操作结果信息，例如'抽卡次数更新成功！')
  */
 
 case class UpdateCardDrawCountMessage(
   userToken: String,
-  drawCount: Int,
-  isIncrement: Boolean = true
+  poolType: String,
+  drawCount: Int
 ) extends API[String](AssetServiceCode)
 
 case object UpdateCardDrawCountMessage{
