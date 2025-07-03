@@ -1,6 +1,5 @@
 package Impl
 
-
 import Utils.UserAuthenticationProcess.clearOnlineStatus
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
@@ -14,19 +13,6 @@ import io.circe.generic.auto._
 import org.joda.time.DateTime
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Utils.UserAuthenticationProcess.clearOnlineStatus
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class LogoutUserMessagePlanner(
     userToken: String,
@@ -37,37 +23,40 @@ case class LogoutUserMessagePlanner(
   override def plan(using PlanContext): IO[String] = {
     // 主流程
     for {
-      // Step 1: 根据userToken解析并获取userID
-      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 开始获取用户ID，userToken=${userToken}"))
-      userID <- getUserIDFromToken(userToken)
+      // Step 1: 验证userToken（实际上就是userID）
+      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 开始验证userID，userToken=${userToken}"))
+      validatedUserID <- validateUserID(userToken)
 
       // Step 2: 调用clearOnlineStatus方法，将用户的在线状态设为离线
-      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 设置用户离线状态开始，userID=${userID}"))
-      _ <- clearOnlineStatus(userID)
+      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 设置用户离线状态开始，userID=${validatedUserID}"))
+      _ <- clearOnlineStatus(validatedUserID)
 
       // Step 3: 返回操作结果提示
-      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 用户已成功登出，userID=${userID}"))
+      _ <- IO(logger.info(s"[LogoutUserMessagePlanner] 用户已成功登出，userID=${validatedUserID}"))
     } yield "登出成功!"
   }
 
-  // 获取 userID 的方法
-  private def getUserIDFromToken(token: String)(using PlanContext): IO[String] = {
-    val sqlQuery =
-      s"""
-         SELECT user_id
-         FROM ${schemaName}.user_table
-         WHERE token = ?
-       """
+  /**
+   * 验证userToken（就是userID）的有效性
+   */
+  private def validateUserID(userID: String)(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"[LogoutUserMessagePlanner.getUserIDFromToken] 执行SQL查询以根据token获取userID"))
-      resultJson <- readDBJson(
-        sqlQuery,
-        List(SqlParameter("String", token))
+      _ <- IO(logger.info(s"[LogoutUserMessagePlanner.validateUserID] 验证userID: ${userID}"))
+      
+      // 只查询user_id字段来验证存在性
+      userResult <- readDBRows(
+        s"SELECT user_id FROM ${schemaName}.user_table WHERE user_id = ?;",
+        List(SqlParameter("String", userID))
       )
-      userID <- IO(
-        decodeField[String](resultJson, "user_id")
-      )
-      _ <- IO(logger.info(s"[LogoutUserMessagePlanner.getUserIDFromToken] 成功获取到的userID=${userID}"))
-    } yield userID
+      _ <- IO(logger.info(s"userID验证查询结果数量: ${userResult.length}"))
+      
+      validatedUserID <- if (userResult.nonEmpty) {
+        IO(logger.info(s"userID验证成功: ${userID}")) >> IO.pure(userID)
+      } else {
+        val errorMessage = s"无效的userID: ${userID}"
+        IO(logger.error(errorMessage)) >>
+          IO.raiseError(new IllegalArgumentException(errorMessage))
+      }
+    } yield validatedUserID
   }
 }
