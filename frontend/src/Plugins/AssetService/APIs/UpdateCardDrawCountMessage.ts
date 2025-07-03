@@ -9,8 +9,6 @@
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 export class UpdateCardDrawCountMessage extends TongWenMessage {
-    serviceName: string = 'Asset'
-    
     constructor(
         public userToken: string,
         public drawCount: number,

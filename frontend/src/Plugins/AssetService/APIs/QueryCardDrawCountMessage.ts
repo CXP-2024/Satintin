@@ -7,8 +7,6 @@
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 export class QueryCardDrawCountMessage extends TongWenMessage {
-    serviceName: string = 'Asset'
-    
     constructor(
         public userToken: string
     ) {

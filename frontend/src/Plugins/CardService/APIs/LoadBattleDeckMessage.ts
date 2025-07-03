@@ -7,8 +7,6 @@
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
 
 export class LoadBattleDeckMessage extends TongWenMessage {
-    serviceName: string = 'Card'
-    
     constructor(
         public userToken: string
     ) {
