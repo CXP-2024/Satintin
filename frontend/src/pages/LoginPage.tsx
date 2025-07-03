@@ -10,8 +10,7 @@ import {
     getUserInfo,
     getUserToken,
     setUserInfo,
-    setUserToken, useUserInfo,
-    useUserToken
+    setUserToken
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
@@ -207,22 +206,70 @@ const LoginPage: React.FC = () => {
                     console.log('fail admin login');
 
                     new LoginUserMessage(formData.username, formData.password).send(
-                        (Info) => {
-                            const userId = JSON.parse(Info);
+                        (Response) => {
+                            console.log('原始响应:', Response);
+                            
+                            // 简化JSON解析 - 处理双重编码
+                            let Info;
+                            if (typeof Response === 'string') {
+                                Info = JSON.parse(Response);
+                                // 如果解析后仍然是字符串，再解析一次
+                                if (typeof Info === 'string') {
+                                    Info = JSON.parse(Info);
+                                }
+                            } else {
+                                Info = Response;
+                            }
+                            
+                            console.log('解析后的响应:', Info);
+                            
+                            const userId = Info.userID;
+                            const userToken = Info.userToken;
+                    
+                            
+                            // 验证字段是否存在
+                            if (!userId || !userToken) {
+                                setError('登录响应数据不完整');
+                                hideLoading();
+                                return;
+                            }
+                            
+                            // 设置token
+                            setUserToken(userToken);
 
-                            setUserToken(userId) ;
-                            console.log('Token set:',getUserToken() );
-                            console.log('callback message', Info);
 
-                            new GetUserInfoMessage(getUserToken(), userId).send(
+                            // 获取用户信息
+                            new GetUserInfoMessage(userToken, userId).send(
                                 async (userInfo) => {
                                     console.log('User info:', userInfo);
-                                    const userInfoParse = JSON.parse(userInfo);
+                                    
+                                    // 简化用户信息解析
+                                    let userInfoParse;
+                                    if (typeof userInfo === 'string') {
+                                        userInfoParse = JSON.parse(userInfo);
+                                        if (typeof userInfoParse === 'string') {
+                                            userInfoParse = JSON.parse(userInfoParse);
+                                        }
+                                    } else {
+                                        userInfoParse = userInfo;
+                                    }
+                                    
                                     setUserInfo(userInfoParse);
 
-                                    new QueryAssetStatusMessage(getUserToken()).send(
+                                    // 获取原石数量
+                                    new QueryAssetStatusMessage(userToken).send(
                                         (stoneJSON) => {
-                                            const stoneAmount = JSON.parse(stoneJSON);
+                                            // 简化原石数量解析
+                                            let stoneAmount;
+                                            if (typeof stoneJSON === 'string') {
+                                                stoneAmount = JSON.parse(stoneJSON);
+                                                if (typeof stoneAmount === 'string') {
+                                                    stoneAmount = JSON.parse(stoneAmount);
+                                                }
+                                            } else {
+                                                stoneAmount = stoneJSON;
+                                            }
+                                            
                                             console.log('stoneAmount:', stoneAmount);
                                             setUserInfo({
                                                 ...userInfoParse,
@@ -234,13 +281,18 @@ const LoginPage: React.FC = () => {
                                     console.log('User set successfully:', getUserInfo());
                                     await new Promise(resolve => setTimeout(resolve, 5000));
                                     navigateWithTransition('/game');
+                                },
+                                (error: any) => {
+                                    console.error('❌ GetUserInfoMessage失败:', error);
+                                    setError('获取用户信息失败');
+                                    hideLoading();
                                 }
                             )
                         },
                         (error: any) => {
-                            const errorMessage = JSON.parse(error);
+                            const errorMessage = typeof error === 'string' ? JSON.parse(error) : error;
                             setError(errorMessage);
-                            console.log('❌ [注册流程] 完整错误对象:', error);
+                            console.log('❌ [登录流程] 完整错误对象:', error);
                             hideLoading();
                         }
                     );

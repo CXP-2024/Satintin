@@ -88,8 +88,11 @@ object Routes:
       case "LoginUserMessage" =>
         IO(
           decode[LoginUserMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for LoginUserMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
+            case Left(err) => 
+              err.printStackTrace(); 
+              throw new Exception(s"Invalid JSON for LoginUserMessage[${err.getMessage}]")
+            case Right(value) => 
+              value.fullPlan.map(_.asJson.toString)
         ).flatten
        
       case "AcceptFriendRequestMessage" =>

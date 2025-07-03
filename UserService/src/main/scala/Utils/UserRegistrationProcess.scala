@@ -58,7 +58,7 @@ case object UserRegistrationProcess {
           rankPosition = userInput.rankPosition,
           friendList = userInput.friendList,
           blackList = userInput.blackList,
-          messageBox = userInput.messageBox
+          messageBox = userInput.messageBox,
         )
       }
       _ <- IO(logger.info(s"[Step 2.2] 将用户输入映射为User记录：userRecord=${userRecord}"))
@@ -68,8 +68,8 @@ case object UserRegistrationProcess {
       writeResult <- writeDB(
         s"""
         INSERT INTO ${schemaName}.user_table
-        (user_id, username, password_hash, email, phone_number, register_time, permission_level, ban_days, is_online, match_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (user_id, username, password_hash, email, phone_number, register_time, permission_level, ban_days, is_online, match_status, usertoken)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """.stripMargin,
         List(
           SqlParameter("String", userRecord.userID),
@@ -81,7 +81,8 @@ case object UserRegistrationProcess {
           SqlParameter("Int", userRecord.permissionLevel.toString),
           SqlParameter("Int", userRecord.banDays.toString),
           SqlParameter("Boolean", userRecord.isOnline.toString),
-          SqlParameter("String", userRecord.matchStatus)
+          SqlParameter("String", userRecord.matchStatus),
+          SqlParameter("String", "") // 直接设置为空字符串，不再从userInput.usertoken获取
         )
       )
       _ <- IO(logger.info(s"[Step 2.3] 用户信息写入数据库成功：writeResult=${writeResult}"))
