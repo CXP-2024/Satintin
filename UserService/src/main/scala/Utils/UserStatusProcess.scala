@@ -1,11 +1,11 @@
 package Utils
 
 //process plan import 预留标志位，不要删除
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.syntax.*
+import io.circe.generic.auto.*
 import org.joda.time.DateTime
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.ServiceUtils.schemaName
 import org.slf4j.LoggerFactory
 import Objects.UserService.{BlackEntry, FriendEntry, MessageEntry, User}
@@ -17,13 +17,15 @@ import io.circe.syntax.*
 import io.circe.generic.auto.*
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Objects.UserService.MessageEntry
 import Objects.UserService.User
 import Objects.UserService.BlackEntry
 import Objects.UserService.FriendEntry
-import Common.API.{PlanContext}
-import Common.Object.{SqlParameter, ParameterList}
+import Common.API.PlanContext
+import Common.Object.{ParameterList, SqlParameter}
+
+import scala.util.Properties.userName
 
 case object UserStatusProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -110,16 +112,16 @@ case object UserStatusProcess {
   
               // Step 4: 封装并返回 User 实例
               user = User(
-                userID = userBase.userID,
-                userName = userBase.userName,
-                passwordHash = userBase.passwordHash,
-                email = userBase.email,
-                phoneNumber = userBase.phoneNumber,
-                registerTime = userBase.registerTime,
-                permissionLevel = userBase.permissionLevel,
-                banDays = userBase.banDays,
-                isOnline = userBase.isOnline,
-                matchStatus = userBase.matchStatus,
+                userID = userID,
+                userName = userBase.userName, // 使用userBase.userName
+                passwordHash = userBase.passwordHash, // 使用userBase.passwordHash
+                email = userBase.email, // 使用userBase.email
+                phoneNumber = userBase.phoneNumber, // 使用userBase.phoneNumber
+                registerTime = userBase.registerTime, // 使用userBase.registerTime
+                permissionLevel = userBase.permissionLevel, // 使用userBase.permissionLevel
+                banDays = userBase.banDays, // 使用userBase.banDays
+                isOnline = userBase.isOnline, // 使用userBase.isOnline
+                matchStatus = userBase.matchStatus, // 使用userBase.matchStatus
                 stoneAmount = stoneAmount,
                 cardDrawCount = cardDrawCount,
                 rank = rank,

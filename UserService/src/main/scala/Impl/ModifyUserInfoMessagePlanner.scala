@@ -32,6 +32,7 @@ import io.circe.syntax._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Objects.UserService.FriendEntry
+import Utils.UserTokenValidator
 
 case class ModifyUserInfoMessagePlanner(
     userToken: String,
@@ -44,19 +45,21 @@ case class ModifyUserInfoMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"开始修改用户信息，用户ID为: ${userID}, keys: ${keys}, values: ${values}"))
-
       // Step 1: 校验输入参数的长度和一致性
+      _ <- IO(logger.info(s"[Step 1] 校验输入参数"))
       _ <- validateInputParameters(keys, values)
 
-      // Step 2: 验证用户Token的合法性
-      user <- validateUserToken(userToken, userID)
+      // Step 2: 验证userToken并获取真实的userID
+      _ <- IO(logger.info(s"[Step 2] 验证用户Token: ${userToken}"))
+      actualUserID <- UserTokenValidator.getUserIDFromToken(userToken)
+      _ <- IO(logger.info(s"[Step 2] userToken验证成功，实际userID: ${actualUserID}"))
 
-      // Step 3: 更新用户信息
-      _ <- updateUserInfo(userID, keys, values)
+      // Step 3: 使用真实的userID更新用户信息（忽略传入的userID参数）
+      _ <- IO(logger.info(s"[Step 3] 更新用户信息，userID: ${actualUserID}"))
+      _ <- updateUserInfo(actualUserID, keys, values)
 
-      // Step 4: 返回操作结果
-      _ <- IO(logger.info(s"用户ID: ${userID} 信息修改成功！"))
+      // Step 4: 返回成功提示
+      _ <- IO(logger.info(s"用户ID: ${actualUserID} 信息修改成功！"))
     } yield "修改成功！"
   }
 
@@ -71,30 +74,8 @@ case class ModifyUserInfoMessagePlanner(
     }
   }
 
-  // --- Step 2: 验证用户Token的合法性 ---
-  private def validateUserToken(userToken: String, userID: String)(using PlanContext): IO[User] = {
-    for {
-      authResultOpt <- authenticateUser(userToken, userToken) // 假设userToken也是用户名
-      user <- authResultOpt match {
-        case Some(authenticatedUser) if authenticatedUser.permissionLevel > 0 || authenticatedUser.userID == userID =>
-          IO {
-            logger.info(s"用户Token验证成功，权限Level: ${authenticatedUser.permissionLevel}")
-            authenticatedUser
-          }
-        case Some(_) =>
-          val errorMsg = "当前用户没有修改指定用户信息的权限"
-          logger.error(errorMsg)
-          IO.raiseError(new IllegalAccessException(errorMsg))
-        case None =>
-          val errorMsg = "用户Token验证失败"
-          logger.error(errorMsg)
-          IO.raiseError(new IllegalArgumentException(errorMsg))
-      }
-    } yield user
-  }
-
   // --- Step 3: 更新用户信息 ---
-  private def updateUserInfo(userID: String, keys: List[String], values: List[String])(using PlanContext): IO[Unit] = {
+  private def updateUserInfo(actualUserID: String, keys: List[String], values: List[String])(using PlanContext): IO[Unit] = {
     val allowedFields = Set(
       "email",
       "username",
@@ -123,10 +104,10 @@ case class ModifyUserInfoMessagePlanner(
 
       for {
         _ <- IO(logger.info(s"执行更新SQL，SQL语句: ${sqlQuery}, 参数: ${updateValues.map(_.value).mkString(", ")}"))
-        dbResult <- writeDB(sqlQuery, updateValues :+ SqlParameter("String", userID))
+        dbResult <- writeDB(sqlQuery, updateValues :+ SqlParameter("String", actualUserID))
         _ <- IO {
           if (dbResult == "Operation(s) done successfully") {
-            logger.info(s"用户ID: ${userID} 的信息更新成功")
+            logger.info(s"用户ID: ${actualUserID} 的信息更新成功")
           } else {
             val errorMsg = s"更新操作未成功，返回信息: ${dbResult}"
             logger.error(errorMsg)

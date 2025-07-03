@@ -386,6 +386,46 @@
 	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
 }
 
+.add-friend-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* 添加好友输入区域 */
+.add-friend-section {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.add-friend-section input {
+	background: rgba(255, 255, 255, 0.15);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	border-radius: 10px;
+	padding: 8px 12px;
+	color: white;
+	font-size: 0.9rem;
+	min-width: 200px;
+	transition: all 0.3s ease;
+}
+
+.add-friend-section input:focus {
+	outline: none;
+	border-color: #4facfe;
+	background: rgba(255, 255, 255, 0.2);
+	box-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+}
+
+.add-friend-section input:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.add-friend-section input::placeholder {
+	color: rgba(255, 255, 255, 0.7);
+}
+
 .list-container {
 	/* 不设置max-height和overflow，让父容器profile-content统一处理滚动 */
 	padding: 0;
@@ -535,6 +575,22 @@
 .friend-action-btn.remove:hover {
 	background: rgba(244, 67, 54, 1);
 	transform: scale(1.1);
+}
+
+.friend-action-btn.block {
+	background: rgba(156, 39, 176, 0.8);
+	color: white;
+}
+
+.friend-action-btn.block:hover {
+	background: rgba(156, 39, 176, 1);
+	transform: scale(1.1);
+}
+
+.friend-action-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	transform: none;
 }
 
 /* 黑名单列表项 */

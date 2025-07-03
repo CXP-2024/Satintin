@@ -188,12 +188,17 @@ const AdminDashboardPage: React.FC = () => {
   }, [user]);
 
   const handleLogout = () => {
-    console.log('🚪 [AdminDashboard] 管理员退出登录');
+    console.log('🚪 [AdminDashboard] 管理员手动退出登录');
     playClickSound();
-    // 清除所有认证信息
+    
+    // 清除管理员特定的token
     localStorage.removeItem('adminToken');
+    
+    // 清除本地状态
     clearUserInfo();
     initUserToken();
+    
+    // 立即导航到登录页
     navigateWithTransition('/login');
   };
 

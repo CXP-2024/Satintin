@@ -7,8 +7,16 @@ import './GameHomePage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {clearUserInfo, useUserInfo, initUserToken, getUserInfo, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
-import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
+import {
+	clearUserInfo,
+	useUserInfo,
+	initUserToken,
+	getUserInfo,
+	useUserToken,
+	getUserToken
+} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {GetPlayerCardsMessage} from "Plugins/CardService/APIs/GetPlayerCardsMessage";
+import { autoLogoutManager } from '../utils/autoLogout';
 
 const GameHomePage: React.FC = () => {
 	const user = useUserInfo();
@@ -16,10 +24,23 @@ const GameHomePage: React.FC = () => {
 	const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
 	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
 	function logout() {
-		console.log('🚪 [AuthStore] 用户退出登录');
+		console.log('🚪 [GameHomePage] 手动退出登录');
+		playClickSound();
+		
+		// 获取当前token并传递给autoLogoutManager
+		const currentUserToken = getUserToken();
+		
+		// 先清除本地状态
 		clearUserInfo();
 		initUserToken();
-		console.log('✅ [AuthStore] 用户状态已清除')
+		
+		// 使用保存的token执行服务器logout
+		if (currentUserToken) {
+			autoLogoutManager.manualLogout('普通用户手动退出登录', currentUserToken).catch(console.error);
+		}
+		
+		// 立即导航到登录页
+		navigateWithTransition('/login');
 	}
 	const { navigateWithTransition } = usePageTransition();
 	const [showUserProfile, setShowUserProfile] = useState(false);

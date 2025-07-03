@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.{API, PlanContext, TraceID}
@@ -53,6 +52,7 @@ object Init {
        * ban_days: 封禁天数
        * is_online: 用户是否在线
        * match_status: 用户当前的对战状态
+       * usertoken: 用户登录令牌
        */
       _ <- writeDB(
         s"""
@@ -66,7 +66,8 @@ object Init {
             permission_level INT NOT NULL,
             ban_days INT NOT NULL DEFAULT 0,
             is_online BOOLEAN NOT NULL DEFAULT false,
-            match_status TEXT
+            match_status TEXT,
+            usertoken TEXT
         );
          
         """,
@@ -118,4 +119,3 @@ object Init {
     })
   }
 }
-    
