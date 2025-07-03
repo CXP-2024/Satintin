@@ -20,29 +20,30 @@ case class LoginUserMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[String] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
-
   override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: 使用Utils中的验证用户名和密码函数
       _ <- IO(logger.info(s"开始验证用户登录，username=${username}"))
-      userInfo <- UserAuthenticationProcess.validateUserCredentials(username, passwordHash)
+      userOpt <- UserAuthenticationProcess.authenticateUser(username, passwordHash)
+      
+      user <- userOpt match {
+        case Some(user) => IO.pure(user)
+        case None => 
+          IO(logger.warn(s"用户登录失败，username=${username}")) >>
+          IO.raiseError(new RuntimeException("用户名或密码错误"))
+      }
       
       // Step 2: 生成usertoken
       usertoken <- IO(UUID.randomUUID().toString)
       _ <- IO(logger.info(s"生成usertoken: ${usertoken}"))
       
       // Step 3: 使用Utils中的更新用户在线状态函数
-      _ <- UserAuthenticationProcess.updateUserOnlineStatus(userInfo._1, usertoken)
+      _ <- UserAuthenticationProcess.setOnlineStatus(user.userID, true)
+      _ <- IO(logger.info(s"用户${user.userID}在线状态已更新"))
       
-      // Step 4: 返回结果
-      loginResult = Json.obj(
-        "userID" -> Json.fromString(userInfo._1),
-        "userToken" -> Json.fromString(usertoken),
-        "message" -> Json.fromString("登录成功")
-      ).noSpaces
+      // Step 4: 返回用户ID作为token（这里直接返回userID作为token）
+      _ <- IO(logger.info(s"登录成功，返回userID作为token: ${user.userID}"))
       
-      _ <- IO(logger.info(s"登录成功，返回结果: ${loginResult}"))
-      
-    } yield loginResult
+    } yield user.userID
   }
 }
