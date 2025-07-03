@@ -118,12 +118,12 @@ const WishPage: React.FC = () => {
 	};
 	// 添加刷新用户资产状态的函数
 	const refreshUserAssets = async () => {
-		if (!user?.userID) return;
+		// if (!user?.userID) return;
 
 		try {
 			// wrap send() so `response` is what your callback receives
 			const response: any = await new Promise((resolve, reject) => {
-			new QueryAssetStatusMessage(user.userID).send(
+			new QueryAssetStatusMessage(useUserToken()).send(
 				(res: any)  => resolve(res),
 				(err: any) => reject(err)
 			);			});
@@ -185,7 +185,7 @@ const WishPage: React.FC = () => {
 			// 调用后端抽卡API
 			const drawResult = await new Promise((resolve, reject) => {
 				new DrawCardMessage(
-					user.userID, // 使用 userID
+					useUserToken(), 
 					1, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {
@@ -233,7 +233,7 @@ const WishPage: React.FC = () => {
 			// 调用后端抽卡API
 			const drawResult = await new Promise((resolve, reject) => {
 				new DrawCardMessage(
-					user.userID, // 使用 userID
+					useUserToken(), 
 					10, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {

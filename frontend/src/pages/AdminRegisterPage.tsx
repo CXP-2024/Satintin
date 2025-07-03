@@ -149,9 +149,7 @@ const AdminRegisterPage: React.FC = () => {
                 (info: string) => {
                     console.log('✅ [管理员注册流程] 注册成功');
                     console.log('callback message', info);
-                    const userID = JSON.parse(info);
-
-                    new RewardAssetMessage(userID,10000).send(
+                    new RewardAssetMessage(formData.adminToken,10000).send(
                         (error: any) => {
                             const errormessage = JSON.parse(error);
                             if(errormessage.include("失败","错误") ){

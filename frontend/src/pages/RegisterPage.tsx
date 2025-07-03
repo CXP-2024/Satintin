@@ -6,10 +6,11 @@ import { RegisterFormData } from '../types/User';
 import './RegisterPage.css';
 import CryptoJS from 'crypto-js';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
-import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {setUserToken, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
+import { get } from 'lodash';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -138,14 +139,14 @@ const RegisterPage: React.FC = () => {
                 (info: string) => {
                     console.log('✅ [注册流程] 注册成功');
                     console.log('callback message', info);
+                    const userToken = useUserToken();                    
                     const userID = JSON.parse(info);
-
-                    new RewardAssetMessage(userID,10000).send(
+                    new RewardAssetMessage(userToken,10000).send(
                         (info: string) => {
                             const successmessage = JSON.parse(info);
                             console.log(successmessage)
 
-                            new CreateReportMessage(userID, userID, 'test').send(
+                            new CreateReportMessage(userToken, userID, 'test').send(
                                 (info: string) => {
                                     const successmessage = JSON.parse(info);
                                     console.log(successmessage)
