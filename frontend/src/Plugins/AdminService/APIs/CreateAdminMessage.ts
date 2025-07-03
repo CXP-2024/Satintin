@@ -7,6 +7,7 @@
  * @return newAdminID: String 新管理员 ID
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class CreateAdminMessage extends TongWenMessage {
     constructor(
@@ -18,6 +19,6 @@ export class CreateAdminMessage extends TongWenMessage {
     }
 
     getAddress(): string {
-        return '127.0.0.1:10013'
+        return ServiceConfig.getAdminServiceAddress()
     }
 }

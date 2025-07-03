@@ -6,6 +6,7 @@
  * @return result: String (解封操作的结果信息，固定为'用户解封成功！')
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -17,7 +18,7 @@ export class UnbanUserMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServiceConfig.getAdminServiceAddress()
     }
 }
 

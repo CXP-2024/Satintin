@@ -5,6 +5,7 @@
  * @return roomID: String (生成的对战房间ID。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -15,7 +16,7 @@ export class CreateBattleRoomMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10014"
+        return ServiceConfig.getBattleServiceAddress()
     }
 }
 

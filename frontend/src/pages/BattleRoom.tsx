@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBattleStore } from '../store/battleStore';
-import { webSocketService, GameState } from '../services/WebSocketService';
+import { webSocketService, GameState, GameOverResult } from '../services/WebSocketService';
 import { battleTestSimulator } from '../services/BattleTestSimulator';
 import PageTransition from '../components/PageTransition';
 import GameBoard from '../components/GameBoard';
@@ -11,7 +11,7 @@ import { GameOverModal } from '../components/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserToken, useUserInfo, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { getUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
@@ -34,6 +34,7 @@ const BattleRoom: React.FC = () => {
 		addRoundResult,
 		showRoundResultModal,
 		hideRoundResultModal,
+		showGameOverModal,
 		hideGameOverModal,
 		resetBattle
 	} = useBattleStore();
@@ -89,63 +90,102 @@ const BattleRoom: React.FC = () => {
 
 		// 清理函数
 		return () => {
-			console.log('🔌 [BattleRoom] useEffect return 清理WebSocket连接, 暂时无需断开连接');
-			// 停止测试模式, // 如果有必要的话
-			// battleTestSimulator.stopTestMode();
+			console.log('🔌 [BattleRoom] useEffect return 清理WebSocket连接');
+			// 清理所有事件监听器
+			webSocketService.off('game_state', handleGameStateUpdate);
+			webSocketService.off('round_result', handleRoundResult);
+			webSocketService.off('game_over', handleGameOver);
+			webSocketService.off('player_joined', handlePlayerJoined);
+			webSocketService.off('player_left', handlePlayerLeft);
+			webSocketService.off('error', handleWebSocketError);
+			webSocketService.off('connection_failed', handleConnectionFailed);
 		};
-	}, [user]);
+	}, [user, setRoomId, setConnectionStatus]);
+
+	// 游戏状态更新处理器
+	const handleGameStateUpdate = (gameState: GameState) => {
+		console.log('🎮 [BattleRoom] 收到游戏状态更新:', gameState);
+		setGameState(gameState);
+		// 更新房间状态 - 基于游戏状态判断
+		updateRoomStatusFromGameState(gameState);
+	};
+
+	// 回合结果处理器
+	const handleRoundResult = (result: any) => {
+		console.log('🎮 [BattleRoom] 收到回合结果:', result);
+		addRoundResult(result);
+		showRoundResultModal(result);
+	};
+
+	// 游戏结束处理器
+	const handleGameOver = (result: GameOverResult) => {
+		console.log('🎮 [BattleRoom] 游戏结束:', result);
+		// 显示游戏结束弹窗
+		showGameOverModal(result);
+	};
+
+	// 玩家加入处理器
+	const handlePlayerJoined = (data: any) => {
+		console.log('🎮 [BattleRoom] 玩家加入:', data);
+		console.log('🎮 [BattleRoom] 等待后端发送更新的 game_state...');
+		// 前端不做任何状态推断，完全依赖后端发送的 game_state
+	};
+
+	// 玩家离开处理器
+	const handlePlayerLeft = (data: any) => {
+		console.log('🎮 [BattleRoom] 玩家离开:', data);
+		setRoomStatus('waiting');
+	};
+
+	// WebSocket错误处理器
+	const handleWebSocketError = (error: any) => {
+		console.error('❌ [BattleRoom] WebSocket错误:', error);
+		setConnectionStatus(false, error.message);
+	};
+
+	// 连接失败处理器
+	const handleConnectionFailed = () => {
+		console.error('❌ [BattleRoom] 连接失败');
+		setConnectionStatus(false, '连接断开，正在重试...');
+	};
 
 	// 设置WebSocket事件监听器
 	const setupWebSocketListeners = () => {
-		// 游戏状态更新
-		webSocketService.on('game_state', (gameState) => {
-			console.log('🎮 [BattleRoom] 收到游戏状态更新:', gameState);
-			setGameState(gameState);
+		// 清理可能存在的旧监听器
+		webSocketService.off('game_state', handleGameStateUpdate);
+		webSocketService.off('round_result', handleRoundResult);
+		webSocketService.off('game_over', handleGameOver);
+		webSocketService.off('player_joined', handlePlayerJoined);
+		webSocketService.off('player_left', handlePlayerLeft);
+		webSocketService.off('error', handleWebSocketError);
+		webSocketService.off('connection_failed', handleConnectionFailed);
 
-			// 更新房间状态
-			if (gameState.roundPhase === 'waiting') {
-				setRoomStatus('waiting');
-			} else if (gameState.roundPhase === 'action') {
-				setRoomStatus('playing');
-			}
-		});
+		// 注册新的监听器
+		webSocketService.on('game_state', handleGameStateUpdate);
+		webSocketService.on('round_result', handleRoundResult);
+		webSocketService.on('game_over', handleGameOver);
+		webSocketService.on('player_joined', handlePlayerJoined);
+		webSocketService.on('player_left', handlePlayerLeft);
+		webSocketService.on('error', handleWebSocketError);
+		webSocketService.on('connection_failed', handleConnectionFailed);
+	};
 
-		// 回合结果
-		webSocketService.on('round_result', (result) => {
-			console.log('🎮 [BattleRoom] 收到回合结果:', result);
-			addRoundResult(result);
-			showRoundResultModal(result);
-		});
+	// 根据游戏状态更新房间状态
+	const updateRoomStatusFromGameState = (gameState: GameState) => {
+		const bothPlayersConnected = gameState.player1.isConnected &&
+			gameState.player2.isConnected &&
+			gameState.player1.playerId !== '' &&
+			gameState.player2.playerId !== '';
 
-		// 游戏结束
-		webSocketService.on('game_over', (result) => {
-			console.log('🎮 [BattleRoom] 游戏结束:', result);
-			// TODO: 显示游戏结束界面
-		});
-
-		// 玩家加入
-		webSocketService.on('player_joined', (data) => {
-			console.log('🎮 [BattleRoom] 玩家加入:', data);
+		if (gameState.roundPhase === 'action') {
+			setRoomStatus('playing');
+		} else if (bothPlayersConnected) {
 			setRoomStatus('ready');
-		});
-
-		// 玩家离开
-		webSocketService.on('player_left', (data) => {
-			console.log('🎮 [BattleRoom] 玩家离开:', data);
+			console.log('🎮 [BattleRoom] 两个玩家都已连接，房间状态设为ready');
+		} else {
 			setRoomStatus('waiting');
-		});
-
-		// 错误处理
-		webSocketService.on('error', (error) => {
-			console.error('❌ [BattleRoom] WebSocket错误:', error);
-			setConnectionStatus(false, error.message);
-		});
-
-		// 连接失败
-		webSocketService.on('connection_failed', () => {
-			console.error('❌ [BattleRoom] 连接失败');
-			setConnectionStatus(false, '连接断开，正在重试...');
-		});
+			console.log('🎮 [BattleRoom] 等待更多玩家，房间状态设为waiting');
+		}
 	};
 
 	// 重新开始测试游戏
@@ -284,7 +324,40 @@ const BattleRoom: React.FC = () => {
 						</div>
 					)}
 
-					{(roomStatus === 'ready' || roomStatus === 'playing') && gameState && (
+					{roomStatus === 'ready' && gameState && (
+						<div className="ready-area">
+							<div className="ready-message">
+								<h2>对手已就位！</h2>
+								<div className="players-info">
+									<div className="player-card">
+										<h3>{currentPlayer?.username || '你'}</h3>
+										<p>{currentPlayer?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+									</div>
+									<div className="vs-divider">VS</div>
+									<div className="player-card">
+										<h3>{opponent?.username || '对手'}</h3>
+										<p>{opponent?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+									</div>
+								</div>
+								{!currentPlayer?.isReady && (
+									<button
+										className="ready-btn"
+										onClick={handleReady}
+									>
+										🎮 准备战斗
+									</button>
+								)}
+								{currentPlayer?.isReady && !opponent?.isReady && (
+									<p className="waiting-text">等待对手准备...</p>
+								)}
+								{currentPlayer?.isReady && opponent?.isReady && (
+									<p className="starting-text">🎉 开始战斗！</p>
+								)}
+							</div>
+						</div>
+					)}
+
+					{roomStatus === 'playing' && gameState && (
 						<>
 							{/* 游戏界面 */}
 							<GameBoard

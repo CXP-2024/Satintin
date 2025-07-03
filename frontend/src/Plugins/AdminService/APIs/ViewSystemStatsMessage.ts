@@ -5,6 +5,7 @@
  * @return systemStats: SystemStats:1039 (系统统计数据，包括活跃用户数、对战次数、抽卡次数、举报总数等。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -15,7 +16,7 @@ export class ViewSystemStatsMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServiceConfig.getAdminServiceAddress()
     }
 }
 

@@ -69,11 +69,11 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 		const timer1 = setTimeout(() => {
 			setAnimationPhase('effects');
 			setShowEffects(true);
-		}, 1500);
+		}, 600);
 
 		const timer2 = setTimeout(() => {
 			setAnimationPhase('results');
-		}, 3000);
+		}, 1200);
 
 		return () => {
 			clearTimeout(timer1);
@@ -206,6 +206,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 											⚡ {playerData.current.result.energyChange > 0 ? '+' : ''}{playerData.current.result.energyChange}
 										</div>
 									)}
+									{playerData.current.result.healthChange === 0 && playerData.current.result.energyChange === 0 && (
+										<div className="stat-change no-change">❤️ ⚡ No change</div>
+									)}
 								</div>
 							</div>
 
@@ -221,6 +224,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 										<div className={`stat-change energy ${playerData.opponent.result.energyChange > 0 ? 'positive' : 'negative'}`}>
 											⚡ {playerData.opponent.result.energyChange > 0 ? '+' : ''}{playerData.opponent.result.energyChange}
 										</div>
+									)}
+									{playerData.opponent.result.healthChange === 0 && playerData.opponent.result.energyChange === 0 && (
+										<div className="stat-change no-change">❤️ ⚡ No change</div>
 									)}
 								</div>
 							</div>

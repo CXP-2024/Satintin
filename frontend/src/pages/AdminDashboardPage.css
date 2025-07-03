@@ -511,18 +511,6 @@
   animation: fadeOut 0.3s ease-in forwards;
 }
 
-.modal-container {
-  background-color: white;
-  border-radius: 16px; /* 四边都是圆角 */
-  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
-  width: 90%;
-  max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
-  transform: translateY(0);
-  animation: zoomIn 0.3s ease-out;
-  position: relative; /* 为关闭按钮定位做准备 */
-}
 
 .modal-overlay.closing .modal-container {
   animation: zoomOut 0.3s ease-in forwards;
@@ -646,9 +634,6 @@
   transform: rotate(90deg);
 }
 
-.modal-content {
-  padding: 20px;
-}
 
 /* 分页控件样式 */
 .pagination {

@@ -8,6 +8,7 @@
  * @return result: String (接口返回的操作结果信息，例如“修改成功！”)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -21,7 +22,7 @@ export class ModifyUserInfoMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getUserServiceAddress()
     }
 }
 

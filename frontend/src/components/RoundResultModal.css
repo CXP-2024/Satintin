@@ -23,7 +23,7 @@
 	max-width: 700px;
 	width: 90%;
 	color: white;
-	animation: modalSlideIn 0.5s ease-out;
+
 	max-height: 80vh;
 	overflow-y: auto;
 }
@@ -35,11 +35,28 @@
 	padding-bottom: 20px;
 }
 
+.modal-content {
+	padding: 20px;
+}
+
 .modal-header h2 {
 	margin: 0;
 	font-size: 2rem;
 	font-weight: 600;
 	color: white;
+}
+
+.modal-container {
+	background-color: white;
+	border-radius: 16px; /* 四边都是圆角 */
+	box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+	width: 90%;
+	max-width: 600px;
+	max-height: 80vh;
+	overflow-y: auto;
+	transform: translateY(0);
+	animation: zoomIn 0.3s ease-out;
+	position: relative; /* 为关闭按钮定位做准备 */
 }
 
 /* 行动展示区域 */

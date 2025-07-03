@@ -49,7 +49,9 @@ case class PlayerState(
   rank: String,
   cards: List[CardState],
   isReady: Boolean = false,
-  isConnected: Boolean = true
+  isConnected: Boolean = true,  // 是否在线
+  remainingTime: Int = 30, // 剩余时间（秒）, 默认30秒, 采取行动之后时间暂停
+  hasActed: Boolean = false, // 是否已经采取行动
 )
 
 object PlayerState {
@@ -63,10 +65,9 @@ object PlayerState {
 case class GameState(
   roomId: String,
   player1: PlayerState,
-  player2: PlayerState,
+  player2: PlayerState, // add remaining time for each player
   currentRound: Int,
   roundPhase: String,  // "waiting", "action", "result", "finished"
-  remainingTime: Int,
   winner: Option[String] = None
 )
 

@@ -5,6 +5,7 @@
  * @return battleDeck: string[] (用户配置的战斗卡组，包含cardID列表)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class LoadBattleDeckMessage extends TongWenMessage {
     serviceName: string = 'Card'
@@ -15,6 +16,6 @@ export class LoadBattleDeckMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }

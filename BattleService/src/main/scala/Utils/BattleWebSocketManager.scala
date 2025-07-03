@@ -16,6 +16,8 @@ import APIs.UserService.GetUserInfoMessage
 import org.joda.time.DateTime
 import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration.*
+import Common.DBAPI.{readDBJsonOptional, decodeField, decodeType}
+import Common.Object.SqlParameter
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -35,12 +37,17 @@ class BattleWebSocketManager(roomId: String) {
   // Current game state
   private var gameState: Option[GameState] = None
 
+  def updateGameState(newState: GameState): Unit = {
+    logger.info(s"Updating game state for room $roomId: $newState")
+    gameState = Some(newState)
+  }
+
   /**
    * Get username from UserService by playerId
    */
   private def getUsernameByPlayerId(playerId: String): IO[String] = {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
-    
+    logger.info(s"Start Fetching username for player $playerId")
     GetUserInfoMessage(playerId, playerId).send.map { user =>
       user.userName
     }.handleErrorWith { error =>
@@ -52,35 +59,43 @@ class BattleWebSocketManager(roomId: String) {
   /**
    * Add a new WebSocket connection for a player
    */
-  def addConnection(playerId: String, queue: Queue[IO, WebSocketFrame]): IO[Unit] = IO {
-    logger.info(s"Adding connection for player $playerId in room $roomId")
-    connections.put(playerId, queue)
+  def addConnection(playerId: String, queue: Queue[IO, WebSocketFrame]): IO[Unit] = {
+    for {
+      _ <- IO(logger.info(s"Adding connection for player $playerId in room $roomId"))
+      _ <- IO(connections.put(playerId, queue))
 
-    // Initialize player state if needed
-    if (!gameState.exists(_.player1.playerId == playerId) && 
-        !gameState.exists(_.player2.playerId == playerId)) {
-      initializePlayerInGameState(playerId)
-    }
-  }.flatMap { _ =>
-    // Send current game state if available after a small delay to ensure connection is ready
-    IO.sleep(100.milliseconds) >> IO {
-      gameState.foreach { state =>
-        sendToPlayer(playerId, WebSocketMessage("game_state", state.asJson))
+      // Initialize player state if needed
+      _ <- if (!gameState.exists(_.player1.playerId == playerId) && 
+               !gameState.exists(_.player2.playerId == playerId)) {
+        IO(logger.info(s"Initializing player $playerId in game state for room $roomId")) >>
+        initializePlayerInGameStateIO(playerId) >>
+        IO(logger.info(s"Finished Player $playerId initialized in game state for room $roomId"))
+      } else {
+        IO.unit
       }
-    } >> {
+
+      // Send current game state if available after a small delay to ensure connection is ready
+      _ <- IO.sleep(100.milliseconds)
+      _ <- IO {
+        gameState.foreach { state =>
+          sendToPlayer(playerId, WebSocketMessage("game_state", state.asJson))
+          logger.info(s"Sent current game state to player $playerId in room $roomId")
+        }
+      }
+
       // Get username from UserService and notify other players that this player joined
-      getUsernameByPlayerId(playerId).flatMap { username =>
-        val playerJoinedMessage = WebSocketMessage(
-          "player_joined", 
-          Json.obj(
-            "playerId" -> Json.fromString(playerId),
-            "username" -> Json.fromString(username)
-          )
+      username <- getUsernameByPlayerId(playerId)
+      playerJoinedMessage = WebSocketMessage(
+        "player_joined", 
+        Json.obj(
+          "playerId" -> Json.fromString(playerId),
+          "username" -> Json.fromString(username)
         )
-        IO(broadcastExcept(playerJoinedMessage, playerId))
-        IO(logger.info("end of addConnection"))
-      }
-    }
+      )
+      _ <- IO(logger.info(s"In addConnection, start broadcastExcept"))
+      _ <- IO(broadcastExcept(playerJoinedMessage, playerId))
+      _ <- IO(logger.info("In addConnection, broadcastExcept finished"))
+    } yield ()
   }
 
   /**
@@ -119,6 +134,14 @@ class BattleWebSocketManager(roomId: String) {
   def recordPlayerAction(playerId: String, action: BattleAction): IO[Unit] = IO {
     logger.info(s"Recording action for player $playerId in room $roomId: $action")
     currentActions.put(playerId, action)
+    // the remaining time is paused when a player takes action
+    gameState.foreach { state =>
+      if (state.player1.playerId == playerId) {
+        gameState = Some(state.copy(player1 = state.player1.copy(hasActed = true)))
+      } else if (state.player2.playerId == playerId) {
+        gameState = Some(state.copy(player2 = state.player2.copy(hasActed = true)))
+      }
+    }
   }
 
   /**
@@ -192,6 +215,9 @@ class BattleWebSocketManager(roomId: String) {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
 
     for {
+      // Save current state before processing
+      stateBeforeBattle <- IO(gameState)
+      
       // Process actions using PlayerActionProcess
       result <- PlayerActionProcess.processSimultaneousActions(
         roomId,
@@ -202,8 +228,8 @@ class BattleWebSocketManager(roomId: String) {
       // Update game state
       _ <- updateGameStateAfterAction(result)
 
-      // Create round result message
-      roundResult = createRoundResult(action1, action2, result)
+      // Create round result message based on actual state changes
+      roundResult <- createRoundResultFromStateChanges(action1, action2, stateBeforeBattle)
 
       // Broadcast round result
       _ <- IO(broadcast(WebSocketMessage("round_result", roundResult.asJson)))
@@ -217,83 +243,169 @@ class BattleWebSocketManager(roomId: String) {
    * Update game state after processing actions
    */
   private def updateGameStateAfterAction(result: String): IO[Unit] = {
-    // Parse result and update game state
-    // In a real implementation, this would parse the result string and update the game state
-    // For now, we'll just increment the round number
-    gameState.foreach { state =>
-      val updatedState = state.copy(
-        currentRound = state.currentRound + 1,
-        roundPhase = "waiting"
+    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
+    
+    // Get updated player status from database after battle processing
+    for {
+      battleStateOpt <- readDBJsonOptional(
+        s"""
+        SELECT current_round, player_one_status, player_two_status
+        FROM ${Common.ServiceUtils.schemaName}.battle_state_table
+        WHERE room_id = ?
+        """,
+        List(Common.Object.SqlParameter("String", roomId))
       )
-      gameState = Some(updatedState)
-      broadcastGameState(updatedState)
-    }
-
-    IO.unit
+      
+      _ <- battleStateOpt match {
+        case Some(battleStateJson) =>
+          IO {
+            // Parse updated player statuses from database
+            val player1StatusJson = decodeField[String](battleStateJson, "player_one_status")
+            val player2StatusJson = decodeField[String](battleStateJson, "player_two_status")
+            val currentRound = decodeField[Int](battleStateJson, "current_round")
+            
+            val player1Status = decodeType[Objects.BattleService.PlayerStatus](player1StatusJson)
+            val player2Status = decodeType[Objects.BattleService.PlayerStatus](player2StatusJson)
+            
+            // Update game state with new player data
+            gameState.foreach { state =>
+              val updatedState = state.copy(
+                currentRound = currentRound,
+                roundPhase = "action", // 直接进入下一轮行动选择
+                player1 = state.player1.copy(
+                  health = player1Status.health,
+                  energy = player1Status.energy,
+                  remainingTime = 30, // 重置剩余时间
+                  hasActed = false // 重置行动状态
+                ),
+                player2 = state.player2.copy(
+                  health = player2Status.health,
+                  energy = player2Status.energy,
+                  remainingTime = 30, // 重置剩余时间
+                  hasActed = false // 重置行动状态
+                )
+              )
+              gameState = Some(updatedState)
+              
+              // Clear previous actions for next round
+              currentActions.clear()
+              
+              // Broadcast updated game state
+              broadcast(WebSocketMessage("game_state", updatedState.asJson))
+              logger.info(s"Updated game state: Player1 H=${player1Status.health} E=${player1Status.energy}, Player2 H=${player2Status.health} E=${player2Status.energy}")
+            }
+          }
+        case None =>
+          IO {
+            // Fallback: just increment round if no database state found
+            logger.warn(s"No battle state found in database for room $roomId, using fallback update")
+            gameState.foreach { state =>
+              val updatedState = state.copy(
+                currentRound = state.currentRound + 1,
+                roundPhase = "action",
+                player1 = state.player1.copy(
+                  health = 666,
+                  energy = 0,
+                  remainingTime = 30, // 重置剩余时间
+                ),
+                player2 = state.player2.copy(
+                  health = 666,
+                  energy = 0,
+                  remainingTime = 30 // 重置剩余时间
+                )
+              )
+              gameState = Some(updatedState)
+              currentActions.clear()
+              broadcast(WebSocketMessage("game_state", updatedState.asJson))
+            }
+          }
+      }
+    } yield ()
   }
 
   /**
    * Check if the game is over
    */
   private def checkGameOver: IO[Unit] = {
-    // Check if any player's health is 0
-    gameState.foreach { state =>
-      if (state.player1.health <= 0 || state.player2.health <= 0) {
-        val winnerId = if (state.player1.health <= 0) state.player2.playerId else state.player1.playerId
-        val reason = "health_zero"
+    IO {
+      // Check if any player's health is 0
+      gameState.foreach { state =>
+        if (state.player1.health <= 0 || state.player2.health <= 0) {
+          val winnerId = if (state.player1.health <= 0) state.player2.playerId else state.player1.playerId
+          val reason = "health_zero"
 
-        val gameOverResult = GameOverResult(
-          winner = winnerId,
-          reason = reason,
-          rewards = Some(Json.obj(
-            "stones" -> Json.fromInt(10),
-            "rankChange" -> Json.fromInt(5)
-          ))
-        )
+          val gameOverResult = GameOverResult(
+            winner = winnerId,
+            reason = reason,
+            rewards = Some(Json.obj(
+              "stones" -> Json.fromInt(10),
+              "rankChange" -> Json.fromInt(5)
+            ))
+          )
 
-        broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
+          broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
+        }
       }
     }
-
-    IO.unit
   }
 
   /**
-   * Create a round result message
+   * Create a round result message based on actual state changes
    */
-  private def createRoundResult(action1: BattleAction, action2: BattleAction, result: String): RoundResult = {
-    // In a real implementation, this would parse the result string
-    // For now, we'll create a dummy round result
-    gameState.map { state =>
-      RoundResult(
-        round = state.currentRound,
-        player1Action = action1,
-        player2Action = action2,
-        results = Json.obj(
-          "player1" -> Json.obj("healthChange" -> Json.fromInt(-1), "energyChange" -> Json.fromInt(1)),
-          "player2" -> Json.obj("healthChange" -> Json.fromInt(-1), "energyChange" -> Json.fromInt(1))
-        ),
-        cardEffects = List()
-      )
-    }.getOrElse(
-      RoundResult(
-        round = 1,
-        player1Action = action1,
-        player2Action = action2,
-        results = Json.obj(
-          "player1" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0)),
-          "player2" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0))
-        ),
-        cardEffects = List()
-      )
-    )
+  private def createRoundResultFromStateChanges(
+    action1: BattleAction, 
+    action2: BattleAction, 
+    stateBeforeBattle: Option[GameState]
+  ): IO[RoundResult] = {
+    IO {
+      val currentState = gameState
+      
+      (stateBeforeBattle, currentState) match {
+        case (Some(beforeState), Some(afterState)) =>
+          // Calculate actual changes
+          val player1HealthChange = afterState.player1.health - beforeState.player1.health
+          val player1EnergyChange = afterState.player1.energy - beforeState.player1.energy
+          val player2HealthChange = afterState.player2.health - beforeState.player2.health
+          val player2EnergyChange = afterState.player2.energy - beforeState.player2.energy
+          
+          RoundResult(
+            round = beforeState.currentRound,
+            player1Action = action1,
+            player2Action = action2,
+            results = Json.obj(
+              "player1" -> Json.obj(
+                "healthChange" -> Json.fromInt(player1HealthChange), 
+                "energyChange" -> Json.fromInt(player1EnergyChange)
+              ),
+              "player2" -> Json.obj(
+                "healthChange" -> Json.fromInt(player2HealthChange), 
+                "energyChange" -> Json.fromInt(player2EnergyChange)
+              )
+            ),
+            cardEffects = List()
+          )
+          
+        case _ =>
+          logger.warn(s"！！！！In CreateRoundResultFromStateChanges: Game state not available for round result creation in room $roomId")
+          // Fallback RoundResult
+          RoundResult(
+            round         = stateBeforeBattle.map(_.currentRound).getOrElse(0),
+            player1Action = action1,
+            player2Action = action2,
+            results       = Json.obj(
+              "player1" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0)),
+              "player2" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0))
+            ),
+            cardEffects   = List()
+          )
+      }
+    }
   }
 
   /**
-   * Initialize a player in the game state
+   * Initialize a player in the game state (IO version)
    */
-  private def initializePlayerInGameState(playerId: String): Unit = {
-    // Get username from UserService and create player state
+  private def initializePlayerInGameStateIO(playerId: String): IO[Unit] = {
     getUsernameByPlayerId(playerId).map { username =>
       val newPlayerState = PlayerState(
         playerId = playerId,
@@ -312,7 +424,9 @@ class BattleWebSocketManager(roomId: String) {
           if (state.player1.playerId.nonEmpty && state.player1.playerId != playerId && state.player2.playerId.isEmpty) {
             val updatedState = state.copy(player2 = newPlayerState)
             gameState = Some(updatedState)
-            broadcastGameState(updatedState)
+            logger.info(s"Player1 exists, Start Player $playerId initialized as player 2 in room $roomId")
+            // 重要：这里需要广播给所有玩家包括已连接的 Player1
+            broadcast(WebSocketMessage("game_state", updatedState.asJson))
           }
 
         case None =>
@@ -328,64 +442,48 @@ class BattleWebSocketManager(roomId: String) {
               rank = "",
               cards = List(),
               isReady = false,
-              isConnected = false
+              isConnected = false,
+              remainingTime = 30, // Default waiting time
+              hasActed = false
             ),
             currentRound = 1,
             roundPhase = "waiting",
-            remainingTime = 30,
             winner = None
           )
           gameState = Some(newState)
-          broadcastGameState(newState)
+          logger.info(s"Player $playerId initialized as player 1 in room $roomId")
+          broadcast(WebSocketMessage("game_state", newState.asJson))
       }
     }.handleErrorWith { error =>
-      logger.warn(s"Failed to initialize player $playerId: ${error.getMessage}")
-      // Fallback to using playerId as username
-      val newPlayerState = PlayerState(
-        playerId = playerId,
-        username = s"Error initializing player $playerId in room $roomId from backend",
-        health = 6,
-        energy = 0,
-        rank = "Bronze",
-        cards = List(),
-        isReady = false,
-        isConnected = true
-      )
+      IO {
+        logger.warn(s"Failed to initialize player $playerId: ${error.getMessage}")
+        // Fallback to using playerId as username
+        val newPlayerState = PlayerState(
+          playerId = playerId,
+          username = s"Error initializing player $playerId in room $roomId from backend",
+          health = 6,
+          energy = 0,
+          rank = "Bronze",
+          cards = List(),
+          isReady = false,
+          isConnected = true
+        )
 
-      gameState match {
-        case Some(state) =>
-          if (state.player1.playerId.nonEmpty && state.player1.playerId != playerId && state.player2.playerId.isEmpty) {
-            val updatedState = state.copy(player2 = newPlayerState)
-            gameState = Some(updatedState)
-            broadcastGameState(updatedState)
-          }
+        gameState match {
+          case Some(state) =>
+            if (state.player1.playerId.nonEmpty && state.player1.playerId != playerId && state.player2.playerId.isEmpty) {
+              val updatedState = state.copy(player2 = newPlayerState)
+              gameState = Some(updatedState)
+              broadcast(WebSocketMessage("game_state", updatedState.asJson))
+            }
 
-        case None =>
-          val newState = GameState(
-            roomId = roomId,
-            player1 = newPlayerState,
-            player2 = PlayerState(
-              playerId = "",
-              username = "Waiting for opponent",
-              health = 6,
-              energy = 0,
-              rank = "",
-              cards = List(),
-              isReady = false,
-              isConnected = false
-            ),
-            currentRound = 1,
-            roundPhase = "waiting",
-            remainingTime = 30,
-            winner = None
-          )
-          gameState = Some(newState)
-          broadcastGameState(newState)
+          case None =>
+            logger.warn(s"No game state for player $playerId in room $roomId")
+        }
       }
-      IO.unit
-    }.unsafeRunSync()
+    }
   }
-
+  
   /**
    * Check if both players are ready and start the game
    */
@@ -396,7 +494,8 @@ class BattleWebSocketManager(roomId: String) {
 
         val updatedState = state.copy(
           roundPhase = "action",
-          remainingTime = 30
+          player1 = state.player1.copy(remainingTime = 30, hasActed = false),
+          player2 = state.player2.copy(remainingTime = 30, hasActed = false)
         )
         gameState = Some(updatedState)
         broadcastGameState(updatedState)
@@ -416,7 +515,7 @@ class BattleWebSocketManager(roomId: String) {
   /**
    * Broadcast a message to all connected players
    */
-  private def broadcast(message: WebSocketMessage): Unit = {
+  def broadcast(message: WebSocketMessage): Unit = {
     val jsonMessage = message.asJson.noSpaces
     logger.info(s"Broadcasting to all players in room $roomId: $jsonMessage")
 
@@ -438,7 +537,7 @@ class BattleWebSocketManager(roomId: String) {
    */
   private def broadcastExcept(message: WebSocketMessage, exceptPlayerId: String): Unit = {
     val jsonMessage = message.asJson.noSpaces
-    logger.info(s"Broadcasting to all players except $exceptPlayerId in room $roomId: $jsonMessage")
+    logger.info(s"Start Broadcasting to all players except $exceptPlayerId in room $roomId: $jsonMessage")
 
     connections.foreach { case (playerId, queue) =>
       if (playerId != exceptPlayerId) {

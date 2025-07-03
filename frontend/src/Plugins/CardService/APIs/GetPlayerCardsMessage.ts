@@ -5,6 +5,7 @@
  * @return cardEntries: CardEntry:1124 (用户所拥有的卡牌列表，包含卡牌的基础信息与稀有度等数据。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -15,7 +16,7 @@ export class GetPlayerCardsMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }
 

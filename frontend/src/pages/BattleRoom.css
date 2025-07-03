@@ -105,6 +105,113 @@
 	height: 100%;
 }
 
+/* 准备区域 */
+.ready-area {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100%;
+	flex-direction: column;
+	gap: 30px;
+}
+
+.ready-status {
+	text-align: center;
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(20px);
+	padding: 40px;
+	border-radius: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	min-width: 400px;
+}
+
+.ready-status h2 {
+	margin: 0 0 20px 0;
+	font-size: 1.8rem;
+	font-weight: 600;
+	color: #2ecc71;
+}
+
+.ready-status p {
+	color: rgba(255, 255, 255, 0.8);
+	font-size: 1rem;
+	margin: 10px 0;
+}
+
+.players-ready-status {
+	display: flex;
+	justify-content: space-between;
+	gap: 20px;
+	margin: 20px 0;
+}
+
+.player-ready-item {
+	flex: 1;
+	padding: 15px;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.player-ready-item.ready {
+	background: rgba(46, 204, 113, 0.2);
+	border-color: #2ecc71;
+}
+
+.player-ready-item.not-ready {
+	background: rgba(241, 196, 15, 0.2);
+	border-color: #f39c12;
+}
+
+.player-name {
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.player-status {
+	font-size: 0.9rem;
+	opacity: 0.8;
+}
+
+.prepare-buttons {
+	display: flex;
+	gap: 15px;
+	justify-content: center;
+}
+
+.prepare-btn {
+	padding: 12px 30px;
+	background: linear-gradient(45deg, #2ecc71, #27ae60);
+	border: none;
+	border-radius: 8px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	font-size: 1rem;
+}
+
+.prepare-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+}
+
+.prepare-btn:disabled {
+	background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.prepare-btn.ready {
+	background: linear-gradient(45deg, #f39c12, #e67e22);
+}
+
+.prepare-btn.ready:hover {
+	box-shadow: 0 5px 15px rgba(243, 156, 18, 0.4);
+}
+
 .waiting-message {
 	text-align: center;
 	background: rgba(255, 255, 255, 0.1);

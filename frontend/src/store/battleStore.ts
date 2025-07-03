@@ -1,5 +1,6 @@
 import create from 'zustand';
 import { GameState, PlayerState, BattleAction, RoundResult, GameOverResult } from '../services/WebSocketService';
+import { getUserInfo } from '../Plugins/CommonUtils/Store/UserInfoStore';
 
 interface BattleState {
 	// 房间状态
@@ -68,21 +69,36 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 	setGameState: (gameState: GameState) => {
 		console.log('📝 [BattleStore] 更新游戏状态:', gameState);
 		const { currentPlayer, opponent } = get();
+		const currentUser = getUserInfo();
 
-		// 确定当前玩家和对手
+		// 确定当前玩家和对手 - 基于用户ID
 		let newCurrentPlayer: PlayerState;
 		let newOpponent: PlayerState;
 
-		if (currentPlayer && gameState.player1.playerId === currentPlayer.playerId) {
+		if (currentUser && gameState.player1.playerId === currentUser.userID) {
+			// 当前用户是 player1
 			newCurrentPlayer = gameState.player1;
 			newOpponent = gameState.player2;
-		} else if (currentPlayer && gameState.player2.playerId === currentPlayer.playerId) {
+			console.log('📝 [BattleStore] 当前用户是 player1:', currentUser.userName);
+		} else if (currentUser && gameState.player2.playerId === currentUser.userID) {
+			// 当前用户是 player2
 			newCurrentPlayer = gameState.player2;
 			newOpponent = gameState.player1;
+			console.log('📝 [BattleStore] 当前用户是 player2:', currentUser.userName);
 		} else {
-			// 如果是第一次设置，默认player1为当前玩家
-			newCurrentPlayer = gameState.player1;
-			newOpponent = gameState.player2;
+			// 如果无法确定，尝试使用已有的 currentPlayer 信息
+			if (currentPlayer && gameState.player1.playerId === currentPlayer.playerId) {
+				newCurrentPlayer = gameState.player1;
+				newOpponent = gameState.player2;
+			} else if (currentPlayer && gameState.player2.playerId === currentPlayer.playerId) {
+				newCurrentPlayer = gameState.player2;
+				newOpponent = gameState.player1;
+			} else {
+				// 最后的备选方案：默认 player1 为当前玩家
+				console.warn('📝 [BattleStore] 无法确定当前玩家，使用默认设置');
+				newCurrentPlayer = gameState.player1;
+				newOpponent = gameState.player2;
+			}
 		}
 
 		// 根据游戏阶段显示行动选择器
