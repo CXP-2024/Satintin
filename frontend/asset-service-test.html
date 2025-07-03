@@ -224,6 +224,20 @@
       <pre id="transactionOutput">No transaction created yet</pre>
     </div>
 
+    <!-- Get Transaction History -->
+    <div class="api-section">
+      <h2>📜 Get Transaction History</h2>
+      <div class="description">
+        Retrieve all asset transaction records for a user. Shows complete history with transaction details.
+      </div>
+      <div class="input-group">
+        <input id="historyUserToken" placeholder="User Token" />
+      </div>
+      <button id="historyBtn" onclick="getTransactionHistory()">Get Transaction History</button>
+      <h3>Response:</h3>
+      <pre id="historyOutput">No history retrieved yet</pre>
+    </div>
+
     <!-- Batch Operations -->
     <div class="api-section">
       <h2>⚡ Quick Test Scenarios</h2>
@@ -240,12 +254,12 @@
     <!-- API Documentation -->
     <div class="api-section">
       <h2>📚 API Reference</h2>
-      <div class="description">
-        <strong>AssetService Endpoints:</strong><br>
+      <div class="description">        <strong>AssetService Endpoints:</strong><br>
         • <code>POST /api/QueryAssetStatusMessage</code> - Get user's current stone amount<br>
         • <code>POST /api/RewardAssetMessage</code> - Add stones to user account<br>
         • <code>POST /api/DeductAssetMessage</code> - Remove stones from user account<br>
-        • <code>POST /api/CreateAssetTransactionMessage</code> - Create detailed transaction record<br><br>
+        • <code>POST /api/CreateAssetTransactionMessage</code> - Create detailed transaction record<br>
+        • <code>POST /api/GetAssetTransactionMessage</code> - Get user's transaction history<br><br>
         <strong>Server:</strong> localhost:10012<br>
         <strong>Health Check:</strong> GET /health
       </div>
@@ -259,12 +273,12 @@
     // Set global user token
     function setGlobalToken() {
       globalToken = document.getElementById('globalUserToken').value;
-      if (globalToken) {
-        // Auto-fill all token fields
+      if (globalToken) {        // Auto-fill all token fields
         document.getElementById('queryUserToken').value = globalToken;
         document.getElementById('rewardUserToken').value = globalToken;
         document.getElementById('deductUserToken').value = globalToken;
         document.getElementById('transactionUserToken').value = globalToken;
+        document.getElementById('historyUserToken').value = globalToken;
         
         document.getElementById('tokenStatus').style.display = 'block';
         setTimeout(() => {
@@ -461,6 +475,58 @@
           output.className = 'success';
         } else {
           output.textContent = `❌ Transaction failed (${response.status})\nError: ${result}`;
+          output.className = 'error';
+        }
+      } catch (error) {
+        output.textContent = `❌ Network error: ${error.message}`;
+        output.className = 'error';
+      }
+    }
+
+    // Get transaction history
+    async function getTransactionHistory() {
+      const userToken = document.getElementById('historyUserToken').value;
+      const output = document.getElementById('historyOutput');
+      
+      if (!userToken) {
+        output.textContent = '❌ Please enter a user token';
+        output.className = 'error';
+        return;
+      }      try {
+        const response = await fetch(`${apiBase}/api/GetAssetTransactionMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userToken: userToken,
+            planContext: createPlanContext()
+          })
+        });
+        
+        const result = await response.text();
+        
+        if (response.ok) {
+          // Parse the JSON response to format it nicely
+          try {
+            const transactionData = JSON.parse(result.replace(/^"|"$/g, '').replace(/\\"/g, '"'));
+            const formattedOutput = `✅ Transaction history retrieved successfully!
+User ID: ${transactionData.userID}
+Total Transactions: ${transactionData.totalTransactions}
+
+Transaction Details:
+${transactionData.transactions.map((tx, index) => 
+  `${index + 1}. Transaction ID: ${tx.transactionID}
+   Type: ${tx.transactionType}
+   Amount: ${tx.changeAmount > 0 ? '+' : ''}${tx.changeAmount} stones
+   Reason: ${tx.changeReason}
+   Date: ${new Date(tx.timestamp).toLocaleString()}`
+).join('\n\n')}`;
+            output.textContent = formattedOutput;
+          } catch (parseError) {
+            output.textContent = `✅ Transaction history retrieved!\nUser: ${userToken}\nRaw data: ${result}`;
+          }
+          output.className = 'success';
+        } else {
+          output.textContent = `❌ Failed to retrieve history (${response.status})\nError: ${result}`;
           output.className = 'error';
         }
       } catch (error) {

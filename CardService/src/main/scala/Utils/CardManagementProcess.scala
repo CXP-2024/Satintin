@@ -199,12 +199,10 @@ case object CardManagementProcess {
       userStone <- QueryAssetStatusMessage(userToken).send
       _ <- if (userStone < drawCount * STONE_COST_PER_DRAW) {
         IO.raiseError(new IllegalStateException(s"原石数量不足，本次抽卡需要消耗 ${drawCount * STONE_COST_PER_DRAW} 原石，但当前仅有 ${userStone} 原石"))
-      } else IO.unit
-
-      // Step 2.5: Fetch current card draw count for pity system
-      _ <- IO(logger.info(s"获取用户[userID=${userID}]的当前抽卡次数用于保底计算"))
-      currentDrawCount <- QueryCardDrawCountMessage(userToken).send
-      _ <- IO(logger.info(s"用户当前抽卡次数: ${currentDrawCount}"))
+      } else IO.unit      // Step 2.5: Fetch current card draw count for pity system
+      _ <- IO(logger.info(s"获取用户[userID=${userID}]在${poolType}池的当前抽卡次数用于保底计算"))
+      currentDrawCount <- QueryCardDrawCountMessage(userToken, poolType).send
+      _ <- IO(logger.info(s"用户在${poolType}池当前抽卡次数: ${currentDrawCount}"))
 
       // Step 3: Fetch user's card inventory
       _ <- IO(logger.info(s"获取用户[userID=${userID}]的卡牌库存"))
@@ -216,13 +214,13 @@ case object CardManagementProcess {
       _ <- IO(logger.info(s"从数据库获取卡牌模板，卡池类型=${poolType}"))
       cardTemplatesFromDB <- fetchCardTemplatesFromDB(poolType)
       templatesByRarityFromDB = cardTemplatesFromDB.groupBy(_.rarity)
-      _ <- IO(logger.info(s"从数据库获取到 ${cardTemplatesFromDB.size} 个卡牌模板"))
-  
-      // Step 4: Generate card draw results with pity system
+      _ <- IO(logger.info(s"从数据库获取到 ${cardTemplatesFromDB.size} 个卡牌模板"))      // Step 4: Generate card draw results with pity system
       _ <- IO(logger.info(s"开始生成符合保底机制的抽卡结果，drawCount=${drawCount}"))
       (generatedInfos, finalDrawCount, hasGotLegendary) <- IO {
         var currentPityCount = currentDrawCount
         var gotLegendary = false
+        var tenDrawNormalCount = 0  // 十连抽中普通卡的计数
+        
         val results = (1 to drawCount).toList.map { drawIndex =>
           currentPityCount += 1
           
@@ -234,7 +232,7 @@ case object CardManagementProcess {
           } else {
             baseLegendaryRate
           }
-            // Ensure 100% legendary at 90th draw
+          // Ensure 100% legendary at 90th draw
           val legendaryRate = if (currentPityCount >= 90) 100.0 else pityLegendaryRate
           val baseRareRate = 5.5
           
@@ -245,19 +243,32 @@ case object CardManagementProcess {
             baseRareRate
           }
           
-          val normalRate = 100.0 - legendaryRate - adjustedRareRate
+          var normalRate = 100.0 - legendaryRate - adjustedRareRate
+          var finalRareRate = adjustedRareRate
+          
+          // 十连抽保底机制：如果是十连抽且前9抽都是普通卡，第10抽必须出稀有以上
+          if (drawCount == 10 && drawIndex == 10 && tenDrawNormalCount == 9) {
+            // 第10抽且前9抽都是普通卡，将普通卡概率全部分给稀有卡
+            finalRareRate = adjustedRareRate + normalRate
+            normalRate = 0.0
+            println(s"十连抽保底触发：第10抽，前9抽都是普通卡，稀有概率调整为${finalRareRate}%，普通概率调整为${normalRate}%")
+          }
           
           // Log the probabilities for this draw
-          println(s"第${drawIndex}抽: 当前累计抽卡次数=${currentPityCount}, 传说概率=${legendaryRate}%, 稀有概率=${adjustedRareRate}%, 普通概率=${normalRate}%")
+          println(s"第${drawIndex}抽: 当前累计抽卡次数=${currentPityCount}, 传说概率=${legendaryRate}%, 稀有概率=${finalRareRate}%, 普通概率=${normalRate}%")
           
           val rand = scala.util.Random.nextDouble() * 100
           val rarityName = if (rand < legendaryRate) {
             gotLegendary = true
             currentPityCount = 0  // Reset pity counter when getting legendary
             "传说"
-          } else if (rand < legendaryRate + adjustedRareRate) {
+          } else if (rand < legendaryRate + finalRareRate) {
             "稀有"
           } else {
+            // 统计十连抽中的普通卡数量
+            if (drawCount == 10) {
+              tenDrawNormalCount += 1
+            }
             "普通"
           }
           
@@ -275,6 +286,12 @@ case object CardManagementProcess {
             creationTime = creationTime
           )
         }
+        
+        // 记录十连抽保底结果
+        if (drawCount == 10) {
+          println(s"十连抽完成，普通卡数量：${tenDrawNormalCount}/10")
+        }
+        
         (results, currentPityCount, gotLegendary)
       }
       _ <- IO(logger.info(s"生成的抽卡结果: ${generatedInfos.map(info => s"[cardID=${info.cardID}, rarity=${info.rarity}]").mkString(", ")}"))
@@ -303,22 +320,14 @@ case object CardManagementProcess {
         SqlParameter("Int", stonesToDeduct.toString),
         SqlParameter("String", poolType)
       ))
-      _ <- writeDB(drawLogQuery, drawLogParams)
-
-      // Step 7.5: Deduct stones from user's account
+      _ <- writeDB(drawLogQuery, drawLogParams)      // Step 7.5: Deduct stones from user's account
       _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))
       _ <- DeductAssetMessage(userToken, stonesToDeduct).send
       _ <- IO(logger.info(s"成功扣减原石，数量=${stonesToDeduct}"))
 
       // Step 7.6: Update card draw count with pity system consideration
       _ <- IO(logger.info(s"更新用户抽卡次数，考虑保底重置机制"))
-      _ <- if (hasGotLegendary) {
-        // Reset draw count to final count (0 if got legendary on last draw, or remaining count)
-        UpdateCardDrawCountMessage(userToken, finalDrawCount, isIncrement = false).send
-      } else {
-        // Just increment by drawCount
-        UpdateCardDrawCountMessage(userToken, drawCount, isIncrement = true).send
-      }
+      _ <- UpdateCardDrawCountMessage(userToken, poolType, finalDrawCount).send
       _ <- IO(logger.info(s"抽卡次数更新完成，最终抽卡次数=${finalDrawCount}"))
 
       // Step 8: Update user's card library with new cards
