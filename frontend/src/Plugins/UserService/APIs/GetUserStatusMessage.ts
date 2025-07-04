@@ -6,7 +6,7 @@
  * @return onlineStatus: Boolean (目标用户的在线状态。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
-import { ServiceConfig } from 'Globals/ServiceConfig'
+import { ServiceConfig } from 'Globals/ServiceConfig';
 
 
 

@@ -5,6 +5,7 @@
  * @return transactions: String (用户的所有交易记录，以JSON格式返回。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 
 
@@ -15,6 +16,6 @@ export class GetAssetTransactionMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServiceConfig.getAssetServiceAddress()
     }
 }

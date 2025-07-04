@@ -7,6 +7,7 @@
  * @return result: String (操作结果信息，例如'抽卡次数更新成功！')
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 export class UpdateCardDrawCountMessage extends TongWenMessage {
     constructor(
@@ -17,6 +18,6 @@ export class UpdateCardDrawCountMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServiceConfig.getAssetServiceAddress()
     }
 }

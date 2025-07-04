@@ -6,7 +6,8 @@
  * @param rewardAmount: Number (奖励的原石数量，必须大于0)
  * @return result: String (操作结果的描述信息，例如"管理员奖励发放成功！")
  */
-import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import {ServiceConfig} from "Globals/ServiceConfig";
 
 export class RewardAssetByIDMessage extends TongWenMessage {
     constructor(
@@ -18,6 +19,6 @@ export class RewardAssetByIDMessage extends TongWenMessage {
     }
     
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServiceConfig.getAdminServiceAddress()
     }
 }
