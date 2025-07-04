@@ -27,6 +27,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Objects.AdminService.SystemStats
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Utils.AdminTokenValidationProcess
 
 // case class ViewSystemStatsMessage(adminToken: String) extends API[SystemStats](serviceCode = "ViewSystemStats")
 
@@ -38,27 +39,14 @@ case class ViewSystemStatsMessagePlanner(
 
   override def plan(using PlanContext): IO[SystemStats] = {
     for {
-      // Step 1: Validate admin token
+      // Step 1: 验证管理员Token - 使用Utils
       _ <- IO(logger.info(s"开始验证管理员令牌 adminToken=${adminToken}"))
-      _ <- validateAdminToken()
+      _ <- AdminTokenValidationProcess.validateAdminToken(adminToken)
 
       // Step 2: Query system stats
       _ <- IO(logger.info("从数据库查询最新的系统统计记录"))
       systemStats <- queryLatestSystemStats()
     } yield systemStats
-  }
-  /** Step 1.1: 验证管理员令牌是否有效 */
-  private def validateAdminToken()(using PlanContext): IO[Unit] = {
-    val sql = s"SELECT COUNT(*) > 0 FROM ${schemaName}.admin_account_table WHERE token = ? AND is_active = true;"
-    readDBBoolean(sql, List(SqlParameter("String", adminToken))).flatMap {
-      case true =>
-        IO(logger.info("管理员令牌验证通过"))
-
-      case false =>
-        val errorMsg = s"管理员令牌无效或已过期: adminToken=${adminToken}"
-        logger.error(errorMsg)
-        IO.raiseError(new IllegalArgumentException(errorMsg))
-    }
   }
   /** Step 2: 查询最新的系统统计数据 */
   private def queryLatestSystemStats()(using PlanContext): IO[SystemStats] = {

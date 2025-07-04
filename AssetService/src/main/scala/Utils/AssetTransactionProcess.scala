@@ -293,4 +293,26 @@ case object AssetTransactionProcess {
 
     } yield transactions
   }
+  
+  /**
+   * 执行完整的资产交易流程
+   */
+  def executeAssetTransaction(
+    userToken: String,
+    transactionType: String,
+    changeAmount: Int,
+    changeReason: String
+  )(using PlanContext): IO[String] = {
+    for {
+      // 验证用户
+      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      
+      // 修改资产
+      _ <- modifyAsset(userID, changeAmount)
+      
+      // 创建记录
+      transactionID <- createTransactionRecord(userID, transactionType, changeAmount, changeReason)
+      
+    } yield s"交易完成，交易ID: ${transactionID}"
+  }
 }

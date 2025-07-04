@@ -28,6 +28,7 @@ import Common.ServiceUtils.schemaName
 import Utils.ReportManagementProcess.unbanUser
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Utils.AdminTokenValidationProcess
 
 case class UnbanUserMessagePlanner(
                                     adminToken: String,
@@ -35,20 +36,14 @@ case class UnbanUserMessagePlanner(
                                     override val planContext: PlanContext
                                   ) extends Planner[String] {
 
-  val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[String] = {
     for {
-      // Step 1: Validate the admin token
-      isValidAdminToken <- validateAdminToken(adminToken)
-      _ <- IO {
-        if (!isValidAdminToken) {
-          logger.error(s"[UnbanUserMessage] 无效的管理员Token: ${adminToken}")
-          throw new IllegalAccessException("管理员Token不合法，操作终止")
-        } else {
-          logger.info(s"[UnbanUserMessage] 管理员身份验证成功, Token: ${adminToken}")
-        }
-      }
+      _ <- IO(logger.info(s"[UnbanUserMessage] 开始执行解封操作"))
+
+      // Step 1: 验证管理员Token - 使用Utils
+      _ <- AdminTokenValidationProcess.validateAdminToken(adminToken)
 
       // Step 2: Unban the user
       _ <- IO(logger.info(s"[UnbanUserMessage] 开始调用unbanUser方法解封用户, UserID: ${userID}"))
@@ -62,20 +57,5 @@ case class UnbanUserMessagePlanner(
         message
       }
     } yield successMessage
-  }
-
-  private def validateAdminToken(token: String)(using PlanContext): IO[Boolean] = {
-    val validationSql =
-      s"""
-        SELECT COUNT(*) > 0
-        FROM ${schemaName}.admin_account_table
-        WHERE token = ?
-      """
-    val parameters = List(SqlParameter("String", token))
-    for {
-      _ <- IO(logger.info(s"[UnbanUserMessage] 验证管理员Token的SQL: ${validationSql}"))
-      result <- readDBBoolean(validationSql, parameters)
-      _ <- IO(logger.info(s"[UnbanUserMessage] 管理员Token验证结果: ${result}"))
-    } yield result
   }
 }

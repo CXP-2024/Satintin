@@ -10,6 +10,7 @@ import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
+import {RewardAssetByIDMessage} from "Plugins/AdminService/APIs/RewardAssestByIDMessage";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -140,7 +141,7 @@ const RegisterPage: React.FC = () => {
                     console.log('callback message', info);
                     const userID = JSON.parse(info);
 
-                    new RewardAssetMessage(userID,10000).send(
+                    new RewardAssetByIDMessage('1111',userID,10000).send(
                         (info: string) => {
                             const successmessage = JSON.parse(info);
                             console.log(successmessage)

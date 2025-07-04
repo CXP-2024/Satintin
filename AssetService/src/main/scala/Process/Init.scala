@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.{API, PlanContext, TraceID}
@@ -25,15 +24,17 @@ object Init {
       /** 用户资产状态表，记录用户的原石数量、抽卡次数以及最近更新时间
        * user_id: 用户的唯一ID
        * stone_amount: 当前用户的原石数量
-       * card_draw_count: 用户抽卡次数
+       * standard_card_draw_count: 用户标准池抽卡次数
+       * featured_card_draw_count: 用户限定池抽卡次数
        * last_updated: 最近更新时间
        */
       _ <- writeDB(
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."user_asset_status_table" (
             user_id VARCHAR NOT NULL PRIMARY KEY,
-            stone_amount INT NOT NULL,
-            card_draw_count INT NOT NULL DEFAULT 0,
+            stone_amount INT NOT NULL DEFAULT 0,
+            standard_card_draw_count INT NOT NULL DEFAULT 0,
+            featured_card_draw_count INT NOT NULL DEFAULT 0,
             last_updated TIMESTAMP NOT NULL
         );
          
@@ -70,4 +71,3 @@ object Init {
     })
   }
 }
-    
