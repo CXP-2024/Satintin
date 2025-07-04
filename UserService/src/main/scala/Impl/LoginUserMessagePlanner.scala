@@ -20,7 +20,6 @@ case class LoginUserMessagePlanner(
     override val planContext: PlanContext
 ) extends Planner[String] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
-
   override def plan(using PlanContext): IO[String] = {
     for {
       // Step 1: 使用Utils中的现有authenticateUser方法

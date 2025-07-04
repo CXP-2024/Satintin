@@ -5,12 +5,13 @@ import './ShopPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo, setUserInfoField } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserInfo, setUserInfoField, useUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { RewardAssetMessage } from '../Plugins/AssetService/APIs/RewardAssetMessage';
 import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 新增
 
 const ShopPage: React.FC = () => {
     const user = useUserInfo();
+    const userToken = useUserToken(); // 在组件顶层调用 Hook
     const { navigateWithTransition } = usePageTransition();
     const [rechargingIndex, setRechargingIndex] = useState<number | null>(null);
 
@@ -28,14 +29,11 @@ const ShopPage: React.FC = () => {
         console.log('🏠 [ShopPage] 返回游戏大厅');
         playClickSound();
         navigateWithTransition('/', '正在返回游戏大厅...');
-    };
-
-    // —— 新增：刷新用户原石余额函数 —— 
+    };    // —— 新增：刷新用户原石余额函数 —— 
     const refreshUserAssets = async () => {
-        if (!user?.userID) return;
         try {
             const response: any = await new Promise((resolve, reject) => {
-                new QueryAssetStatusMessage(user.userID).send(
+                new QueryAssetStatusMessage(userToken).send(
                     (res: any)  => resolve(res),
                     (err: any) => reject(err)
                 );
@@ -62,18 +60,17 @@ const ShopPage: React.FC = () => {
 
     const handleRecharge = async (amount: number, crystals: number, index: number) => {
         console.log(`💰 [ShopPage] 用户充值: ${amount}元, ${crystals}原石`);
-        playClickSound();
+        // playClickSound();
         
-        if (!user?.userID) {
-            alert('用户信息无效，请重新登录');
-            return;
-        }
+        // if (!user?.userID) {
+        //     alert('用户信息无效，请重新登录');
+        //     return;
+        // }
 
         setRechargingIndex(index);
-        
-        try {
+          try {
             const result = await new Promise((resolve, reject) => {
-                new RewardAssetMessage(user.userID, crystals).send(
+                new RewardAssetMessage(userToken, crystals).send(
                     (response: any) => response.error ? reject(new Error(response.error)) : resolve(response)
                 );
             });
