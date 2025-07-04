@@ -1,7 +1,7 @@
-/* 现代化游戏主页样式 */
+/* 现代化游戏主页样式 - 银灰色主色调 */
 .game-home {
 	min-height: 100vh;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
 	position: relative;
 	overflow-x: hidden;
 }
@@ -15,9 +15,9 @@
 	right: 0;
 	bottom: 0;
 	background:
-		radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-		radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
-		radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+		radial-gradient(circle at 20% 80%, rgba(149, 165, 166, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 80% 20%, rgba(189, 195, 199, 0.3) 0%, transparent 50%),
+		radial-gradient(circle at 40% 40%, rgba(127, 140, 141, 0.2) 0%, transparent 50%);
 	pointer-events: none;
 	z-index: 1;
 }
@@ -119,7 +119,7 @@
 	align-items: center;
 	gap: 8px;
 	font-weight: 600;
-	color: #ffd700;
+	color: #ecf0f1;
 	font-size: 1.1rem;
 }
 
@@ -141,7 +141,7 @@
 }
 
 .charge-btn {
-	background: rgba(53, 153, 220, 0.8);
+	background: rgba(149, 165, 166, 0.8);
 	color: white;
 	border: none;
 	padding: 12px 24px;
@@ -161,7 +161,7 @@
 	left: -2px;
 	right: -2px;
 	bottom: -2px;
-	background: linear-gradient(90deg, #4facfe, #00f2fe, #4facfe);
+	background: linear-gradient(90deg, #95a5a6, #bdc3c7, #95a5a6);
 	background-size: 200% 100%;
 	border-radius: 27px;
 	z-index: -1;
@@ -169,14 +169,14 @@
 }
 
 .charge-btn:hover {
-	background: rgba(88, 166, 222, 0.9);
+	background: rgba(189, 195, 199, 0.9);
 	transform: translateY(-2px);
-	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
+	box-shadow: 0 8px 15px rgba(149, 165, 166, 0.4);
 }
 
 .charge-btn:hover::before {
 	animation-duration: 1.5s;
-	box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+	box-shadow: 0 0 15px rgba(189, 195, 199, 0.6);
 }
 
 .home-logout-btn {
@@ -230,7 +230,7 @@
 	left: 0;
 	right: 0;
 	height: 4px;
-	background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+	background: linear-gradient(90deg, #95a5a6, #bdc3c7, #ecf0f1, #d5dbdb, #7f8c8d);
 	background-size: 300% 100%;
 	animation: gradientShift 3s ease-in-out infinite;
 }
@@ -300,23 +300,23 @@
 	left: 0;
 	right: 0;
 	height: 3px;
-	background: linear-gradient(90deg, #4facfe, #00f2fe);
+	background: linear-gradient(90deg, #95a5a6, #bdc3c7);
 }
 
 .stat-card.rank::before {
-	background: linear-gradient(90deg, #ffd700, #ffb347);
+	background: linear-gradient(90deg, #f39c12, #f1c40f);
 }
 
 .stat-card.currency::before {
-	background: linear-gradient(90deg, #ff9a9e, #fecfef);
+	background: linear-gradient(90deg, #ecf0f1, #bdc3c7);
 }
 
 .stat-card.cards::before {
-	background: linear-gradient(90deg, #a8edea, #fed6e3);
+	background: linear-gradient(90deg, #95a5a6, #7f8c8d);
 }
 
 .stat-card.wins::before {
-	background: linear-gradient(90deg, #ff6b6b, #ee5a24);
+	background: linear-gradient(90deg, #34495e, #2c3e50);
 }
 
 .stat-icon {
@@ -385,15 +385,15 @@
 }
 
 .game-home .home-battle-btn .home-btn-background {
-	background: linear-gradient(135deg, #667eea, #764ba2) !important;
+	background: linear-gradient(135deg, #34495e, #2c3e50) !important;
 }
 
 .game-home .cards-btn .home-btn-background {
-	background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+	background: linear-gradient(135deg, #95a5a6, #7f8c8d) !important;
 }
 
 .game-home .wish-btn .home-btn-background {
-	background: linear-gradient(135deg, #ffd89b, #19547b) !important;
+	background: linear-gradient(135deg, #bdc3c7, #34495e) !important;
 }
 
 .game-home .home-action-btn:hover .home-btn-background {
@@ -486,13 +486,13 @@
 
 .progress-fill {
 	height: 100%;
-	background: linear-gradient(90deg, #4ecdc4, #44a08d);
+	background: linear-gradient(90deg, #95a5a6, #7f8c8d);
 	border-radius: 4px;
 	transition: width 0.3s ease;
 }
 
 .claim-btn {
-	background: linear-gradient(45deg, #27ae60, #2ecc71);
+	background: linear-gradient(45deg, #7f8c8d, #95a5a6);
 	color: white;
 	border: none;
 	padding: 10px 20px;
@@ -505,7 +505,7 @@
 
 .claim-btn:hover {
 	transform: translateY(-2px);
-	box-shadow: 0 8px 15px rgba(39, 174, 96, 0.4);
+	box-shadow: 0 8px 15px rgba(127, 140, 141, 0.4);
 }
 
 .rank-change {
@@ -514,16 +514,16 @@
 }
 
 .rank-change.up {
-	color: #27ae60;
+	color: #95a5a6;
 }
 
 .rank-change.down {
-	color: #e74c3c;
+	color: #7f8c8d;
 }
 
 /* 搜索用户按钮样式 */
 .search-user-btn {
-	background: rgba(34, 139, 34, 0.8);
+	background: rgba(149, 165, 166, 0.8);
 	color: white;
 	border: none;
 	padding: 10px 20px;
@@ -539,9 +539,9 @@
 }
 
 .search-user-btn:hover {
-	background: rgba(34, 139, 34, 1);
+	background: rgba(149, 165, 166, 1);
 	transform: translateY(-2px);
-	box-shadow: 0 5px 15px rgba(34, 139, 34, 0.4);
+	box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
 }
 
 .search-icon {
@@ -572,7 +572,7 @@
 }
 
 .modal-header h3 {
-	color: #333;
+	color: #2c3e50;
 	margin: 0;
 	font-size: 1.5rem;
 	font-weight: 600;
@@ -583,7 +583,7 @@
 	border: none;
 	font-size: 1.5rem;
 	cursor: pointer;
-	color: #666;
+	color: #7f8c8d;
 	padding: 5px;
 	border-radius: 50%;
 	width: 30px;
@@ -595,8 +595,8 @@
 }
 
 .close-btn:hover {
-	background: rgba(255, 0, 0, 0.1);
-	color: #ff4444;
+	background: rgba(231, 76, 60, 0.1);
+	color: #e74c3c;
 }
 
 .search-input-group {
@@ -616,12 +616,12 @@
 
 .search-input-group input:focus {
 	outline: none;
-	border-color: #667eea;
-	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+	border-color: #95a5a6;
+	box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.1);
 }
 
 .search-btn {
-	background: #667eea;
+	background: #95a5a6;
 	color: white;
 	border: none;
 	padding: 12px 24px;
@@ -633,7 +633,7 @@
 }
 
 .search-btn:hover:not(:disabled) {
-	background: #5a6fd8;
+	background: #7f8c8d;
 	transform: translateY(-1px);
 }
 
@@ -669,7 +669,7 @@
 	width: 60px;
 	height: 60px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -687,7 +687,7 @@
 
 .user-details h4 {
 	margin: 0 0 15px 0;
-	color: #333;
+	color: #2c3e50;
 	font-size: 1.3rem;
 	font-weight: 600;
 }
@@ -706,21 +706,21 @@
 }
 
 .stat-label {
-	color: #666;
+	color: #7f8c8d;
 	font-size: 0.9rem;
 }
 
 .stat-value {
-	color: #333;
+	color: #2c3e50;
 	font-weight: 600;
 }
 
 .stat-value.online {
-	color: #4caf50;
+	color: #27ae60;
 }
 
 .stat-value.offline {
-	color: #f44336;
+	color: #e74c3c;
 }
 
 @keyframes fadeIn {

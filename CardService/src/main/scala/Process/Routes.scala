@@ -22,6 +22,7 @@ import Impl.LoadBattleDeckMessagePlanner
 import Impl.CreateCardTemplateMessagePlanner
 import Impl.GetDrawHistoryMessagePlanner
 import Impl.GetAllCardTemplatesMessagePlanner
+import Impl.GetCardTemplateByIDMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -78,11 +79,17 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetDrawHistoryMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
       case "GetAllCardTemplatesMessage" =>
         IO(
           decode[GetAllCardTemplatesMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetAllCardTemplatesMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "GetCardTemplateByIDMessage" =>
+        IO(
+          decode[GetCardTemplateByIDMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetCardTemplateByIDMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
