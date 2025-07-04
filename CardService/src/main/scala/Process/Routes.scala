@@ -79,7 +79,7 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetDrawHistoryMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-         case "GetAllCardTemplatesMessage" =>
+      case "GetAllCardTemplatesMessage" =>
         IO(
           decode[GetAllCardTemplatesMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetAllCardTemplatesMessage[${err.getMessage}]")

@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Card Service 全能测试器</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;}
+  <style>    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5;}
     .box { max-width:700px; margin:auto; background:#fff; padding:20px; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
     label, select, input, textarea, button { display:block; width:100%; margin-bottom:12px; }
     input, select, textarea { padding:8px; border:1px solid #ccc; border-radius:4px; }
@@ -12,34 +11,48 @@
     button:hover { background:#005a9e; }
     pre { background:#272822; color:#f8f8f2; padding:12px; border-radius:4px; overflow:auto; max-height:300px;}
     .hidden { display:none; }
+    ul { background:#f8f9fa; padding:12px; border-radius:4px; margin:12px 0; }
+    li { margin:4px 0; }
+    .highlight { background:#fff3cd; padding:2px 4px; border-radius:2px; }
   </style>
 </head>
-<body>
-  <div class="box">
+<body>  <div class="box">
     <h2>Card Service 全能测试器</h2>
+    <p><strong>使用说明：</strong></p>
+    <ul>
+      <li><strong>DrawCardMessage</strong>：需要 userToken + drawCount</li>
+      <li><strong>GetPlayerCardsMessage</strong>：需要 userToken</li>
+      <li><strong>UpgradeCardMessage</strong>：需要 userToken + cardID</li>
+      <li><strong>ConfigureBattleDeckMessage</strong>：需要 userToken + cardIDs</li>
+      <li><strong>CreateCardTemplateMessage</strong>：需要 userToken + 卡牌详情</li>
+      <li><strong>GetAllCardTemplatesMessage</strong>：无需 userToken</li>
+      <li><strong>GetCardTemplateByIDMessage</strong>：无需 userToken，仅需 cardID</li>
+    </ul>
 
     <!-- 1. 给 Base URL 框加上 value 属性，避免用户忘填，导致 fetch("/api/…") 调到静态服务器 -->
     <label>Base URL (含端口)：
       <input id="baseUrl" type="text"
              value="http://localhost:10011"
              placeholder="http://localhost:10011" />
-    </label>    <!-- 2. 接口类型保持和后端 Routes.scala 中匹配 -->
-    <label>接口类型：
+    </label>    <!-- 2. 接口类型保持和后端 Routes.scala 中匹配 -->    <label>接口类型：
       <select id="apiType">
         <option value="DrawCardMessage">DrawCardMessage</option>
         <option value="GetPlayerCardsMessage">GetPlayerCardsMessage</option>
         <option value="UpgradeCardMessage">UpgradeCardMessage</option>
         <option value="ConfigureBattleDeckMessage">ConfigureBattleDeckMessage</option>
         <option value="CreateCardTemplateMessage">CreateCardTemplateMessage</option>
+        <option value="GetAllCardTemplatesMessage">GetAllCardTemplatesMessage</option>
+        <option value="GetCardTemplateByIDMessage">GetCardTemplateByIDMessage</option>
       </select>
     </label>
     <label>userToken：<input id="token" type="text" placeholder="有效或无效的 token"></label>
     <div id="drawCountBox">
       <label>drawCount：<input id="drawCount" type="number" min="1" max="10" value="1"></label>
-    </div>
-    <div id="cardIdBox" class="hidden">
+    </div>    <div id="cardIdBox" class="hidden">
       <label>cardID：<input id="cardId" type="text" placeholder="要升级的卡牌ID"></label>
-    </div>    <div id="cardIdsBox" class="hidden">
+    </div>    <div id="templateCardIdBox" class="hidden">
+      <label>cardID：<input id="templateCardId" type="text" placeholder="输入卡牌ID，例如：card-001"></label>
+    </div><div id="cardIdsBox" class="hidden">
       <label>cardIDs (JSON 数组)：<textarea id="cardIds" rows="3">["card-001","card-002"]</textarea></label>
     </div>
     <div id="createTemplateBox" class="hidden">
@@ -61,6 +74,7 @@
   <script>    const apiType = document.getElementById('apiType');
     const drawCountBox = document.getElementById('drawCountBox');
     const cardIdBox   = document.getElementById('cardIdBox');
+    const templateCardIdBox = document.getElementById('templateCardIdBox');
     const cardIdsBox  = document.getElementById('cardIdsBox');
     const createTemplateBox = document.getElementById('createTemplateBox');
     
@@ -68,6 +82,7 @@
       const v = apiType.value;
       drawCountBox.classList.toggle('hidden', v!=='DrawCardMessage');
       cardIdBox.classList.toggle('hidden', v!=='UpgradeCardMessage');
+      templateCardIdBox.classList.toggle('hidden', v!=='GetCardTemplateByIDMessage');
       cardIdsBox.classList.toggle('hidden', v!=='ConfigureBattleDeckMessage');
       createTemplateBox.classList.toggle('hidden', v!=='CreateCardTemplateMessage');
     });
@@ -82,10 +97,22 @@
 
       if (api === 'DrawCardMessage') {
         payload.drawCount = parseInt(document.getElementById('drawCount').value, 10);
-      }
-      if (api === 'UpgradeCardMessage') {
+      }      if (api === 'UpgradeCardMessage') {
         payload.cardID = document.getElementById('cardId').value.trim();
-      }      if (api === 'ConfigureBattleDeckMessage') {
+      }        if (api === 'GetCardTemplateByIDMessage') {
+        payload.cardID = document.getElementById('templateCardId').value.trim();
+        if (!payload.cardID) {
+          alert('cardID 不能为空');
+          return;
+        }
+        // GetCardTemplateByIDMessage 不需要 userToken，所以删除它
+        delete payload.userToken;
+      }
+      if (api === 'GetAllCardTemplatesMessage') {
+        // GetAllCardTemplatesMessage 不需要 userToken，所以删除它
+        delete payload.userToken;
+      }
+      if (api === 'ConfigureBattleDeckMessage') {
         try {
           payload.cardIDs = JSON.parse(document.getElementById('cardIds').value);
         } catch {

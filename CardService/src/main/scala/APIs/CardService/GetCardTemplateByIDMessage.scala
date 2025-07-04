@@ -20,7 +20,6 @@ import java.util.UUID
  * @return result: CardTemplate (卡牌模板信息，如果不存在则抛出异常)
  */
 case class GetCardTemplateByIDMessage(
-  userToken: String,
   cardID: String
 ) extends API[CardTemplate](CardServiceCode)
 
