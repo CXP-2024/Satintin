@@ -3,17 +3,26 @@ import { useBattleStore } from '../store/battleStore';
 import { webSocketService } from '../services/WebSocketService';
 import { SoundUtils } from 'utils/soundUtils';
 import './ActionSelector.css';
-import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const ActionSelector: React.FC = () => {
 	const user = useUserInfo();
 	const {
+		currentPlayer,
+		gameState,
+		showActionSelector,
+		actionSelectorExiting,
 		selectedAction,
 		isActionSubmitted,
-		currentPlayer,
 		selectAction,
-		submitAction
+		submitAction,
+		hideActionSelectorTemporarily
 	} = useBattleStore();
+
+	// 如果组件不应该显示且没有在退出动画中，则不渲染
+	if (!showActionSelector && !actionSelectorExiting) {
+		return null;
+	}
 
 	// 行动选项配置
 	const actions = [
@@ -53,6 +62,12 @@ const ActionSelector: React.FC = () => {
 
 		SoundUtils.playClickSound(0.5);
 		selectAction(actionType);
+	};
+
+	// 暂时隐藏行动选择器
+	const handleTemporaryHide = () => {
+		SoundUtils.playClickSound(0.3);
+		hideActionSelectorTemporarily();
 	};
 
 	// 提交行动
@@ -100,17 +115,35 @@ const ActionSelector: React.FC = () => {
 	};
 
 	return (
-		<div className="action-selector-overlay">
-			<div className="action-selector">
-				<div className="selector-header">
-					<h3>选择你的行动</h3>
-					<div className="current-stats">
-						<span className="stat">
-							❤️ {currentPlayer?.health || 0}
-						</span>
-						<span className="stat">
-							⚡ {currentPlayer?.energy || 0}
-						</span>
+		<div className={`action-selector-overlay ${actionSelectorExiting ? 'exiting' : ''}`}>
+			<div className={`action-selector ${actionSelectorExiting ? 'exiting' : ''}`}>
+				<div className="action-selector-header">
+					<div className="action-selector-header-left">
+						<h3>选择你的行动</h3>
+						{gameState?.roundPhase === 'action' && gameState.player1.remainingTime && (
+							<div className="action-timer">
+								<span className="timer-icon">⏰</span>
+								<span className="timer-value">Player1: {gameState.player1.remainingTime}s</span>
+								<span className="timer-value">Player2: {gameState.player2.remainingTime}s</span>
+							</div>
+						)}
+					</div>
+					<div className="action-selector-header-right">
+						<div className="current-stats">
+							<span className="stat">
+								❤️ {currentPlayer?.health || 0}
+							</span>
+							<span className="stat">
+								⚡ {currentPlayer?.energy || 0}
+							</span>
+						</div>
+						<button
+							className="temporary-hide-btn"
+							onClick={handleTemporaryHide}
+							title="暂时收起选择器，查看战况"
+						>
+							👁️ 查看战况
+						</button>
 					</div>
 				</div>
 
@@ -167,7 +200,7 @@ const ActionSelector: React.FC = () => {
 					})}
 				</div>
 
-				<div className="selector-footer">
+				<div className="action-selector-footer">
 					<div className="action-hint">
 						选择一个行动并确认提交，一旦提交无法更改
 					</div>

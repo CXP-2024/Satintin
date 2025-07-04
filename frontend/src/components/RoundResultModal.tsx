@@ -7,10 +7,11 @@ import './RoundResultModal.css';
 interface RoundResultModalProps {
 	result: RoundResult;
 	onClose: () => void;
+	onHideTemporarily?: () => void; // 新增：暂时隐藏回调
 }
 
-const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) => {
-	const { currentPlayer, opponent } = useBattleStore();
+const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily }) => {
+	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
 
@@ -66,19 +67,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 
 	// 动画序列
 	useEffect(() => {
-		const timer1 = setTimeout(() => {
-			setAnimationPhase('effects');
-			setShowEffects(true);
-		}, 1500);
-
-		const timer2 = setTimeout(() => {
-			setAnimationPhase('results');
-		}, 3000);
-
-		return () => {
-			clearTimeout(timer1);
-			clearTimeout(timer2);
-		};
+		setAnimationPhase('effects');
+		setShowEffects(true);
+		setAnimationPhase('results');
 	}, []);
 
 	// 判断战斗结果
@@ -110,11 +101,28 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 		onClose();
 	};
 
+	// 暂时隐藏模态框
+	const handleHideTemporarily = () => {
+		SoundUtils.playClickSound(0.5);
+		if (onHideTemporarily) {
+			onHideTemporarily();
+		}
+	};
+
 	return (
-		<div className="round-result-overlay">
-			<div className="round-result-modal">
+		<div className={`round-result-overlay ${roundResultExiting ? 'exiting' : ''}`}>
+			<div className={`round-result-modal ${roundResultExiting ? 'exiting' : ''}`}>
 				<div className="modal-header">
 					<h2>第 {result.round} 回合结果</h2>
+					{onHideTemporarily && (
+						<button
+							className="hide-temporarily-btn"
+							onClick={handleHideTemporarily}
+							title="暂时隐藏"
+						>
+							📤
+						</button>
+					)}
 				</div>
 
 				<div className="modal-content">
@@ -206,6 +214,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 											⚡ {playerData.current.result.energyChange > 0 ? '+' : ''}{playerData.current.result.energyChange}
 										</div>
 									)}
+									{playerData.current.result.healthChange === 0 && playerData.current.result.energyChange === 0 && (
+										<div className="stat-change no-change">❤️ ⚡ No change</div>
+									)}
 								</div>
 							</div>
 
@@ -222,6 +233,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 											⚡ {playerData.opponent.result.energyChange > 0 ? '+' : ''}{playerData.opponent.result.energyChange}
 										</div>
 									)}
+									{playerData.opponent.result.healthChange === 0 && playerData.opponent.result.energyChange === 0 && (
+										<div className="stat-change no-change">❤️ ⚡ No change</div>
+									)}
 								</div>
 							</div>
 						</div>
@@ -229,13 +243,24 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose }) 
 				</div>
 
 				<div className="modal-footer">
-					<button
-						className="continue-btn"
-						onClick={handleClose}
-						disabled={animationPhase !== 'results'}
-					>
-						{animationPhase === 'results' ? '继续游戏' : '结算中...'}
-					</button>
+					<div className="footer-actions">
+						{onHideTemporarily && (
+							<button
+								className="hide-btn"
+								onClick={handleHideTemporarily}
+								disabled={animationPhase !== 'results'}
+							>
+								{animationPhase === 'results' ? '暂时隐藏' : '结算中...'}
+							</button>
+						)}
+						<button
+							className="continue-btn"
+							onClick={handleClose}
+							disabled={animationPhase !== 'results'}
+						>
+							{animationPhase === 'results' ? '继续游戏' : '结算中...'}
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

@@ -7,6 +7,7 @@
  * @return result: String (处理操作的结果字符串，表示是否成功完成。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -19,7 +20,7 @@ export class ManageReportMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServiceConfig.getAdminServiceAddress()
     }
 }
 

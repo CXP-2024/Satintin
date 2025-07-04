@@ -8,6 +8,7 @@
  * @return result: String (表示资产交易记录成功的信息。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -21,7 +22,7 @@ export class CreateAssetTransactionMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServiceConfig.getAssetServiceAddress()
     }
 }
 

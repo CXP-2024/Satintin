@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { GameOverResult } from '../services/WebSocketService';
+import {getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 interface GameOverModalProps {
 	open: boolean;
@@ -72,11 +73,14 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 }) => {
 	if (!gameOverResult) return null;
 
-	const isWinner = gameOverResult.winner !== 'test_opponent';
-	const winnerName = isWinner ? '🎉 你获胜了！' : '💔 你败北了！';
+	const userName = getUserInfo().userName
+	console.log('Current Player UserName: ', userName)
+	console.log('Winner: ', gameOverResult.winner)
+	const isWinner = (gameOverResult.winner === userName);
+	const winnerTitle = isWinner ? '🎉 你获胜了！' : '💔 你失败了！';
 	const winnerDescription = isWinner ?
 		'恭喜你在这场激烈的对战中获得胜利！' :
-		'虽然失败了，但这是成长的机会，继续努力吧！';
+		'虽然失败了，但这是成长的机会，继续努力吧！ 哈！';
 
 	const getReasonText = (reason: string) => {
 		switch (reason) {
@@ -102,13 +106,13 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 			}}
 		>
 			<DialogTitle sx={{ textAlign: 'center', fontSize: '24px', fontWeight: 'bold', pb: 1 }}>
-				{isWinner ? '🏆 胜利！' : '😔 失败'}
+				{isWinner ? '🏆 胜利！' : '😔 败北'}
 			</DialogTitle>
 
 			<DialogContent sx={{ pt: 0 }}>
 				<Box sx={{ textAlign: 'center', mb: 3 }}>
 					<Typography variant="h5" component="h2" sx={{ mb: 1, fontWeight: 'bold' }}>
-						{winnerName}
+						{winnerTitle}
 					</Typography>
 					<Typography variant="body1" sx={{ opacity: 0.9 }}>
 						{winnerDescription}
@@ -126,7 +130,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 									获胜者
 								</Typography>
 								<Typography variant="body1" sx={{ fontWeight: 'bold' }}>
-									{gameOverResult.winner === 'test_opponent' ? '饼神AI' : '测试玩家'}
+									{gameOverResult.winner}
 								</Typography>
 							</Box>
 							<Box sx={{ textAlign: 'center' }}>

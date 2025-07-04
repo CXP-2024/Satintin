@@ -15,6 +15,7 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import Utils.AdminTokenValidationProcess
 
 case class BanUserMessagePlanner(adminToken: String, userID: String, banDays: Int, override val planContext: PlanContext) 
   extends Planner[String] {
@@ -25,8 +26,8 @@ case class BanUserMessagePlanner(adminToken: String, userID: String, banDays: In
     for {
       _ <- IO(logger.info(s"[开始执行用户封禁操作] adminToken=${adminToken}, userID=${userID}, banDays=${banDays}"))
 
-      // Step 1: 验证管理员Token的权限
-      _ <- validateAdminToken(adminToken)
+      // Step 1: 验证管理员Token的权限 - 使用Utils
+      _ <- AdminTokenValidationProcess.validateAdminToken(adminToken)
 
       // Step 2: 执行封禁操作
       _ <- banUserAction(userID, banDays)
@@ -34,25 +35,6 @@ case class BanUserMessagePlanner(adminToken: String, userID: String, banDays: In
       // Step 3: 返回成功操作的信息
       _ <- IO(logger.info(s"[操作完成] 用户 ${userID} 成功被封禁 ${banDays} 天"))
     } yield "用户封禁成功！"
-  }
-
-  // 验证管理员权限
-  private def validateAdminToken(adminToken: String)(using PlanContext): IO[Unit] = {
-    for {
-      _ <- IO(logger.info(s"[Step 1] 验证管理员权限, adminToken=${adminToken}"))
-
-      // SQL 查询
-      sql <- IO(s"SELECT is_active FROM ${schemaName}.admin_account_table WHERE token = ?;")
-      params <- IO(List(SqlParameter("String", adminToken)))
-
-      // 检查是否具有管理员权限
-      isAdmin <- readDBBoolean(sql, params)
-      _ <- if (!isAdmin) {
-        IO.raiseError(new IllegalStateException(s"权限验证失败，adminToken=${adminToken} 不具有管理员权限"))
-      } else {
-        IO(logger.info(s"[Step 1] 管理员权限验证成功, adminToken=${adminToken}"))
-      }
-    } yield ()
   }
 
   // 执行封禁用户操作

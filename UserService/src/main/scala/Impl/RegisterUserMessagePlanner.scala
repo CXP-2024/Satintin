@@ -84,11 +84,32 @@ case class RegisterUserMessagePlanner(
     validateRegistrationInput(username, passwordHash, email, Some(phoneNumber))
   }
 
-  // Function: Check if the username already exists in the database
+  // Function: Check if the username already exists in the database or conflicts with admin accounts
   private def checkUsernameExists(username: String)(using PlanContext): IO[Boolean] = {
-    val query = s"SELECT user_id FROM ${schemaName}.user_table WHERE username = ?"
+    val userQuery = s"SELECT user_id FROM ${schemaName}.user_table WHERE username = ?"
+    val adminQuery = s"SELECT admin_id FROM adminservice.admin_account_table WHERE account_name = ?"
     val parameters = List(SqlParameter("String", username))
-    readDBJsonOptional(query, parameters).map(_.nonEmpty)
+    
+    for {
+      // 检查用户表中是否已存在该用户名
+      userExists <- readDBJsonOptional(userQuery, parameters).map(_.nonEmpty)
+      
+      // 检查管理员表中是否已存在该账号名
+      adminExists <- readDBJsonOptional(adminQuery, parameters).map(_.nonEmpty)
+      
+      // 如果在用户表或管理员表中任一存在，则返回true
+      exists = userExists || adminExists
+      
+      _ <- if (exists) {
+        if (userExists) {
+          IO(logger.warn(s"用户名 ${username} 已在用户表中存在"))
+        } else {
+          IO(logger.warn(s"用户名 ${username} 与管理员账号名冲突"))
+        }
+      } else {
+        IO(logger.info(s"用户名 ${username} 可用"))
+      }
+    } yield exists
   }
 
   // Function: Create a new user record in the database

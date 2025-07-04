@@ -72,11 +72,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 			<div className="player-area opponent-area">
 				<div className="player-info">
 					<div className="player-avatar">
-						<span className="avatar-text">{opponent?.username?.charAt(0) || 'O'}</span>
+						<span className="avatar-text">{opponent.username?.charAt(0) || 'O'}</span>
 					</div>
 					<div className="player-details">
-						<h3 className="player-name">{opponent?.username || '对手'}</h3>
-						<div className="player-rank">{opponent?.rank || '未知段位'}</div>
+						<h3 className="player-name">{opponent.username || '对手'}</h3>
+						<div className="player-rank">{opponent.rank || '未知段位'}</div>
 					</div>
 				</div>
 
@@ -92,21 +92,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 				</div>
 
 				<div className="player-action">
-					{opponent?.currentAction ? (
-						<div className="action-display revealed">
-							<span className="action-icon">
-								{getActionDisplay(opponent.currentAction.type).icon}
-							</span>
-							<span className="action-text">
-								{getActionDisplay(opponent.currentAction.type).text}
-							</span>
-						</div>
-					) : (
-						<div className="action-display hidden">
+					<div className="action-display hidden">
 							<span className="action-icon">❓</span>
-							<span className="action-text">等待行动</span>
-						</div>
-					)}
+							<span className="action-text">未知的行动</span>
+					</div>
 				</div>
 
 				{/* 对手卡牌 */}
@@ -153,10 +142,18 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 
 				{gameState.roundPhase === 'action' && (
 					<div className="timer">
-						<div className="timer-circle">
-							<div className="timer-text">{gameState.remainingTime}</div>
+						<div className="timer-item">
+							<div className="timer-circle">
+								<div className="timer-text">{gameState.player1.remainingTime}</div>
+							</div>
+							<div className="timer-label">Player1 剩余时间</div>
 						</div>
-						<div className="timer-label">剩余时间</div>
+						<div className="timer-item">
+							<div className="timer-circle">
+								<div className="timer-text">{gameState.player2.remainingTime}</div>
+							</div>
+							<div className="timer-label">Player2 剩余时间</div>
+						</div>
 					</div>
 				)}
 
@@ -206,7 +203,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 				</div>
 
 				<div className="player-action">
-					{currentPlayer?.currentAction ? (
+					{currentPlayer.currentAction ? (
 						<div className="action-display submitted">
 							<span className="action-icon">
 								{getActionDisplay(currentPlayer.currentAction.type).icon}

@@ -13,6 +13,7 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.implicits._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+import Utils.AdminTokenValidationProcess
 
 case class ViewAllReportsMessagePlanner(
   adminToken: String,
@@ -23,9 +24,9 @@ case class ViewAllReportsMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: 验证管理员Token
+      // Step 1: 验证管理员Token - 使用Utils
       _ <- IO(logger.info(s"验证管理员Token: adminToken=${adminToken}"))
-      _ <- validateAdminToken(adminToken)
+      _ <- AdminTokenValidationProcess.validateAdminToken(adminToken)
 
       // Step 2: 查询所有举报记录
       _ <- IO(logger.info("开始查询所有举报记录"))
@@ -35,27 +36,6 @@ case class ViewAllReportsMessagePlanner(
       result <- IO(reports.asJson.toString)
       _ <- IO(logger.info(s"查询完成，共找到 ${reports.length} 条举报记录"))
     } yield result
-  }
-
-  /**
-   * 验证管理员Token是否有效
-   */
-  private def validateAdminToken(adminToken: String)(using PlanContext): IO[Unit] = {
-    if (adminToken.isEmpty) {
-      IO.raiseError(new IllegalArgumentException("adminToken不能为空"))
-    } else {
-      val sql = s"SELECT COUNT(*) > 0 FROM ${schemaName}.admin_account_table WHERE token = ? AND is_active = true"
-      val params = List(SqlParameter("String", adminToken))
-      
-      readDBBoolean(sql, params).flatMap {
-        case true =>
-          IO(logger.info("管理员Token验证成功"))
-        case false =>
-          val errorMessage = s"无效的adminToken：${adminToken}"
-          logger.error(errorMessage)
-          IO.raiseError(new IllegalStateException(errorMessage))
-      }
-    }
   }
 
   /**

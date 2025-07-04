@@ -1,6 +1,6 @@
 package Impl
 
-import Utils.AssetTransactionProcess.updateCardDrawCount
+import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
 import Common.API.{PlanContext, Planner}
 import cats.effect.IO
 import org.slf4j.LoggerFactory
@@ -15,11 +15,9 @@ case class UpdateCardDrawCountMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Validate input parameters
-      _ <- IO(logger.info(s"[Step 1] 开始验证输入参数: userToken=${userToken}, poolType=${poolType}, drawCount=${drawCount}"))
-      _ <- if (userToken == null || userToken.trim.isEmpty) {
-        IO.raiseError(new IllegalArgumentException("用户Token不能为空"))
-      } else if (!Set("standard", "featured").contains(poolType)) {
+      // Step 1: 验证输入参数
+      _ <- IO(logger.info(s"[Step 1] 开始验证输入参数: poolType=${poolType}, drawCount=${drawCount}"))
+      _ <- if (!Set("standard", "featured").contains(poolType)) {
         IO.raiseError(new IllegalArgumentException(s"池类型不支持: ${poolType}，只支持 'standard' 或 'featured'"))
       } else if (drawCount < 0) {
         IO.raiseError(new IllegalArgumentException("设定抽卡次数不能小于0"))
@@ -27,11 +25,14 @@ case class UpdateCardDrawCountMessagePlanner(
         IO(logger.info("[Step 1] 输入参数验证通过"))
       }
 
-      // Step 2: Use userToken as userID (consistent with other services)
-      userID = userToken
-      _ <- IO(logger.info(s"[Step 2] 使用Token作为用户ID: userID=${userID}"))      // Step 3: Set card draw count for specified pool
+      // Step 2: 使用Utils验证用户Token
+      _ <- IO(logger.info("[Step 2] 验证用户Token"))
+      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      _ <- IO(logger.info(s"[Step 2] 用户验证成功，userID=${userID}"))
+
+      // Step 3: 设置抽卡次数
       _ <- IO(logger.info(s"[Step 3] 开始设置用户${poolType}池抽卡次数: userID=${userID}, drawCount=${drawCount}"))
-      result <- updateCardDrawCount(userID, poolType, drawCount)
+      result <- AssetTransactionProcess.updateCardDrawCount(userID, poolType, drawCount)
       _ <- IO(logger.info(s"[Step 3] ${poolType}池抽卡次数设置完成: ${result}"))
 
     } yield result

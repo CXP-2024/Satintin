@@ -5,6 +5,7 @@
  * @return result: String (JSON格式的卡牌模板列表)
  */
 import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class GetAllCardTemplatesMessage extends TongWenMessage {
     constructor(
@@ -13,6 +14,6 @@ export class GetAllCardTemplatesMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }

@@ -1,55 +1,23 @@
 package Impl
 
-
-/**
- * RewardAssetMessagePlanner
- *
- * Planner for RewardAssetMessage: Increases user assets and logs related transactions.
- *
- * @param userToken User's token
- * @param rewardAmount Reward amount
- * @param planContext PlanContext
- */
-import APIs.UserService.GetUserInfoMessage
-import Utils.AssetTransactionProcess.{modifyAsset, createTransactionRecord}
 import Common.API.{PlanContext, Planner}
+import Common.DBAPI._
+import Common.Object.SqlParameter
+import Common.ServiceUtils.schemaName
+import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
+import cats.effect.IO
 import org.slf4j.LoggerFactory
-import cats.effect.IO
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits._
-import Common.DBAPI._
-import Common.Object.SqlParameter
+import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Common.ServiceUtils.schemaName
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.AdminService.UserActionLog
-import Objects.UserService.BlackEntry
-import Objects.UserService.FriendEntry
-import Objects.UserService.MessageEntry
-import Objects.UserService.User
-import Utils.AssetTransactionProcess.fetchAssetStatus
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Utils.AssetTransactionProcess.fetchAssetStatus
 
 case class RewardAssetMessagePlanner(
-                                      userToken: String,
-                                      rewardAmount: Int,
-                                      override val planContext: PlanContext
-                                    ) extends Planner[String] {
+  userToken: String,
+  rewardAmount: Int,
+  override val planContext: PlanContext
+) extends Planner[String] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   /**
@@ -60,41 +28,33 @@ case class RewardAssetMessagePlanner(
     for {
       _ <- IO(logger.info("开始执行 RewardAssetMessagePlanner"))
 
-      // Step 1: Verify user identity
-      userID <- verifyUserToken(userToken)
+      // Step 1: 使用Utils验证用户身份
+      _ <- IO(logger.info("[Step 1] 验证用户身份"))
+      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      _ <- IO(logger.info(s"[Step 1] 用户验证成功，userID=${userID}"))
 
-      // Step 2: Modify asset first
-      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 增加用户资产，用户ID=${userID}, 奖励金额=${rewardAmount}"))
-      _ <- modifyAsset(userID, rewardAmount)
-      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 资产增加成功"))
+      // Step 2: 验证奖励金额
+      _ <- IO {
+        if (rewardAmount <= 0) throw new IllegalArgumentException("奖励金额必须大于0")
+      }
+      _ <- IO(logger.info(s"[Step 2] 奖励金额验证通过: ${rewardAmount}"))
 
-      // Step 3: Create transaction record for logging
-      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 记录交易日志"))
-      transactionID <- createTransactionRecord(userID, "REWARD", rewardAmount, "REWARD发放")
-      _ <- IO(logger.info(s"[RewardAssetMessagePlanner] 交易记录成功，交易ID=${transactionID}"))
+      // Step 3: 修改资产
+      _ <- IO(logger.info("[Step 3] 修改用户资产"))
+      _ <- AssetTransactionProcess.modifyAsset(userID, rewardAmount)
+      _ <- IO(logger.info("[Step 3] 资产修改完成"))
 
-      // Step 4: Return result
-      _ <- IO(logger.info("REWARD发放成功"))
-    } yield "REWARD发放成功"
-  }
+      // Step 4: 创建交易记录
+      _ <- IO(logger.info("[Step 4] 创建奖励交易记录"))
+      transactionID <- AssetTransactionProcess.createTransactionRecord(
+        userID, 
+        "REWARD", 
+        rewardAmount, 
+        "系统奖励"
+      )
+      _ <- IO(logger.info(s"[Step 4] 交易记录成功，交易ID=${transactionID}"))
 
-  /**
-   * Step 1.1: Verifies user identity using the provided token.
-   * For AssetService, we treat the userToken as the userID directly.
-   *
-   * @param token User's token
-   * @return IO[String] containing userID
-   */
-  private def verifyUserToken(token: String)(using PlanContext): IO[String] = {
-    for {
-      _ <- IO(if (token == null || token.trim.isEmpty) 
-                throw new IllegalArgumentException("用户 token 不能为空或无效"))
-      _ <- IO(logger.info(s"解析并校验用户 token=$token"))
-
-      // For AssetService, we treat the userToken as the userID directly
-      userID <- IO.pure(token)
-      _ <- IO(logger.info(s"用户 token 验证成功，对应用户 ID=${userID}"))
-
-    } yield userID
+      _ <- IO(logger.info("RewardAssetMessagePlanner 执行完成"))
+    } yield s"奖励发放成功，交易ID: ${transactionID}"
   }
 }

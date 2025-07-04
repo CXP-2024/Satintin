@@ -28,7 +28,6 @@ import Impl.BlockUserMessagePlanner
 import Impl.LogoutUserMessagePlanner
 import Impl.ReceiveMessagesMessagePlanner
 import Impl.GetUserInfoMessagePlanner
-import Impl.ViewUserBasicInfoMessagePlanner  // 添加这个导入
 import Impl.QueryIDByUserNameMessagePlanner  // 添加新的导入
 import Common.API.TraceID
 import org.joda.time.DateTime
@@ -137,12 +136,7 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetUserInfoMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-      case "ViewUserBasicInfoMessage" => 
-        IO(
-          decode[ViewUserBasicInfoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewUserBasicInfoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
+       
 
       case "QueryIDByUserNameMessage" => 
         IO(

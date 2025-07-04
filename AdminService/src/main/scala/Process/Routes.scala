@@ -22,7 +22,9 @@ import Impl.UnbanUserMessagePlanner
 import Impl.ViewSystemStatsMessagePlanner
 import Impl.CreateReportUserMessagePlanner
 import Impl.ViewAllReportsMessagePlanner
-import Impl.ViewUserAllInfoMessagePlanner  // 添加新的导入
+import Impl.ViewUserAllInfoMessagePlanner
+import Impl.RewardAssetByIDMessagePlanner  // 添加新的导入
+import Impl.QueryAssetStatusByIDMessagePlanner  // 也添加查询API的导入
 import APIs.AdminService.CreateReportMessage
 import Common.API.TraceID
 import org.joda.time.DateTime
@@ -79,11 +81,11 @@ object Routes:
         ).flatten
       
       case "CreateReportMessage" =>
-      IO(
-        decode[CreateReportUserMessagePlanner](str) match
-          case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateReportMessage[${err.getMessage}]")
-          case Right(value) => value.fullPlan.map(_.asJson.toString)
-      ).flatten
+        IO(
+          decode[CreateReportUserMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateReportMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
 
       case "ViewAllReportsMessage" =>
         IO(
@@ -92,11 +94,26 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
-      // 添加新的ViewUserAllInfoMessage路由
       case "ViewUserAllInfoMessage" =>
         IO(
           decode[ViewUserAllInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewUserAllInfoMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      // 添加新的RewardAssetByIDMessage路由
+      case "RewardAssetByIDMessage" =>
+        IO(
+          decode[RewardAssetByIDMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for RewardAssetByIDMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      // 添加新的QueryAssetStatusByIDMessage路由
+      case "QueryAssetStatusByIDMessage" =>
+        IO(
+          decode[QueryAssetStatusByIDMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryAssetStatusByIDMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
