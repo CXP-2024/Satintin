@@ -13,7 +13,8 @@ export interface GameState {
 	currentRound: number;
 	roundPhase: 'waiting' | 'action' | 'result' | 'finished';
 	remainingTime: number;
-	winner?: string;
+	winner: string;
+	isReady: boolean; // 是否准备就绪
 }
 
 export interface PlayerState {
@@ -23,9 +24,11 @@ export interface PlayerState {
 	energy: number;
 	rank: string;
 	cards: CardState[];
-	currentAction?: BattleAction;
+	currentAction: BattleAction;
 	isReady: boolean;
 	isConnected: boolean;
+	remainingTime: number; // 剩余时间，仅在行动阶段有效
+	hasActed: boolean; // 是否已行动，仅在行动阶段有效
 }
 
 export interface CardState {

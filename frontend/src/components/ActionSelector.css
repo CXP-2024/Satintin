@@ -23,17 +23,79 @@
 	max-width: 800px;
 	width: 90%;
 	color: white;
+	animation: slideUp 0.4s ease-out;
 }
 
-.selector-header {
-	text-align: center;
+/* 淡出动画 */
+.action-selector-overlay.exiting {
+	animation: fadeOut 0.3s ease-out;
+}
+
+/* 淡出时的滑动动画 */
+.action-selector.exiting {
+	animation: slideDown 0.3s ease-out;
+}
+
+.action-selector-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
 	margin-bottom: 30px;
 }
 
-.selector-header h3 {
+.action-selector-header h3 {
 	margin: 0 0 15px 0;
 	font-size: 1.8rem;
 	font-weight: 600;
+}
+.action-selector-header-left {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+.action-selector-header-right {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 15px;
+}
+
+.action-timer {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: rgba(231, 76, 60, 0.2);
+	border: 1px solid #e74c3c;
+	padding: 8px 15px;
+	border-radius: 20px;
+	font-weight: 600;
+}
+
+.timer-icon {
+	font-size: 1rem;
+}
+
+.timer-value {
+	font-size: 1.1rem;
+	color: #e74c3c;
+}
+
+.temporary-hide-btn {
+	background: rgba(52, 152, 219, 0.2);
+	border: 1px solid #3498db;
+	color: #3498db;
+	padding: 8px 15px;
+	border-radius: 20px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	font-weight: 500;
+	transition: all 0.3s ease;
+}
+
+.temporary-hide-btn:hover {
+	background: rgba(52, 152, 219, 0.3);
+	transform: translateY(-2px);
 }
 
 .current-stats {
@@ -264,6 +326,16 @@
 	}
 }
 
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
 @keyframes slideUp {
 	from {
 		opacity: 0;
@@ -273,6 +345,18 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(50px);
 	}
 }
 
@@ -291,6 +375,22 @@
 	.action-selector {
 		padding: 20px;
 		width: 95%;
+	}
+
+	.action-selector-header {
+		flex-direction: column;
+		align-items: center;
+		gap: 15px;
+	}
+
+	.action-selector-header-left,
+	.action-selector-header-right {
+		align-items: center;
+	}
+
+	.action-selector-header-right {
+		flex-direction: row;
+		gap: 10px;
 	}
 
 	.actions-grid {
@@ -315,12 +415,12 @@
 		font-size: 0.8rem;
 	}
 
-	.selector-header h3 {
+	.action-selector-header h3 {
 		font-size: 1.5rem;
 	}
 
 	.current-stats {
-		flex-direction: column;
+		flex-direction: row;
 		gap: 10px;
 	}
 
@@ -328,11 +428,35 @@
 		padding: 12px 30px;
 		font-size: 1rem;
 	}
+
+	.game-controls {
+		right: 15px;
+	}
+
+	.show-action-selector-btn {
+		padding: 12px 16px;
+		font-size: 0.9rem;
+	}
 }
 
 @media (max-width: 480px) {
 	.action-selector {
 		padding: 15px;
+	}
+
+	.action-selector-header {
+		gap: 10px;
+	}
+
+	.header-right {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.action-timer,
+	.temporary-hide-btn {
+		font-size: 0.8rem;
+		padding: 6px 12px;
 	}
 
 	.action-card {
@@ -353,5 +477,17 @@
 		flex-direction: column;
 		gap: 10px;
 		padding: 15px;
+	}
+
+	.game-controls {
+		right: 10px;
+		bottom: 20px;
+		top: auto;
+		transform: none;
+	}
+
+	.show-action-selector-btn {
+		padding: 10px 14px;
+		font-size: 0.8rem;
 	}
 }

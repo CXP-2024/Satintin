@@ -137,9 +137,9 @@ class BattleWebSocketManager(roomId: String) {
     // the remaining time is paused when a player takes action
     gameState.foreach { state =>
       if (state.player1.playerId == playerId) {
-        gameState = Some(state.copy(player1 = state.player1.copy(hasActed = true)))
+        gameState = Some(state.copy(player1 = state.player1.copy(hasActed = true, currentAction = Some(action))))
       } else if (state.player2.playerId == playerId) {
-        gameState = Some(state.copy(player2 = state.player2.copy(hasActed = true)))
+        gameState = Some(state.copy(player2 = state.player2.copy(hasActed = true, currentAction = Some(action))))
       }
     }
   }
@@ -161,10 +161,13 @@ class BattleWebSocketManager(roomId: String) {
         state
       }
       gameState = Some(updatedState)
-      broadcastGameState(updatedState)
+      logger.info(s"Updated and start broadcast game state after setting player $playerId as ready in room $roomId, gameState: $updatedState")
+      broadcast(WebSocketMessage("game_state", updatedState.asJson))
+      logger.info(s"Finished broadcasting game state after setting player $playerId as ready in room $roomId")
     }
 
     // Check if both players are ready to start the game
+    logger.info(s"Checking if both players are ready in room $roomId")
     checkAndStartGame
   }
 
@@ -275,13 +278,15 @@ class BattleWebSocketManager(roomId: String) {
                 player1 = state.player1.copy(
                   health = player1Status.health,
                   energy = player1Status.energy,
-                  remainingTime = 30, // 重置剩余时间
+                  currentAction = None, // 清除当前行动
+                  remainingTime = 60, // 重置剩余时间
                   hasActed = false // 重置行动状态
                 ),
                 player2 = state.player2.copy(
                   health = player2Status.health,
                   energy = player2Status.energy,
-                  remainingTime = 30, // 重置剩余时间
+                  currentAction = None, // 清除当前行动
+                  remainingTime = 60, // 重置剩余时间
                   hasActed = false // 重置行动状态
                 )
               )
@@ -306,12 +311,12 @@ class BattleWebSocketManager(roomId: String) {
                 player1 = state.player1.copy(
                   health = 666,
                   energy = 0,
-                  remainingTime = 30, // 重置剩余时间
+                  remainingTime = 60, // 重置剩余时间
                 ),
                 player2 = state.player2.copy(
                   health = 666,
                   energy = 0,
-                  remainingTime = 30 // 重置剩余时间
+                  remainingTime = 60 // 重置剩余时间
                 )
               )
               gameState = Some(updatedState)
@@ -331,18 +336,31 @@ class BattleWebSocketManager(roomId: String) {
       // Check if any player's health is 0
       gameState.foreach { state =>
         if (state.player1.health <= 0 || state.player2.health <= 0) {
-          val winnerId = if (state.player1.health <= 0) state.player2.playerId else state.player1.playerId
+          val winnerName = if (state.player1.health <= 0 ) {
+            state.player2.username
+          } else {
+            state.player1.username
+          }
           val reason = "health_zero"
 
           val gameOverResult = GameOverResult(
-            winner = winnerId,
+            winner = winnerName,
             reason = reason,
             rewards = Some(Json.obj(
               "stones" -> Json.fromInt(10),
               "rankChange" -> Json.fromInt(5)
             ))
           )
+          // also update game state to finished
+          val updatedState = state.copy(
+            roundPhase = "finished",
+            winner = Some(winnerName)
+          )
+          gameState = Some(updatedState)
+          // Broadcast game over message
+          logger.info(s"Game over in room $roomId: Winner: ${gameOverResult.winner}, Reason: ${gameOverResult.reason}")
 
+          broadcast(WebSocketMessage("game_state", updatedState.asJson))
           broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
         }
       }
@@ -441,10 +459,7 @@ class BattleWebSocketManager(roomId: String) {
               energy = 0,
               rank = "",
               cards = List(),
-              isReady = false,
-              isConnected = false,
-              remainingTime = 30, // Default waiting time
-              hasActed = false
+              isConnected = false,  //other default values we don't want to set again
             ),
             currentRound = 1,
             roundPhase = "waiting",
@@ -494,11 +509,14 @@ class BattleWebSocketManager(roomId: String) {
 
         val updatedState = state.copy(
           roundPhase = "action",
-          player1 = state.player1.copy(remainingTime = 30, hasActed = false),
-          player2 = state.player2.copy(remainingTime = 30, hasActed = false)
+          player1 = state.player1.copy(remainingTime = 3000, hasActed = false),
+          player2 = state.player2.copy(remainingTime = 3000, hasActed = false)
         )
         gameState = Some(updatedState)
         broadcastGameState(updatedState)
+      }
+      else {
+        logger.info(s"Not all players are ready in room $roomId: Player ${state.player1.username} ready=${state.player1.isReady}, Player ${state.player2.username} ready=${state.player2.isReady}")
       }
     }
   }

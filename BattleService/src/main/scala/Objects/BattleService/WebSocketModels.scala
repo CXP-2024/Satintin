@@ -49,8 +49,9 @@ case class PlayerState(
   rank: String,
   cards: List[CardState],
   isReady: Boolean = false,
+  currentAction: Option[BattleAction] = None, // 当前采取的行动
   isConnected: Boolean = true,  // 是否在线
-  remainingTime: Int = 30, // 剩余时间（秒）, 默认30秒, 采取行动之后时间暂停
+  remainingTime: Int = 60, // 剩余时间（秒）, 默认30秒, 采取行动之后时间暂停
   hasActed: Boolean = false, // 是否已经采取行动
 )
 

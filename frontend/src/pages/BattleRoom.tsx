@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBattleStore } from '../store/battleStore';
 import { webSocketService, GameState, GameOverResult } from '../services/WebSocketService';
-import { battleTestSimulator } from '../services/BattleTestSimulator';
 import PageTransition from '../components/PageTransition';
 import GameBoard from '../components/GameBoard';
 import ActionSelector from '../components/ActionSelector';
@@ -24,8 +23,10 @@ const BattleRoom: React.FC = () => {
 		currentPlayer,
 		opponent,
 		showActionSelector,
+		actionSelectorTemporarilyHidden,
 		showRoundResult,
 		currentRoundResult,
+		lastRoundResult,
 		showGameOver,
 		currentGameOverResult,
 		setRoomId,
@@ -34,14 +35,16 @@ const BattleRoom: React.FC = () => {
 		addRoundResult,
 		showRoundResultModal,
 		hideRoundResultModal,
+		hideRoundResultTemporarily,
+		showLastRoundResult,
 		showGameOverModal,
 		hideGameOverModal,
+		showActionSelectorAgain,
 		resetBattle
 	} = useBattleStore();
 
 	const [isConnecting, setIsConnecting] = useState(true);
 	const [roomStatus, setRoomStatus] = useState<'connecting' | 'waiting' | 'ready' | 'playing'>('connecting');
-	const [testMode, setTestMode] = useState(false);
 
 	// 初始化音效
 	useEffect(() => {
@@ -188,21 +191,6 @@ const BattleRoom: React.FC = () => {
 		}
 	};
 
-	// 重新开始测试游戏
-	const handleRestartTestGame = () => {
-		SoundUtils.playClickSound(0.5);
-		hideGameOverModal();
-
-		// 重新创建测试游戏状态
-		const mockGameState = battleTestSimulator.createTestGameState(user, roomId || 'test_room');
-		setGameState(mockGameState);
-
-		// 重新启动测试模式模拟器
-		battleTestSimulator.startTestMode();
-
-		console.log('🔄 [BattleRoom] 重新开始测试游戏');
-	};
-
 	// 离开房间
 	const handleLeaveRoom = () => {
 		console.log('🔙 [BattleRoom] 离开房间');
@@ -218,21 +206,16 @@ const BattleRoom: React.FC = () => {
 		webSocketService.sendReady();
 	};
 
-	// 进入测试模式
-	const handleEnterTestMode = () => {
+	// 重新显示行动选择器
+	const handleShowActionSelector = () => {
 		SoundUtils.playClickSound(0.5);
-		setTestMode(true);
-		setRoomStatus('ready');
-		setConnectionStatus(true);
+		showActionSelectorAgain();
+	};
 
-		// 创建测试游戏状态
-		const mockGameState = battleTestSimulator.createTestGameState(user, roomId || 'test_room');
-		setGameState(mockGameState);
-
-		// 启动测试模式模拟器
-		battleTestSimulator.startTestMode();
-
-		console.log('🧪 [BattleRoom] 进入测试模式，对手AI将一直使用饼:', mockGameState);
+	// 查看上一回合结果
+	const handleShowLastRoundResult = () => {
+		SoundUtils.playClickSound(0.5);
+		showLastRoundResult();
 	};
 
 	// 渲染连接状态
@@ -251,7 +234,7 @@ const BattleRoom: React.FC = () => {
 	}
 
 	// 渲染连接错误
-	if (!isConnected && connectionError && !testMode) {
+	if (!isConnected && connectionError) {
 		return (
 			<PageTransition className="battle-room-page">
 				<div className="battle-room error">
@@ -262,9 +245,6 @@ const BattleRoom: React.FC = () => {
 						<div className="error-actions">
 							<button className="retry-btn" onClick={() => window.location.reload()}>
 								重试连接
-							</button>
-							<button className="test-btn" onClick={handleEnterTestMode}>
-								🧪 测试模式
 							</button>
 							<button className="back-btn" onClick={handleLeaveRoom}>
 								返回大厅
@@ -284,7 +264,6 @@ const BattleRoom: React.FC = () => {
 					<div className="room-info">
 						<h1>对战房间</h1>
 						<span className="room-id">房间ID: {roomId?.slice(-8)}</span>
-						{testMode && <span className="test-mode-indicator">🧪 测试模式</span>}
 					</div>
 					<div className="room-status">
 						<span className={`status-indicator ${roomStatus}`}>
@@ -309,15 +288,18 @@ const BattleRoom: React.FC = () => {
 								<div className="share-room">
 									<button
 										className="share-btn"
-										onClick={() => navigator.clipboard.writeText(roomId || '')}
+										onClick={() => {
+											navigator.clipboard.writeText(roomId || '')
+												.then(() => {
+													SoundUtils.playClickSound(0.5);
+												})
+												.catch(err => {
+													console.error('❌ [BattleRoom] 复制房间ID失败:', err);
+													alert('复制房间ID失败，请手动复制。');
+												});
+										}}
 									>
 										复制房间ID
-									</button>
-									<button
-										className="test-mode-btn"
-										onClick={handleEnterTestMode}
-									>
-										🧪 测试模式
 									</button>
 								</div>
 							</div>
@@ -328,18 +310,18 @@ const BattleRoom: React.FC = () => {
 						<div className="ready-area">
 							<div className="ready-message">
 								<h2>对手已就位！</h2>
-								<div className="players-info">
-									<div className="player-card">
-										<h3>{currentPlayer?.username || '你'}</h3>
-										<p>{currentPlayer?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+								<div className="ready-players-info">
+									<div className="ready-player-card">
+										<h3>{currentPlayer.username || '你'}</h3>
+										<p>{currentPlayer.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
 									</div>
-									<div className="vs-divider">VS</div>
-									<div className="player-card">
-										<h3>{opponent?.username || '对手'}</h3>
-										<p>{opponent?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+									<div className="ready-vs-divider">VS</div>
+									<div className="ready-player-card">
+										<h3>{opponent.username || '对手'}</h3>
+										<p>{opponent.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
 									</div>
 								</div>
-								{!currentPlayer?.isReady && (
+								{!currentPlayer.isReady && (
 									<button
 										className="ready-btn"
 										onClick={handleReady}
@@ -347,11 +329,11 @@ const BattleRoom: React.FC = () => {
 										🎮 准备战斗
 									</button>
 								)}
-								{currentPlayer?.isReady && !opponent?.isReady && (
-									<p className="waiting-text">等待对手准备...</p>
+								{currentPlayer.isReady && !opponent.isReady && (
+									<p className="ready-waiting-text">等待对手准备...</p>
 								)}
-								{currentPlayer?.isReady && opponent?.isReady && (
-									<p className="starting-text">🎉 开始战斗！</p>
+								{currentPlayer.isReady && opponent.isReady && (
+									<p className="ready-starting-text">🎉 开始战斗！</p>
 								)}
 							</div>
 						</div>
@@ -366,6 +348,26 @@ const BattleRoom: React.FC = () => {
 								opponent={opponent}
 							/>
 
+							{/* 游戏控制按钮 */}
+							{gameState.roundPhase === 'action' && actionSelectorTemporarilyHidden && !currentPlayer?.currentAction && (
+								<div className="game-controls">
+									<button
+										className="show-action-selector-btn"
+										onClick={handleShowActionSelector}
+									>
+										🎮 行动选择器
+									</button>
+									{lastRoundResult && (
+										<button
+											className="show-last-result-btn"
+											onClick={handleShowLastRoundResult}
+										>
+											📊 上回合结果
+										</button>
+									)}
+								</div>
+							)}
+
 							{/* 行动选择器 */}
 							{showActionSelector && (
 								<ActionSelector />
@@ -379,6 +381,7 @@ const BattleRoom: React.FC = () => {
 					<RoundResultModal
 						result={currentRoundResult}
 						onClose={hideRoundResultModal}
+						onHideTemporarily={hideRoundResultTemporarily}
 					/>
 				)}
 
@@ -391,7 +394,6 @@ const BattleRoom: React.FC = () => {
 							hideGameOverModal();
 							handleLeaveRoom();
 						}}
-						onRestart={testMode ? handleRestartTestGame : undefined}
 					/>
 				)}
 			</div>

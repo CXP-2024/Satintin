@@ -174,6 +174,73 @@
 	opacity: 0.8;
 }
 
+/* Ready area container */
+.ready-area {
+	display: flex;
+	justify-content: center;
+	margin: 20px 0;
+}
+
+/* Message box */
+.ready-message {
+	background: rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(8px);
+	padding: 25px 40px;
+	border-radius: 12px;
+	text-align: center;
+	max-width: 500px;
+	width: 100%;
+}
+
+/* Players side-by-side */
+.ready-players-info {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 30px;
+	margin: 20px 0;
+}
+
+/* Individual player card */
+.ready-player-card {
+	background: rgba(0, 0, 0, 0.3);
+	padding: 15px 20px;
+	border-radius: 10px;
+	min-width: 120px;
+}
+
+.ready-player-card h3 {
+	margin: 0 0 8px;
+	font-size: 1.1rem;
+	color: #fff;
+}
+
+.ready-player-card p {
+	margin: 0;
+	font-size: 0.9rem;
+	color: #ddd;
+}
+
+/* VS separator */
+.ready-vs-divider {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #fff;
+}
+
+/* Ready button */
+.ready-btn {
+	padding: 12px 30px;
+	background: linear-gradient(45deg, #2ecc71, #27ae60);
+	border: none;
+	border-radius: 8px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	font-size: 1rem;
+}
+
 .prepare-buttons {
 	display: flex;
 	gap: 15px;
@@ -333,17 +400,76 @@
 	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* 测试模式样式 */
-.test-mode-indicator {
-	display: inline-block;
-	margin-left: 10px;
-	padding: 4px 8px;
-	background: #ff6b35;
-	border-radius: 12px;
-	font-size: 0.8rem;
-	font-weight: 500;
+/* 游戏控制按钮 */
+.game-controls {
+	position: fixed;
+	top: 50%;
+	right: 30px;
+	transform: translateY(-50%);
+	z-index: 500;
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.show-action-selector-btn {
+	background: linear-gradient(45deg, #3ce3e3, #2baac0);
+	border: none;
+	padding: 15px 20px;
+	border-radius: 50px;
 	color: white;
-	animation: glow 2s ease-in-out infinite alternate;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 8px 25px rgba(60, 231, 200, 0.3);
+	animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.show-action-selector-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 12px 35px rgba(58, 227, 227, 0.5);
+}
+
+.show-last-result-btn {
+	background: linear-gradient(45deg, #9b59b6, #8e44ad);
+	border: none;
+	padding: 15px 20px;
+	border-radius: 50px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 8px 25px rgba(155, 89, 182, 0.3);
+	animation: pulse-glow-purple 2s ease-in-out infinite;
+}
+
+.show-last-result-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 12px 35px rgba(155, 89, 182, 0.5);
+}
+
+@keyframes pulse-glow-purple {
+
+	0%,
+	100% {
+		box-shadow: 0 8px 25px rgba(155, 89, 182, 0.3);
+	}
+
+	50% {
+		box-shadow: 0 8px 35px rgba(155, 89, 182, 0.6);
+	}
+}
+
+@keyframes pulse-glow {
+
+	0%,
+	100% {
+		box-shadow: 0 8px 25px rgba(58, 229, 223, 0.3);
+	}
+
+	50% {
+		box-shadow: 0 8px 35px rgba(63, 156, 215, 0.6);
+	}
 }
 
 @keyframes glow {
@@ -354,41 +480,6 @@
 	to {
 		box-shadow: 0 0 10px #ff6b35, 0 0 20px #ff6b35, 0 0 30px #ff6b35;
 	}
-}
-
-.test-btn {
-	background: linear-gradient(45deg, #ff6b35, #f7931e);
-	border: none;
-	padding: 12px 24px;
-	border-radius: 8px;
-	color: white;
-	font-weight: 600;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	margin: 0 10px;
-}
-
-.test-btn:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-}
-
-.test-mode-btn {
-	background: linear-gradient(45deg, #ff6b35, #f7931e);
-	border: none;
-	padding: 10px 20px;
-	border-radius: 6px;
-	color: white;
-	font-weight: 500;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	margin-left: 15px;
-	font-size: 0.9rem;
-}
-
-.test-mode-btn:hover {
-	transform: translateY(-1px);
-	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
 }
 
 /* 错误页面按钮布局调整 */
@@ -518,8 +609,60 @@
 		font-size: 0.9rem;
 	}
 
-	.test-mode-indicator {
-		font-size: 0.7rem;
-		padding: 3px 6px;
+	.game-controls {
+		right: 15px;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.show-action-selector-btn,
+	.show-last-result-btn {
+		padding: 12px 16px;
+		font-size: 0.9rem;
+	}
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 480px) {
+	.battle-room {
+		min-height: 100vh;
+	}
+
+	.room-header {
+		padding: 15px;
+		gap: 10px;
+	}
+
+	.room-info h1 {
+		font-size: 1.3rem;
+	}
+
+	.room-id {
+		font-size: 0.8rem;
+	}
+
+	.status-indicator {
+		padding: 6px 12px;
+		font-size: 0.8rem;
+	}
+
+	.leave-btn {
+		padding: 8px 16px;
+		font-size: 0.9rem;
+	}
+
+	.game-controls {
+		right: 10px;
+		bottom: 80px;
+		top: auto;
+		transform: none;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.show-action-selector-btn,
+	.show-last-result-btn {
+		padding: 10px 14px;
+		font-size: 0.8rem;
 	}
 }

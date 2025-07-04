@@ -1,6 +1,7 @@
 
 package Process
 
+import APIs.UserService.GetUserInfoMessage
 import Common.API.PlanContext
 import Common.DBAPI.DidRollbackException
 import cats.effect.*
