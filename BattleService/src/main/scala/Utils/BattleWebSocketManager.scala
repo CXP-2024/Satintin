@@ -1,5 +1,6 @@
 package Utils
 
+import APIs.CardService.LoadBattleDeckMessage
 import cats.effect.*
 import cats.effect.std.Queue
 import cats.implicits.*
@@ -8,14 +9,16 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.websocket.WebSocketFrame
 import org.slf4j.LoggerFactory
+
 import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
-import Objects.BattleService.{BattleAction, GameState, PlayerState, RoundResult, GameOverResult, CardEffect}
+import Objects.BattleService.{BattleAction, CardEffect, GameOverResult, GameState, PlayerState, RoundResult}
 import org.joda.time.DateTime
 import cats.effect.unsafe.implicits.global
+
 import scala.concurrent.duration.*
-import Common.DBAPI.{readDBJsonOptional, decodeField, decodeType}
+import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
 import Common.Object.SqlParameter
 
 /**
@@ -70,6 +73,18 @@ class BattleWebSocketManager(roomId: String) {
     }.handleErrorWith { error =>
       logger.warn(s"Database error when fetching username for player $playerId: ${error.getMessage}")
       IO.pure(s"Player $playerId") // Fallback to default name
+    }
+  }
+
+  // get 3 cards ID from LoadBattleDeckMessage API
+  private def getInitialCards(playerId: String): IO[List[String]] = {
+    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
+    logger.info(s"Start Fetching username for player $playerId")
+    LoadBattleDeckMessage(playerId).send.map { battleDeck =>
+      battleDeck
+    }.handleErrorWith { error =>
+      logger.warn(s"Failed to get username for player $playerId: ${error.getMessage}")
+      IO.pure(List(s"!!!!!!!!!!!!!!!!!!!!!!! Error in getInitialCards of Player $playerId ")) // Fallback to default name
     }
   }
 
@@ -452,6 +467,10 @@ class BattleWebSocketManager(roomId: String) {
         isReady = false,
         isConnected = true
       )
+      // Get initial cards for the player
+      getInitialCards(playerId).map { initialCards =>
+        logger.info(s"Player $username initialized with cards: $initialCards")
+      }
 
       gameState match {
         case Some(state) =>
