@@ -48,9 +48,9 @@ object Init {
         INSERT INTO "${schemaName}"."admin_account_table" (admin_id, account_name, password_hash, token, is_active, create_time)
         SELECT
           '00000000-0000-0000-0000-000000000000',
-          'admin',
+          'SYSTEM',
           '$$2a$$10$$eImiTXuWVxfM37uY4JANjQ==',
-          'a1b2c3d4-e5f6-7890-abcd-1234567890ab',
+          '1111',
           TRUE,
           NOW()
         WHERE NOT EXISTS (

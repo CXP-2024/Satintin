@@ -12,7 +12,6 @@ import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
 import Objects.BattleService.{BattleAction, GameState, PlayerState, RoundResult, GameOverResult, CardEffect}
-import APIs.UserService.GetUserInfoMessage
 import org.joda.time.DateTime
 import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration.*
@@ -47,11 +46,29 @@ class BattleWebSocketManager(roomId: String) {
    */
   private def getUsernameByPlayerId(playerId: String): IO[String] = {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
-    logger.info(s"Start Fetching username for player $playerId")
-    GetUserInfoMessage(playerId, playerId).send.map { user =>
-      user.userName
+    
+    logger.info(s"Start fetching username for player $playerId from database")
+    
+    // 直接查询 UserService 数据库表格，模仿 AdminService 中的实现
+    readDBJsonOptional(
+      s"SELECT username FROM userservice.user_table WHERE user_id = ?",
+      List(SqlParameter("String", playerId))
+    ).map {
+      case Some(json) =>
+        // 从 JSON 对象中提取 username 字段
+        json.hcursor.get[String]("username") match {
+          case Right(username) => 
+            logger.info(s"Successfully fetched username: $username for player $playerId")
+            username
+          case Left(err) => 
+            logger.warn(s"Failed to parse username for player $playerId: ${err.getMessage}")
+            s"Player $playerId" // Fallback to default name
+        }
+      case None =>
+        logger.warn(s"No user found for player $playerId in database")
+        s"Player $playerId" // Fallback to default name
     }.handleErrorWith { error =>
-      logger.warn(s"Failed to get username for player $playerId: ${error.getMessage}")
+      logger.warn(s"Database error when fetching username for player $playerId: ${error.getMessage}")
       IO.pure(s"Player $playerId") // Fallback to default name
     }
   }
