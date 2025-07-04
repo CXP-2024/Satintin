@@ -28,6 +28,8 @@ import Impl.BlockUserMessagePlanner
 import Impl.LogoutUserMessagePlanner
 import Impl.ReceiveMessagesMessagePlanner
 import Impl.GetUserInfoMessagePlanner
+import Impl.ValidateUserTokenMessagePlanner
+import Impl.CheckUserTokenValidityMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -136,11 +138,30 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
+      case "ValidateUserTokenMessage" =>
+        IO(
+          decode[ValidateUserTokenMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ValidateUserTokenMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "CheckUserTokenValidityMessage" =>
+        IO(
+          decode[CheckUserTokenValidityMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CheckUserTokenValidityMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
 
       case "test" =>
         for {
           output  <- Utils.Test.test(str)(using  PlanContext(TraceID(""), 0))
         } yield output
+      case "FetchUserStatusMessage" =>
+        IO(
+          decode[FetchUserStatusMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for FetchUserStatusMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
       case _ =>
         IO.raiseError(new Exception(s"Unknown type: $messageType"))
     }
