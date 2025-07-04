@@ -31,16 +31,19 @@ object UserBasicInfo {
  * ViewUserBasicInfoMessage
  * desc: 查询用户基本信息（用户名、ID、封禁天数、在线状态）
  * @param userID: String (要查询的用户ID，可选，为空则返回所有用户)
- * @return userInfo: List[UserBasicInfo] (用户基本信息列表)
+ * @return userInfo: String (用户基本信息列表的JSON字符串)
  */
 case class ViewUserBasicInfoMessage(
   userID: String = "" // 空字符串表示查询所有用户
-) extends API[List[UserBasicInfo]](UserServiceCode)
+) extends API[String](UserServiceCode) // 改为String类型
 
 case object ViewUserBasicInfoMessage {
   
-  // 导入 UserBasicInfo 的编码器和解码器
-  import UserBasicInfo.given
+  import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
+
+  // UserBasicInfo 的编码器和解码器
+  given Encoder[UserBasicInfo] = deriveEncoder
+  given Decoder[UserBasicInfo] = deriveDecoder
 
   // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[ViewUserBasicInfoMessage] = deriveEncoder
@@ -56,7 +59,13 @@ case object ViewUserBasicInfoMessage {
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
 
-  // 根据配置选择使用的编码器和解码器
-  given Encoder[ViewUserBasicInfoMessage] = circeEncoder
-  given Decoder[ViewUserBasicInfoMessage] = circeDecoder
+  // Circe + Jackson 兜底的 Encoder
+  given viewUserBasicInfoMessageEncoder: Encoder[ViewUserBasicInfoMessage] = Encoder.instance { config =>
+    Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
+  }
+
+  // Circe + Jackson 兜底的 Decoder
+  given viewUserBasicInfoMessageDecoder: Decoder[ViewUserBasicInfoMessage] = Decoder.instance { cursor =>
+    circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
+  }
 }

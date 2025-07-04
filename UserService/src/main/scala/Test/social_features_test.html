@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UserService Social Features Test</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      padding: 20px; 
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+    }
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    .user-panel {
+      border: 2px solid #3498db;
+      border-radius: 12px;
+      padding: 20px;
+      background: #f8f9fa;
+    }
+    .user-panel h2 {
+      margin-top: 0;
+      color: #2980b9;
+      text-align: center;
+      font-size: 1.8em;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #34495e;
+    }
+    input, button, select {
+      margin: 5px 0;
+      padding: 12px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid #bdc3c7;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+    }
+    button {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #2980b9, #1f4e79);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .btn-secondary {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    }
+    .btn-secondary:hover {
+      background: linear-gradient(135deg, #7f8c8d, #34495e);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #c0392b, #a93226);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #27ae60, #229954);
+    }
+    .btn-success:hover {
+      background: linear-gradient(135deg, #229954, #1e8449);
+    }
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success {
+      background: linear-gradient(135deg, #d5f4e6, #c8e6c9);
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 5px solid #27ae60;
+    }
+    .error {
+      background: linear-gradient(135deg, #fdeaea, #f8d7da);
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 5px solid #e74c3c;
+    }
+    .info {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      color: #0d47a1;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 5px solid #2196f3;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 25px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: white;
+    }
+    .section h3 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 10px;
+    }
+    .quick-setup {
+      background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .quick-setup h3 {
+      margin: 0 0 15px 0;
+      color: #2d3436;
+    }
+    .response-container {
+      margin-top: 10px;
+    }
+    .response-container h4 {
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 UserService Social Features Test</h1>
+    
+    <div class="info">
+      <h3>📋 Test Instructions</h3>
+      <p><strong>This interface tests the user_social_table functionality with two users.</strong></p>
+      <ol>
+        <li><strong>Setup:</strong> First register or login two users (User A and User B)</li>
+        <li><strong>Important:</strong> The system generates unique user IDs (like "UserA1", "UserB2") during registration</li>
+        <li><strong>Auto-Update:</strong> Target user fields are automatically filled with correct user IDs after login</li>
+        <li><strong>Social Features:</strong> Test adding friends, removing friends, and blocking users</li>
+        <li><strong>View Status:</strong> Check each user's friend list and black list</li>
+      </ol>
+      <p><strong>Database Table:</strong> user_social_table stores friend_list, black_list, and message_box as JSON arrays for each user.</p>
+      <p><strong>Note:</strong> Users don't need to know each other's passwords - only their user IDs are used for social operations.</p>
+    </div>
+
+    <div class="quick-setup">
+      <h3>⚡ Quick Setup</h3>
+      <button id="quickSetupBtn" class="btn-success">Auto Register Test Users (UserA & UserB)</button>
+      <button id="debugBtn" class="btn-secondary">🔍 Debug: Check User Info</button>
+      <div id="tokenStatus" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.3); border-radius: 8px; font-family: monospace;">
+        <strong>Current Tokens:</strong><br>
+        UserA Token: <span id="userA_tokenDisplay">Not logged in</span><br>
+        UserB Token: <span id="userB_tokenDisplay">Not logged in</span>
+      </div>
+    </div>
+
+    <div class="two-column">
+      <!-- User A Panel -->
+      <div class="user-panel">
+        <h2>👤 User A</h2>
+        
+        <div class="section">
+          <h3>🔐 Authentication</h3>
+          <div class="form-group">
+            <label>Username:</label>
+            <input id="userA_username" placeholder="Username" value="UserA"/>
+          </div>
+          <div class="form-group">
+            <label>Password:</label>
+            <input id="userA_password" type="password" placeholder="Password" value="password123"/>
+          </div>
+          <div class="form-group">
+            <label>Email:</label>
+            <input id="userA_email" type="email" placeholder="Email" value="userA@test.com"/>
+          </div>
+          <div class="form-group">
+            <label>Phone:</label>
+            <input id="userA_phone" placeholder="Phone Number" value="13800000001"/>
+          </div>
+          <button id="registerA" class="btn-success">Register User A</button>
+          <button id="loginA" class="btn-secondary">Login User A</button>
+          <div class="response-container">
+            <h4>Response:</h4>
+            <pre id="userA_authOutput"></pre>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>👥 Social Actions (as User A)</h3>
+          <div class="form-group">
+            <label>Target User ID:</label>
+            <input id="userA_targetUser" placeholder="Friend/User ID to interact with" value="[Will be auto-filled after login]"/>
+          </div>
+          <button id="userA_addFriend">➕ Add Friend</button>
+          <button id="userA_removeFriend" class="btn-secondary">➖ Remove Friend</button>
+          <button id="userA_blockUser" class="btn-danger">🚫 Block User</button>
+          <div class="response-container">
+            <h4>Social Action Response:</h4>
+            <pre id="userA_socialOutput"></pre>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>📊 User A Status</h3>
+          <button id="userA_getInfo" class="btn-secondary">🔍 Get Full User Info</button>
+          <div class="response-container">
+            <h4>User Info:</h4>
+            <pre id="userA_infoOutput"></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- User B Panel -->
+      <div class="user-panel">
+        <h2>👤 User B</h2>
+        
+        <div class="section">
+          <h3>🔐 Authentication</h3>
+          <div class="form-group">
+            <label>Username:</label>
+            <input id="userB_username" placeholder="Username" value="UserB"/>
+          </div>
+          <div class="form-group">
+            <label>Password:</label>
+            <input id="userB_password" type="password" placeholder="Password" value="password456"/>
+          </div>
+          <div class="form-group">
+            <label>Email:</label>
+            <input id="userB_email" type="email" placeholder="Email" value="userB@test.com"/>
+          </div>
+          <div class="form-group">
+            <label>Phone:</label>
+            <input id="userB_phone" placeholder="Phone Number" value="13800000002"/>
+          </div>
+          <button id="registerB" class="btn-success">Register User B</button>
+          <button id="loginB" class="btn-secondary">Login User B</button>
+          <div class="response-container">
+            <h4>Response:</h4>
+            <pre id="userB_authOutput"></pre>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>👥 Social Actions (as User B)</h3>
+          <div class="form-group">
+            <label>Target User ID:</label>
+            <input id="userB_targetUser" placeholder="Friend/User ID to interact with" value="[Will be auto-filled after login]"/>
+          </div>
+          <button id="userB_addFriend">➕ Add Friend</button>
+          <button id="userB_removeFriend" class="btn-secondary">➖ Remove Friend</button>
+          <button id="userB_blockUser" class="btn-danger">🚫 Block User</button>
+          <div class="response-container">
+            <h4>Social Action Response:</h4>
+            <pre id="userB_socialOutput"></pre>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>📊 User B Status</h3>
+          <button id="userB_getInfo" class="btn-secondary">🔍 Get Full User Info</button>
+          <div class="response-container">
+            <h4>User Info:</h4>
+            <pre id="userB_infoOutput"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Scenarios Section -->
+    <div class="section">
+      <h3>🧪 Social Test Scenarios</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+        <button id="scenario1" class="btn-success">1️⃣ UserA adds UserB as friend</button>
+        <button id="scenario2" class="btn-success">2️⃣ UserB adds UserA as friend (mutual)</button>
+        <button id="scenario3" class="btn-danger">3️⃣ UserA blocks UserB</button>
+        <button id="scenario4" class="btn-secondary">4️⃣ UserA removes UserB friend</button>
+        <button id="scenario5" class="btn-secondary">5️⃣ Check both users' social status</button>
+        <button id="scenario6" class="btn-secondary">6️⃣ Reset - Remove all social connections</button>
+      </div>
+      <div class="response-container">
+        <h4>Scenario Results:</h4>
+        <pre id="scenarioOutput"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiBase = 'http://localhost:10010';
+    
+    // State management
+    let userA_token = '';
+    let userB_token = '';
+
+    // Utility function to generate planContext
+    function generatePlanContext() {
+      return {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+    }
+
+    // Utility function to make API calls
+    async function makeAPICall(endpoint, payload, outputElement) {
+      try {
+        const response = await fetch(`${apiBase}/api/${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...payload,
+            planContext: generatePlanContext()
+          })
+        });
+        
+        const responseText = await response.text();
+        console.log(`${endpoint} response:`, responseText);
+        console.log(`${endpoint} response type:`, typeof responseText);
+        console.log(`${endpoint} response length:`, responseText.length);
+        
+        if (!response.ok) {
+          outputElement.textContent = `❌ Error ${response.status}: ${responseText}`;
+          outputElement.className = 'error';
+          return null;
+        }
+
+        let result;
+        try {
+          result = JSON.parse(responseText);
+          console.log(`${endpoint} parsed as JSON:`, result);
+        } catch {
+          result = responseText;
+          console.log(`${endpoint} used as raw text:`, result);
+        }
+
+        // For login, let the calling function handle the output
+        if (endpoint !== 'LoginUserMessage') {
+          outputElement.textContent = JSON.stringify(result, null, 2);
+          outputElement.className = 'success';
+        }
+        
+        return result;
+        
+      } catch (error) {
+        outputElement.textContent = `❌ Network Error: ${error.message}`;
+        outputElement.className = 'error';
+        return null;
+      }
+    }
+
+    // Quick setup function
+    async function quickSetup() {
+      const outputElement = document.getElementById('scenarioOutput');
+      outputElement.textContent = '⏳ Setting up test users...';
+      outputElement.className = '';
+
+      try {
+        // Register UserA
+        const userAResult = await makeAPICall('RegisterUserMessage', {
+          username: 'UserA',
+          passwordHash: 'password123',
+          email: 'userA@test.com',
+          phoneNumber: '13800000001'
+        }, { textContent: '', className: '' });
+
+        // Register UserB  
+        const userBResult = await makeAPICall('RegisterUserMessage', {
+          username: 'UserB',
+          passwordHash: 'password456',
+          email: 'userB@test.com',
+          phoneNumber: '13800000002'
+        }, { textContent: '', className: '' });
+
+        // Login both users
+        const loginA = await loginUser('UserA', 'password123', 'userA_authOutput');
+        const loginB = await loginUser('UserB', 'password456', 'userB_authOutput');
+
+        if (loginA && loginB) {
+          // Update target user fields with actual userIDs
+          document.getElementById('userA_targetUser').value = loginB;
+          document.getElementById('userB_targetUser').value = loginA;
+          
+          outputElement.textContent = `✅ Quick setup completed! Both UserA and UserB are registered and logged in.\nUserA ID: ${loginA}\nUserB ID: ${loginB}\n\n🎯 Target user fields have been automatically updated with the correct user IDs!`;
+          outputElement.className = 'success';
+        } else {
+          outputElement.textContent = '⚠️ Registration completed but login may have failed. Check individual user panels.';
+          outputElement.className = 'error';
+        }
+        
+      } catch (error) {
+        outputElement.textContent = `❌ Setup failed: ${error.message}`;
+        outputElement.className = 'error';
+      }
+    }
+
+    // User registration
+    async function registerUser(username, password, email, phone, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      const result = await makeAPICall('RegisterUserMessage', {
+        username,
+        passwordHash: password,
+        email,
+        phoneNumber: phone
+      }, outputElement);
+      
+      // Debug: Log registration result
+      console.log(`Registration result for ${username}:`, result);
+      
+      return result;
+    }
+
+    // User login
+    async function loginUser(username, password, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      const result = await makeAPICall('LoginUserMessage', {
+        username,
+        passwordHash: password
+      }, outputElement);
+      
+      // Debug: Log login result
+      console.log(`Login result for ${username}:`, result);
+      console.log(`Login result type:`, typeof result);
+      console.log(`Login result length:`, result ? result.length : 'null/undefined');
+      
+      // Check if result is a valid UUID (successful login returns user ID)
+      if (result && typeof result === 'string' && result.length > 10) {
+        // Login successful - result should be the userID
+        if (username === 'UserA' || username === document.getElementById('userA_username').value) {
+          userA_token = result; // Use the returned userID as token
+          document.getElementById('userA_tokenDisplay').textContent = result;
+          // Update the target user field for UserB to use UserA's actual ID
+          document.getElementById('userB_targetUser').value = result;
+          console.log(`UserA token set to: ${result}`);
+        } else if (username === 'UserB' || username === document.getElementById('userB_username').value) {
+          userB_token = result; // Use the returned userID as token
+          document.getElementById('userB_tokenDisplay').textContent = result;
+          // Update the target user field for UserA to use UserB's actual ID
+          document.getElementById('userA_targetUser').value = result;
+          console.log(`UserB token set to: ${result}`);
+        }
+        
+        // Clear any previous error styling and add success message
+        outputElement.className = 'success';
+        outputElement.textContent = `"${result}"\n\n✅ Login successful! Token set for ${username}: ${result}`;
+      } else {
+        console.log(`Login failed for ${username}, result:`, result);
+        outputElement.className = 'error';
+        outputElement.textContent = `❌ Login failed for ${username}. Check credentials.`;
+      }
+      return result;
+    }
+
+    // Get user info
+    async function getUserInfo(userToken, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      return await makeAPICall('GetUserInfoMessage', {
+        userToken,
+        userID: userToken
+      }, outputElement);
+    }
+
+    // Social actions
+    async function addFriend(userToken, friendID, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      console.log(`Adding friend: userToken=${userToken}, friendID=${friendID}`);
+      return await makeAPICall('AddFriendMessage', {
+        userToken,
+        friendID
+      }, outputElement);
+    }
+
+    async function removeFriend(userToken, friendID, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      console.log(`Removing friend: userToken=${userToken}, friendID=${friendID}`);
+      return await makeAPICall('RemoveFriendMessage', {
+        userToken,
+        friendID
+      }, outputElement);
+    }
+
+    async function blockUser(userToken, blackUserID, outputElementId) {
+      const outputElement = document.getElementById(outputElementId);
+      console.log(`Blocking user: userToken=${userToken}, blackUserID=${blackUserID}`);
+      return await makeAPICall('BlockUserMessage', {
+        userToken,
+        blackUserID
+      }, outputElement);
+    }
+
+    // Debug function to check what users exist
+    async function debugUserInfo() {
+      const outputElement = document.getElementById('scenarioOutput');
+      outputElement.textContent = '🔍 Debugging user information...\n\n';
+      outputElement.className = '';
+
+      try {
+        // Try to get user info for the current tokens
+        outputElement.textContent += `Current UserA token: ${userA_token || 'Not set'}\n`;
+        outputElement.textContent += `Current UserB token: ${userB_token || 'Not set'}\n\n`;
+
+        if (userA_token) {
+          outputElement.textContent += `Checking UserA (${userA_token}) info...\n`;
+          try {
+            const userAInfo = await makeAPICall('GetUserInfoMessage', {
+              userToken: userA_token,
+              userID: userA_token
+            }, { textContent: '', className: '' });
+            outputElement.textContent += `✅ UserA exists: ${JSON.stringify(userAInfo, null, 2)}\n\n`;
+          } catch (error) {
+            outputElement.textContent += `❌ UserA check failed: ${error.message}\n\n`;
+          }
+        }
+
+        if (userB_token) {
+          outputElement.textContent += `Checking UserB (${userB_token}) info...\n`;
+          try {
+            const userBInfo = await makeAPICall('GetUserInfoMessage', {
+              userToken: userB_token,
+              userID: userB_token
+            }, { textContent: '', className: '' });
+            outputElement.textContent += `✅ UserB exists: ${JSON.stringify(userBInfo, null, 2)}\n\n`;
+          } catch (error) {
+            outputElement.textContent += `❌ UserB check failed: ${error.message}\n\n`;
+          }
+        }
+
+        outputElement.className = 'success';
+        
+      } catch (error) {
+        outputElement.textContent += `❌ Debug failed: ${error.message}`;
+        outputElement.className = 'error';
+      }
+    }
+
+    // Debug function to check what users exist
+    async function debugUserInfo() {
+      const outputElement = document.getElementById('scenarioOutput');
+      outputElement.textContent = '🔍 Debugging user information...\n\n';
+      outputElement.className = '';
+
+      try {
+        // Try to get user info for the current tokens
+        outputElement.textContent += `Current UserA token: ${userA_token || 'Not set'}\n`;
+        outputElement.textContent += `Current UserB token: ${userB_token || 'Not set'}\n\n`;
+
+        if (userA_token) {
+          outputElement.textContent += `Checking UserA (${userA_token}) info...\n`;
+          try {
+            const userAInfo = await makeAPICall('GetUserInfoMessage', {
+              userToken: userA_token,
+              userID: userA_token
+            }, { textContent: '', className: '' });
+            outputElement.textContent += `✅ UserA exists: ${JSON.stringify(userAInfo, null, 2)}\n\n`;
+          } catch (error) {
+            outputElement.textContent += `❌ UserA check failed: ${error.message}\n\n`;
+          }
+        }
+
+        if (userB_token) {
+          outputElement.textContent += `Checking UserB (${userB_token}) info...\n`;
+          try {
+            const userBInfo = await makeAPICall('GetUserInfoMessage', {
+              userToken: userB_token,
+              userID: userB_token
+            }, { textContent: '', className: '' });
+            outputElement.textContent += `✅ UserB exists: ${JSON.stringify(userBInfo, null, 2)}\n\n`;
+          } catch (error) {
+            outputElement.textContent += `❌ UserB check failed: ${error.message}\n\n`;
+          }
+        }
+
+        outputElement.className = 'success';
+        
+      } catch (error) {
+        outputElement.textContent += `❌ Debug failed: ${error.message}`;
+        outputElement.className = 'error';
+      }
+    }
+      const outputElement = document.getElementById('scenarioOutput');
+      
+      switch(scenarioNumber) {
+        case 1:
+          outputElement.textContent = '🔄 Running: UserA adds UserB as friend...';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          await addFriend(userA_token, userB_token, outputElement);
+          break;
+          
+        case 2:
+          outputElement.textContent = '🔄 Running: UserB adds UserA as friend (mutual friendship)...';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          await addFriend(userB_token, userA_token, outputElement);
+          break;
+          
+        case 3:
+          outputElement.textContent = '🔄 Running: UserA blocks UserB...';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          await blockUser(userA_token, userB_token, outputElement);
+          break;
+          
+        case 4:
+          outputElement.textContent = '🔄 Running: UserA removes UserB from friends...';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          await removeFriend(userA_token, userB_token, outputElement);
+          break;
+          
+        case 5:
+          outputElement.textContent = '🔄 Checking both users social status...\n\n';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          await getUserInfo(userA_token, 'userA_infoOutput');
+          await getUserInfo(userB_token, 'userB_infoOutput');
+          outputElement.textContent = '✅ Check completed! See individual user info sections above.';
+          outputElement.className = 'success';
+          break;
+          
+        case 6:
+          outputElement.textContent = '🔄 Resetting all social connections...\n';
+          if (!userA_token || !userB_token) {
+            outputElement.textContent = '❌ Please login both users first!';
+            outputElement.className = 'error';
+            return;
+          }
+          try {
+            await removeFriend(userA_token, userB_token, { textContent: '', className: '' });
+            await removeFriend(userB_token, userA_token, { textContent: '', className: '' });
+            outputElement.textContent += '✅ Reset completed! All friendships removed.';
+            outputElement.className = 'success';
+          } catch (error) {
+            outputElement.textContent += `❌ Reset failed: ${error.message}`;
+            outputElement.className = 'error';
+          }
+          break;
+      }
+    
+
+    // Event listeners
+    document.getElementById('quickSetupBtn').onclick = quickSetup;
+    document.getElementById('debugBtn').onclick = debugUserInfo;
+
+    // User A events
+    document.getElementById('registerA').onclick = () => {
+      const username = document.getElementById('userA_username').value;
+      const password = document.getElementById('userA_password').value;
+      const email = document.getElementById('userA_email').value;
+      const phone = document.getElementById('userA_phone').value;
+      registerUser(username, password, email, phone, 'userA_authOutput');
+    };
+
+    document.getElementById('loginA').onclick = () => {
+      const username = document.getElementById('userA_username').value;
+      const password = document.getElementById('userA_password').value;
+      loginUser(username, password, 'userA_authOutput');
+    };
+
+    document.getElementById('userA_addFriend').onclick = () => {
+      const targetUser = document.getElementById('userA_targetUser').value;
+      addFriend(userA_token || document.getElementById('userA_username').value, targetUser, 'userA_socialOutput');
+    };
+
+    document.getElementById('userA_removeFriend').onclick = () => {
+      const targetUser = document.getElementById('userA_targetUser').value;
+      removeFriend(userA_token || document.getElementById('userA_username').value, targetUser, 'userA_socialOutput');
+    };
+
+    document.getElementById('userA_blockUser').onclick = () => {
+      const targetUser = document.getElementById('userA_targetUser').value;
+      blockUser(userA_token || document.getElementById('userA_username').value, targetUser, 'userA_socialOutput');
+    };
+
+    document.getElementById('userA_getInfo').onclick = () => {
+      getUserInfo(userA_token || document.getElementById('userA_username').value, 'userA_infoOutput');
+    };
+
+    // User B events
+    document.getElementById('registerB').onclick = () => {
+      const username = document.getElementById('userB_username').value;
+      const password = document.getElementById('userB_password').value;
+      const email = document.getElementById('userB_email').value;
+      const phone = document.getElementById('userB_phone').value;
+      registerUser(username, password, email, phone, 'userB_authOutput');
+    };
+
+    document.getElementById('loginB').onclick = () => {
+      const username = document.getElementById('userB_username').value;
+      const password = document.getElementById('userB_password').value;
+      loginUser(username, password, 'userB_authOutput');
+    };
+
+    document.getElementById('userB_addFriend').onclick = () => {
+      const targetUser = document.getElementById('userB_targetUser').value;
+      addFriend(userB_token || document.getElementById('userB_username').value, targetUser, 'userB_socialOutput');
+    };
+
+    document.getElementById('userB_removeFriend').onclick = () => {
+      const targetUser = document.getElementById('userB_targetUser').value;
+      removeFriend(userB_token || document.getElementById('userB_username').value, targetUser, 'userB_socialOutput');
+    };
+
+    document.getElementById('userB_blockUser').onclick = () => {
+      const targetUser = document.getElementById('userB_targetUser').value;
+      blockUser(userB_token || document.getElementById('userB_username').value, targetUser, 'userB_socialOutput');
+    };
+
+    document.getElementById('userB_getInfo').onclick = () => {
+      getUserInfo(userB_token || document.getElementById('userB_username').value, 'userB_infoOutput');
+    };
+
+    // Scenario events
+    document.getElementById('scenario1').onclick = () => runScenario(1);
+    document.getElementById('scenario2').onclick = () => runScenario(2);
+    document.getElementById('scenario3').onclick = () => runScenario(3);
+    document.getElementById('scenario4').onclick = () => runScenario(4);
+    document.getElementById('scenario5').onclick = () => runScenario(5);
+    document.getElementById('scenario6').onclick = () => runScenario(6);
+  </script>
+</body>
+</html>

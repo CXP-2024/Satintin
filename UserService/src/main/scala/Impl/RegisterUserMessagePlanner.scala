@@ -103,7 +103,7 @@ case class RegisterUserMessagePlanner(
       email = email,
       phoneNumber = phoneNumber,
       registerTime = currentTime,
-      permissionLevel = 1, // Default permission level for a new user
+      permissionLevel = 0,
       banDays = 0,
       isOnline = false,
       matchStatus = "Idle",
@@ -122,8 +122,8 @@ case class RegisterUserMessagePlanner(
         s"""
         INSERT INTO ${schemaName}.user_table
         (user_id, username, password_hash, email, phone_number, register_time, 
-        permission_level, ban_days, is_online, match_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        permission_level, ban_days, is_online, match_status, usertoken)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """.stripMargin,
         List(
           SqlParameter("String", newUser.userID),
@@ -135,7 +135,8 @@ case class RegisterUserMessagePlanner(
           SqlParameter("Int", newUser.permissionLevel.toString),
           SqlParameter("Int", newUser.banDays.toString),
           SqlParameter("Boolean", newUser.isOnline.toString),
-          SqlParameter("String", newUser.matchStatus.asJson.noSpaces)
+          SqlParameter("String", newUser.matchStatus),
+          SqlParameter("String", "") // 注册时usertoken为空
         )
       )
       _ <- IO(logger.info(s"[Create Record] 用户记录创建成功: userID=${newUser.userID}"))

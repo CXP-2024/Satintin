@@ -1,11 +1,11 @@
 package Utils
 
 //process plan import 预留标志位，不要删除
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
+import io.circe.*
+import io.circe.syntax.*
+import io.circe.generic.auto.*
 import org.joda.time.DateTime
-import Common.DBAPI._
+import Common.DBAPI.*
 import Common.ServiceUtils.schemaName
 import org.slf4j.LoggerFactory
 import Objects.UserService.{BlackEntry, FriendEntry, MessageEntry, User}
@@ -17,13 +17,15 @@ import io.circe.syntax.*
 import io.circe.generic.auto.*
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Objects.UserService.MessageEntry
 import Objects.UserService.User
 import Objects.UserService.BlackEntry
 import Objects.UserService.FriendEntry
-import Common.API.{PlanContext}
-import Common.Object.{SqlParameter, ParameterList}
+import Common.API.PlanContext
+import Common.Object.{ParameterList, SqlParameter}
+
+import scala.util.Properties.userName
 
 case object UserStatusProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -82,30 +84,44 @@ case object UserStatusProcess {
                     (List.empty[FriendEntry], List.empty[BlackEntry], List.empty[MessageEntry])
                 }
               }
-              (friendList, blackList, messageBox) = socialInfo              // Step 3: 获取资产信息 - To be completed: query from AssetService
+              (friendList, blackList, messageBox) = socialInfo
+  
+              // Step 3: 获取资产信息
               assetInfo <- {
-                logger.info(s"[fetchUserStatus] Using placeholder asset values for userID: ${userID} - should query from AssetService")
-                IO.pure((
-                  0, // stone_amount - To be completed: query from AssetService
-                  0, // card_draw_count - To be completed: query from AssetService
-                  "Bronze", // rank - To be completed: implement ranking system
-                  0  // rank_position - To be completed: implement ranking system
-                ))
+                val assetSQL =
+                  s"""
+                     SELECT stone_amount, card_draw_count, rank, rank_position
+                     FROM ${schemaName}.user_asset_table
+                     WHERE user_id = ?;
+                   """
+                logger.info(s"查询用户资产信息 SQL: ${assetSQL}")
+                readDBJsonOptional(assetSQL, List(SqlParameter("String", userID))).map {
+                  case Some(json) =>
+                    (
+                      decodeField[Int](json, "stone_amount"),
+                      decodeField[Int](json, "card_draw_count"),
+                      decodeField[String](json, "rank"),
+                      decodeField[Int](json, "rank_position")
+                    )
+                  case None =>
+                    logger.warn(s"userID [${userID}] 的资产数据未找到，将使用默认值 0 或空！")
+                    (0, 0, "", 0)
+                }
               }
               (stoneAmount, cardDrawCount, rank, rankPosition) = assetInfo
   
               // Step 4: 封装并返回 User 实例
               user = User(
-                userID = userBase.userID,
-                userName = userBase.userName,
-                passwordHash = userBase.passwordHash,
-                email = userBase.email,
-                phoneNumber = userBase.phoneNumber,
-                registerTime = userBase.registerTime,
-                permissionLevel = userBase.permissionLevel,
-                banDays = userBase.banDays,
-                isOnline = userBase.isOnline,
-                matchStatus = userBase.matchStatus,
+                userID = userID,
+                userName = userBase.userName, // 使用userBase.userName
+                passwordHash = userBase.passwordHash, // 使用userBase.passwordHash
+                email = userBase.email, // 使用userBase.email
+                phoneNumber = userBase.phoneNumber, // 使用userBase.phoneNumber
+                registerTime = userBase.registerTime, // 使用userBase.registerTime
+                permissionLevel = userBase.permissionLevel, // 使用userBase.permissionLevel
+                banDays = userBase.banDays, // 使用userBase.banDays
+                isOnline = userBase.isOnline, // 使用userBase.isOnline
+                matchStatus = userBase.matchStatus, // 使用userBase.matchStatus
                 stoneAmount = stoneAmount,
                 cardDrawCount = cardDrawCount,
                 rank = rank,
@@ -202,5 +218,40 @@ case object UserStatusProcess {
       _ <- IO(logger.info(s"操作日志记录完成: ${logResult}"))
   
     } yield "状态更新成功！"
+  }
+  
+  /**
+   * 获取所有用户ID列表
+   */
+  def getAllUserIDs()(using PlanContext): IO[List[String]] = {
+    val sql = s"""
+      SELECT user_id 
+      FROM ${schemaName}.user_table 
+      ORDER BY register_time DESC
+    """.stripMargin
+
+    for {
+      _ <- IO(logger.info("查询所有用户ID"))
+      rows <- readDBRows(sql, List())
+      _ <- IO(logger.info(s"查询到 ${rows.length} 行数据"))
+      _ <- IO(logger.info(s"第一行数据示例: ${rows.headOption}"))
+      
+      userIDs <- IO {
+        val ids = rows.map { json =>
+          // 修改：使用正确的字段名 "userID" 而不是 "user_id"
+          val userID = json.hcursor.downField("userID").as[String].getOrElse("")
+          logger.info(s"解析用户ID: ${userID}")
+          userID
+        }.filter(_.nonEmpty)
+        
+        logger.info(s"解析出 ${ids.length} 个有效用户ID")
+        if (ids.nonEmpty) {
+          logger.info(s"前几个用户ID: ${ids.take(3)}")
+        }
+        ids
+      }
+      
+      _ <- IO(logger.info(s"获取到 ${userIDs.length} 个用户ID"))
+    } yield userIDs
   }
 }

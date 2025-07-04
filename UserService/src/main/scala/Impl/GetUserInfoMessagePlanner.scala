@@ -31,6 +31,8 @@ import Objects.UserService.FriendEntry
 import Objects.UserService.{BlackEntry, FriendEntry, MessageEntry, User}
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Utils.JsonDecodingUtils.{decodeListField, decodeMessageField}
+import Utils.UserTokenValidator
 
 case class GetUserInfoMessagePlanner(
     userToken: String,
@@ -42,42 +44,42 @@ case class GetUserInfoMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[User] = {
     for {
-      // Step 1: Verify access permissions
-      _ <- IO(logger.info(s"[Step 1] 开始验证访问权限 for userToken: ${userToken}"))
-      _ <- verifyAccessPermission()
+      // Step 1: 验证usertoken并获取真实的userID
+      _ <- IO(logger.info(s"[Step 1] 开始验证usertoken: ${userToken}"))
+      actualUserID <- verifyAccessPermission()
+      _ <- IO(logger.info(s"[Step 1] usertoken验证成功，实际userID: ${actualUserID}"))
 
-      // Step 2: Fetch basic user information from UserTable
-      _ <- IO(logger.info(s"[Step 2] 开始从UserTable查找用户的基本信息 for userID: ${userID}"))
-      userInfo <- fetchUserInfo()
+      // Step 2: 使用真实的userID获取用户信息（忽略传入的userID参数）
+      _ <- IO(logger.info(s"[Step 2] 开始从UserTable查找用户的基本信息 for userID: ${actualUserID}"))
+      userInfo <- fetchUserInfo(actualUserID)
 
-      // Step 3: Fetch user assets from UserAssetTable
-      _ <- IO(logger.info(s"[Step 3] 开始从UserAssetTable查询用户的资产状态 for userID: ${userID}"))
-      userAssets <- fetchUserAssets()
+      // Step 3: 使用真实的userID获取资产信息
+      _ <- IO(logger.info(s"[Step 3] 开始从UserAssetTable查询用户的资产状态 for userID: ${actualUserID}"))
+      userAssets <- fetchUserAssets(actualUserID)
 
-      // Step 4: Fetch user social information from UserSocialTable
-      _ <- IO(logger.info(s"[Step 4] 开始从UserSocialTable查询用户的社交信息 for userID: ${userID}"))
-      userSocial <- fetchUserSocial()
+      // Step 4: 使用真实的userID获取社交信息
+      _ <- IO(logger.info(s"[Step 4] 开始从UserSocialTable查询用户的社交信息 for userID: ${actualUserID}"))
+      userSocial <- fetchUserSocial(actualUserID)
 
-      // Step 5: Combine all fetched data to create the User object
+      // Step 5: 整合信息
       _ <- IO(logger.info(s"[Step 5] 整合信息生成User对象"))
       user <- IO(combineUserInfo(userInfo, userAssets, userSocial))
     } yield user
   }
 
-  private def verifyAccessPermission()(using PlanContext): IO[Unit] = {
-    // 在实际实现中，应该验证userToken的有效性
-    // 此处暂时仅记录日志
-    IO(logger.info(s"[verifyAccessPermission] userToken验证通过: ${userToken}"))
+  private def verifyAccessPermission()(using PlanContext): IO[String] = {
+    // 使用UserTokenValidator验证usertoken并获取真实的userID
+    UserTokenValidator.getUserIDFromToken(userToken)
   }
 
-  private def fetchUserInfo()(using PlanContext): IO[(String, String, String, String, String, DateTime, Int, Int, Boolean, String)] = {
+  private def fetchUserInfo(actualUserID: String)(using PlanContext): IO[(String, String, String, String, String, DateTime, Int, Int, Boolean, String)] = {
     val sql =
       s"""
          |SELECT user_id, username, password_hash, email, phone_number, register_time, permission_level, ban_days, is_online, COALESCE(match_status, '') as match_status
          |FROM ${schemaName}.user_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
+    readDBJson(sql, List(SqlParameter("String", actualUserID))).map { json =>
       (
         decodeField[String](json, "user_id"),
         decodeField[String](json, "username"),
@@ -92,33 +94,44 @@ case class GetUserInfoMessagePlanner(
       )
     }
   }
-  private def fetchUserAssets()(using PlanContext): IO[(Int, Int, String, Int)] = {
-    // TODO: All asset data should be queried from AssetService instead of local database
-    // For now, return placeholder values
-    IO {
-      logger.info(s"[fetchUserAssets] Using placeholder values for userID: ${userID} - assets should be queried from AssetService")
-      (
-        0, // stone_amount - To be completed: query from AssetService
-        0, // card_draw_count - To be completed: query from AssetService  
-        "Bronze", // rank - To be completed: implement ranking system
-        0  // rank_position - To be completed: implement ranking system
-      )
+
+  private def fetchUserAssets(actualUserID: String)(using PlanContext): IO[(Int, Int, String, Int)] = {
+    val sql =
+      s"""
+         |SELECT stone_amount, card_draw_count, COALESCE(rank, '') as rank, COALESCE(rank_position, 0) as rank_position
+         |FROM ${schemaName}.user_asset_table
+         |WHERE user_id = ?;
+      """.stripMargin
+    readDBJsonOptional(sql, List(SqlParameter("String", actualUserID))).map { jsonOpt =>
+      jsonOpt match {
+        case Some(json) =>
+          (
+            decodeField[Int](json, "stone_amount"),
+            decodeField[Int](json, "card_draw_count"),
+            decodeField[String](json, "rank"),
+            decodeField[Int](json, "rank_position")
+          )
+        case None =>
+          // Return default values if no asset record exists
+          logger.info(s"[fetchUserAssets] No asset record found for userID: ${userID}, using default values")
+          (0, 0, "Bronze", 0) // Default values: 0 stones, 0 card draws, Bronze rank, position 0
+      }
     }
   }
 
-  private def fetchUserSocial()(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
+  private def fetchUserSocial(actualUserID: String)(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
     val sql =
       s"""
          |SELECT friend_list, black_list, message_box
          |FROM ${schemaName}.user_social_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
+    readDBJsonOptional(sql, List(SqlParameter("String", actualUserID))).map { jsonOpt =>
       jsonOpt match {
         case Some(json) =>
-          val friendList = decodeField[List[String]](json, "friend_list").map(FriendEntry)
-          val blackList = decodeField[List[String]](json, "black_list").map(BlackEntry)
-          val messageBox = decodeField[List[Map[String, String]]](json, "message_box").map { msg =>
+          val friendList = decodeListField(json, "friend_list").map(FriendEntry)
+          val blackList = decodeListField(json, "black_list").map(BlackEntry)
+          val messageBox = decodeMessageField(json, "message_box").map { msg =>
             MessageEntry(
               messageSource = msg("messageSource"),
               messageContent = msg("messageContent"),

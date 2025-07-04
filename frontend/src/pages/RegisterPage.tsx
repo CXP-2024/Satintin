@@ -6,10 +6,11 @@ import { RegisterFormData } from '../types/User';
 import './RegisterPage.css';
 import CryptoJS from 'crypto-js';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
-import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {setUserToken, useUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
+import { get } from 'lodash';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -22,6 +23,9 @@ const RegisterPage: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>(''); // 添加成功消息状态
     const [loading, setLoading] = useState<boolean>(false);
+    
+    // 在组件顶层调用 React Hook
+    const userToken = useUserToken();
 
     // 密码哈希函数
     const hashPassword = (password: string): string => {
@@ -133,19 +137,18 @@ const RegisterPage: React.FC = () => {
                 formData.username,
                 passwordHash,
                 formData.email,
-                formData.phoneNumber,
-            ).send(
+                formData.phoneNumber,            ).send(
                 (info: string) => {
                     console.log('✅ [注册流程] 注册成功');
                     console.log('callback message', info);
+                    // 使用已经在组件顶层获取的 userToken
                     const userID = JSON.parse(info);
-
-                    new RewardAssetMessage(userID,10000).send(
+                    new RewardAssetMessage(userToken,10000).send(
                         (info: string) => {
                             const successmessage = JSON.parse(info);
                             console.log(successmessage)
 
-                            new CreateReportMessage(userID, userID, 'test').send(
+                            new CreateReportMessage(userToken, userID, 'test').send(
                                 (info: string) => {
                                     const successmessage = JSON.parse(info);
                                     console.log(successmessage)

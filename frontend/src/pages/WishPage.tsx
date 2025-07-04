@@ -26,9 +26,11 @@ const WishPage: React.FC = () => {
 	const [isAnimating, setIsAnimating] = useState<boolean>(false);	const [wishHistory, setWishHistory] = useState<{featured: any[], standard: any[]}>({
 		featured: [],
 		standard: []
-	});
-	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-	const [cardDrawCount, setCardDrawCount] = useState<number>(0); // 当前抽卡次数
+	});	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+	const [cardDrawCounts, setCardDrawCounts] = useState<{standard: number, featured: number}>({
+		standard: 0,
+		featured: 0
+	}); // 分离的抽卡次数
 
 	// 初始化音效
 	useEffect(() => {
@@ -44,7 +46,6 @@ const WishPage: React.FC = () => {
 		playClickSound();		
 		navigateQuick('/shop');
 	}
-
 	// 卡池切换处理函数
 	const handleBannerSwitch = (newBanner: 'standard' | 'featured') => {
 		if (newBanner === selectedBanner || isAnimating) return;
@@ -64,6 +65,11 @@ const WishPage: React.FC = () => {
 		setTimeout(() => {
 			setSelectedBanner(newBanner);
 			setAnimationClass(slideInClass);
+
+			// 切换卡池时刷新对应卡池的抽卡次数（如果还没有加载过）
+			if (userToken && cardDrawCounts[newBanner] === 0) {
+				fetchCardDrawCount(newBanner);
+			}
 
 			// 进入动画完成后清除动画类
 			setTimeout(() => {
@@ -112,12 +118,11 @@ const WishPage: React.FC = () => {
 	};
 	// 添加刷新用户资产状态的函数
 	const refreshUserAssets = async () => {
-		if (!user?.userID) return;
-
+		// if (!user?.userID) return;
 		try {
 			// wrap send() so `response` is what your callback receives
 			const response: any = await new Promise((resolve, reject) => {
-			new QueryAssetStatusMessage(user.userID).send(
+			new QueryAssetStatusMessage(userToken).send(
 				(res: any)  => resolve(res),
 				(err: any) => reject(err)
 			);			});
@@ -131,14 +136,13 @@ const WishPage: React.FC = () => {
 			console.error('刷新用户资产失败:', err);
 		}
 	};
-
-	// 获取用户当前抽卡次数
-	const fetchCardDrawCount = async () => {
+	// 获取用户指定卡池的当前抽卡次数
+	const fetchCardDrawCount = async (poolType: 'standard' | 'featured') => {
 		if (!userToken) return;
 
 		try {
 			const response: any = await new Promise((resolve, reject) => {
-				new QueryCardDrawCountMessage(userToken).send(
+				new QueryCardDrawCountMessage(userToken, poolType).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -146,11 +150,27 @@ const WishPage: React.FC = () => {
 
 			// 解析响应数据
 			const drawCount = typeof response === 'string' ? parseInt(response) : Number(response);
-			setCardDrawCount(drawCount);
+			setCardDrawCounts(prev => ({
+				...prev,
+				[poolType]: drawCount
+			}));
 		} catch (err) {
-			console.error('获取抽卡次数失败:', err);
-			setCardDrawCount(0);
+			console.error(`获取${poolType}池抽卡次数失败:`, err);
+			setCardDrawCounts(prev => ({
+				...prev,
+				[poolType]: 0
+			}));
 		}
+	};
+
+	// 获取所有卡池的抽卡次数
+	const fetchAllCardDrawCounts = async () => {
+		if (!userToken) return;
+		
+		await Promise.all([
+			fetchCardDrawCount('standard'),
+			fetchCardDrawCount('featured')
+		]);
 	};
 
 	const handleSingleWish = async () => {
@@ -164,7 +184,7 @@ const WishPage: React.FC = () => {
 			// 调用后端抽卡API
 			const drawResult = await new Promise((resolve, reject) => {
 				new DrawCardMessage(
-					user.userID, // 使用 userID
+					userToken, 
 					1, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {
@@ -174,16 +194,18 @@ const WishPage: React.FC = () => {
 						resolve(response);
 					}
 				});			});
-			
-			// 抽卡成功后立即刷新抽卡次数（单抽+1）
-			setCardDrawCount(prev => prev + 1);
+					// 抽卡成功后立即更新当前卡池的抽卡次数（单抽+1）
+			setCardDrawCounts(prev => ({
+				...prev,
+				[selectedBanner]: prev[selectedBanner] + 1
+			}));
 			
 			// 抽卡成功后刷新用户资产状态
 			await refreshUserAssets();
 			
 			// 刷新抽卡历史和抽卡次数（从服务器获取最新数据）
 			await loadDrawHistory();
-			await fetchCardDrawCount();
+			await fetchCardDrawCount(selectedBanner);
 			
 			// 先跳转到结果页面，然后可以通过其他方式传递数据
 			localStorage.setItem('drawResult', JSON.stringify({
@@ -208,9 +230,8 @@ const WishPage: React.FC = () => {
 			return;
 		}		try {
 			// 调用后端抽卡API
-			const drawResult = await new Promise((resolve, reject) => {
-				new DrawCardMessage(
-					user.userID, // 使用 userID
+			const drawResult = await new Promise((resolve, reject) => {				new DrawCardMessage(
+					userToken, 
 					10, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {
@@ -220,16 +241,18 @@ const WishPage: React.FC = () => {
 						resolve(response);
 					}
 				});
-			});			
-			// 抽卡成功后立即刷新抽卡次数（十连+10）
-			setCardDrawCount(prev => prev + 10);
+			});					// 抽卡成功后立即更新当前卡池的抽卡次数（十连+10）
+			setCardDrawCounts(prev => ({
+				...prev,
+				[selectedBanner]: prev[selectedBanner] + 10
+			}));
 			
 			// 抽卡成功后刷新用户资产状态
 			await refreshUserAssets();
 
 			// 刷新抽卡历史和抽卡次数（从服务器获取最新数据）
 			await loadDrawHistory();
-			await fetchCardDrawCount();
+			await fetchCardDrawCount(selectedBanner);
 
 			// 先跳转到结果页面，然后可以通过其他方式传递数据
 			localStorage.setItem('drawResult', JSON.stringify({
@@ -275,7 +298,8 @@ const WishPage: React.FC = () => {
 			return;
 		}
 
-		setIsLoadingHistory(true);		try {
+		setIsLoadingHistory(true);		
+		try {
 			const historyData = await new Promise<any>((resolve, reject) => {
 				new GetDrawHistoryMessage(userToken).send(
 					(response: any) => {
@@ -366,16 +390,15 @@ const WishPage: React.FC = () => {
 	useEffect(() => {
 		if (userToken) {
 			loadDrawHistory();
-			fetchCardDrawCount();
+			fetchAllCardDrawCounts();
 		}
 	}, [userToken]);
-
 	// 监听页面重新可见时刷新抽卡次数（从抽卡结果页返回时）
 	useEffect(() => {
 		const handleVisibilityChange = () => {
 			if (!document.hidden && userToken) {
 				// 页面重新可见时刷新抽卡次数
-				fetchCardDrawCount();
+				fetchAllCardDrawCounts();
 			}
 		};
 
@@ -384,7 +407,7 @@ const WishPage: React.FC = () => {
 		// 组件焦点重新获得时也刷新（针对页面路由返回）
 		const handleFocus = () => {
 			if (userToken) {
-				fetchCardDrawCount();
+				fetchAllCardDrawCounts();
 			}
 		};
 		
@@ -489,7 +512,7 @@ const WishPage: React.FC = () => {
 					</div>
 				</div>				<div className="pity-info">
 					<div className="pity-label">距离保底还需:</div>
-					<div className="pity-count">{Math.max(0, 90 - cardDrawCount)}次</div>
+					<div className="pity-count">{Math.max(0, 90 - cardDrawCounts[selectedBanner])}次</div>
 				</div>
 			</div>
 		</div>

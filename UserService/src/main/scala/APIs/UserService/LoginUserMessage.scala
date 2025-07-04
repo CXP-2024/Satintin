@@ -17,21 +17,18 @@ import scala.util.Try
 import org.joda.time.DateTime
 import java.util.UUID
 
-
 /**
  * LoginUserMessage
- * desc: 验证用户名和密码哈希是否正确。如果正确，返回用户ID。
+ * desc: 验证用户名和密码哈希是否正确。如果正确，返回包含用户ID和usertoken的JSON字符串。
  * @param username: String (用户名，用于登录时的身份验证。)
  * @param passwordHash: String (用户密码的哈希值，用于与数据库中的存储值进行比对。)
- * @return userid: string (返回用户id。)
+ * @return loginResult: String (包含用户ID和userToken的JSON字符串)
  */
 
 case class LoginUserMessage(
   username: String,
   passwordHash: String
 ) extends API[String](UserServiceCode)
-
-
 
 case object LoginUserMessage{
     
@@ -56,11 +53,12 @@ case object LoginUserMessage{
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
-  // Circe + Jackson 兜底的 Decoder
+  // Circe + Jackson 兜底的 Decoder  
   given loginUserMessageDecoder: Decoder[LoginUserMessage] = Decoder.instance { cursor =>
-    circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
+    circeDecoder.decodeJson(cursor.value) match {
+      case Right(result) => Right(result)
+      case Left(_) => jacksonDecoder.decodeJson(cursor.value)
+    }
   }
-
-
 }
 

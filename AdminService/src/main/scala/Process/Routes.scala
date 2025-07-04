@@ -22,6 +22,7 @@ import Impl.UnbanUserMessagePlanner
 import Impl.ViewSystemStatsMessagePlanner
 import Impl.CreateReportUserMessagePlanner
 import Impl.ViewAllReportsMessagePlanner
+import Impl.ViewUserAllInfoMessagePlanner  // 添加新的导入
 import APIs.AdminService.CreateReportMessage
 import Common.API.TraceID
 import org.joda.time.DateTime
@@ -91,6 +92,14 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
+      // 添加新的ViewUserAllInfoMessage路由
+      case "ViewUserAllInfoMessage" =>
+        IO(
+          decode[ViewUserAllInfoMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewUserAllInfoMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
       case "test" =>
         for {
           output  <- Utils.Test.test(str)(using  PlanContext(TraceID(""), 0))
@@ -109,6 +118,7 @@ object Routes:
       }
     }
   }
+  
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "health" =>
       Ok("OK")

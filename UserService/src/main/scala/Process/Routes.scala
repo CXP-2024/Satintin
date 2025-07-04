@@ -28,7 +28,7 @@ import Impl.BlockUserMessagePlanner
 import Impl.LogoutUserMessagePlanner
 import Impl.ReceiveMessagesMessagePlanner
 import Impl.GetUserInfoMessagePlanner
-  import Impl.ViewUserBasicInfoMessagePlanner
+import Impl.ViewUserBasicInfoMessagePlanner  // 添加这个导入
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -88,8 +88,11 @@ object Routes:
       case "LoginUserMessage" =>
         IO(
           decode[LoginUserMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for LoginUserMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
+            case Left(err) => 
+              err.printStackTrace(); 
+              throw new Exception(s"Invalid JSON for LoginUserMessage[${err.getMessage}]")
+            case Right(value) => 
+              value.fullPlan.map(_.asJson.toString)
         ).flatten
        
       case "AcceptFriendRequestMessage" =>
@@ -134,7 +137,7 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "ViewUserBasicInfoMessage" =>
+      case "ViewUserBasicInfoMessage" => 
         IO(
           decode[ViewUserBasicInfoMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewUserBasicInfoMessage[${err.getMessage}]")

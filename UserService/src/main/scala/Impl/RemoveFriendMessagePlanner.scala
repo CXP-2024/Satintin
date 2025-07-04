@@ -27,6 +27,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Common.ServiceUtils.schemaName
 import Utils.FriendManagementProcess.removeFriendEntry
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Objects.UserService.User
 
 case class RemoveFriendMessagePlanner(
     userToken: String,
@@ -59,17 +60,42 @@ case class RemoveFriendMessagePlanner(
   // 验证 userToken 是否有效，并解析出 userID
   private def validateUserToken()(using PlanContext): IO[String] = {
     for {
-      _ <- IO(logger.info(s"从 userToken 解析 userID"))
-      querySql <- IO(s"SELECT user_id FROM ${schemaName}.user_token_table WHERE token = ?")
-      queryParams <- IO(List(SqlParameter("String", userToken)))
-      userJson <- readDBJsonOptional(querySql, queryParams)
-      userID <- userJson match {
-        case Some(json) =>
-          IO(decodeField[String](json, "user_id"))
+      _ <- IO(logger.info(s"开始验证userToken: ${userToken}"))
+      // First try to treat it as a user_id (UUID)
+      userIdResult <- readDBRows(
+        s"SELECT * FROM ${schemaName}.user_table WHERE user_id = ?;",
+        List(SqlParameter("String", userToken))
+      )
+      _ <- IO(logger.info(s"按user_id查询结果数量: ${userIdResult.length}"))
+      
+      // If not found, try to treat it as a username
+      userNameResult <- if (userIdResult.isEmpty) {
+        for {
+          _ <- IO(logger.info(s"user_id未找到，尝试按username查询: ${userToken}"))
+          result <- readDBRows(
+            s"SELECT * FROM ${schemaName}.user_table WHERE username = ?;",
+            List(SqlParameter("String", userToken))
+          )
+          _ <- IO(logger.info(s"按username查询结果数量: ${result.length}"))
+        } yield result
+      } else IO(List.empty)
+      
+      // Use whichever query returned results
+      finalResult = if (userIdResult.nonEmpty) userIdResult else userNameResult
+      _ <- if (finalResult.nonEmpty) IO(logger.info(s"找到用户数据: ${finalResult.head}")) else IO(logger.info("未找到用户数据"))
+      
+      userID <- finalResult.headOption match {
+        case Some(userJson) =>
+          // Parse the user data and extract userID
+          for {
+            user <- IO.fromEither(userJson.as[User])
+            _ <- IO(logger.info(s"用户验证成功，用户ID: ${user.userID}, 用户名: ${user.userName}"))
+          } yield user.userID
         case None =>
-          IO(logger.error(s"userToken '${userToken}' 无效")) *> IO.raiseError(new IllegalArgumentException("无效的 userToken"))
+          val errorMessage = s"无效的userToken，既不是有效的用户ID也不是有效的用户名: ${userToken}"
+          IO(logger.error(errorMessage)) >>
+            IO.raiseError(new IllegalArgumentException(errorMessage))
       }
-      _ <- IO(logger.info(s"解析出的 userID: '${userID}'"))
     } yield userID
   }
 }

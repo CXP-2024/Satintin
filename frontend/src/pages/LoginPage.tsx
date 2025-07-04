@@ -10,14 +10,12 @@ import {
     getUserInfo,
     getUserToken,
     setUserInfo,
-    setUserToken, useUserInfo,
-    useUserToken
+    setUserToken
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {QueryAssetStatusMessage} from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
-import {LoginAdminMessage} from "Plugins/AdminService/APIs/LoginAdminMessage";
 
 const LoginPage: React.FC = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -154,13 +152,11 @@ const LoginPage: React.FC = () => {
             hideLoading();
         }
     };
-
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         playClickSound();
 
-        console.log('🚀 [登录流程] 开始真实API登录流程');
+        console.log('🚀 [登录流程] 开始用户登录流程');
         console.log('📝 [登录流程] 表单数据:', { username: formData.username, password: '***' });
 
         // 表单验证
@@ -185,69 +181,116 @@ const LoginPage: React.FC = () => {
         setError('');
 
         try {
-            console.log('🔄 [登录流程] 调用真实API...');
+            console.log('🔄 [登录流程] 调用用户登录API...');
 
-            new LoginAdminMessage(formData.username, formData.password).send(
-                async (Info) => {
-                    const usertoken = JSON.parse(Info);
+            // 使用Promise包装API调用，避免嵌套回调
+            const loginResponse = await new Promise<any>((resolve, reject) => {
+                new LoginUserMessage(formData.username, formData.password).send(
+                    (response) => resolve(response),
+                    (error) => reject(error)
+                );
+            });
 
-                    setUserToken(usertoken) ;
-                    setUserInfo({
-                        ...getUserInfo(),
-                        permissionLevel: 1
-                    });
-                    console.log('Admin Token set:',getUserToken() );
-                    console.log('callback message', Info);
-                    console.log(getUserInfo());
-                    await navigateWithTransition('/admin')
-                },
-                (error: any)=>{
-                    const errormessage = JSON.parse(error);
-                    console.log(errormessage);
-                    console.log('fail admin login');
+            console.log('✅ [登录流程] 登录API调用成功:', loginResponse);
 
-                    new LoginUserMessage(formData.username, formData.password).send(
-                        (Info) => {
-                            const userId = JSON.parse(Info);
-
-                            setUserToken(userId) ;
-                            console.log('Token set:',getUserToken() );
-                            console.log('callback message', Info);
-
-                            new GetUserInfoMessage(getUserToken(), userId).send(
-                                async (userInfo) => {
-                                    console.log('User info:', userInfo);
-                                    const userInfoParse = JSON.parse(userInfo);
-                                    setUserInfo(userInfoParse);
-
-                                    new QueryAssetStatusMessage(getUserToken()).send(
-                                        (stoneJSON) => {
-                                            const stoneAmount = JSON.parse(stoneJSON);
-                                            console.log('stoneAmount:', stoneAmount);
-                                            setUserInfo({
-                                                ...userInfoParse,
-                                                stoneAmount: stoneAmount
-                                            });
-                                        }
-                                    )
-
-                                    console.log('User set successfully:', getUserInfo());
-                                    await new Promise(resolve => setTimeout(resolve, 5000));
-                                    navigateWithTransition('/game');
-                                }
-                            )
-                        },
-                        (error: any) => {
-                            const errorMessage = JSON.parse(error);
-                            setError(errorMessage);
-                            console.log('❌ [注册流程] 完整错误对象:', error);
-                            hideLoading();
-                        }
-                    );
+            // 解析登录响应
+            let loginInfo;
+            if (typeof loginResponse === 'string') {
+                loginInfo = JSON.parse(loginResponse);
+                if (typeof loginInfo === 'string') {
+                    loginInfo = JSON.parse(loginInfo);
                 }
-            )
+            } else {
+                loginInfo = loginResponse;
+            }
+
+            const userId = loginInfo.userID;
+            const userToken = loginInfo.userToken;
+
+            if (!userId || !userToken) {
+                throw new Error('登录响应数据不完整');
+            }
+
+            console.log('🔑 [登录流程] 设置用户Token:', userToken);
+            setUserToken(userToken);
+
+            // 获取用户信息
+            console.log('👤 [登录流程] 获取用户信息...');
+            const userInfoResponse = await new Promise<any>((resolve, reject) => {
+                new GetUserInfoMessage(userToken, userId).send(
+                    (response) => resolve(response),
+                    (error) => reject(error)
+                );
+            });
+
+            // 解析用户信息
+            let userInfo;
+            if (typeof userInfoResponse === 'string') {
+                userInfo = JSON.parse(userInfoResponse);
+                if (typeof userInfo === 'string') {
+                    userInfo = JSON.parse(userInfo);
+                }
+            } else {
+                userInfo = userInfoResponse;
+            }
+
+            console.log('👤 [登录流程] 用户信息获取成功:', userInfo);
+
+            // 获取资产信息
+            console.log('💎 [登录流程] 获取资产信息...');
+            const assetResponse = await new Promise<any>((resolve, reject) => {
+                new QueryAssetStatusMessage(userToken).send(
+                    (response) => resolve(response),
+                    (error) => reject(error)
+                );
+            });
+
+            // 解析资产信息
+            let stoneAmount;
+            if (typeof assetResponse === 'string') {
+                stoneAmount = JSON.parse(assetResponse);
+                if (typeof stoneAmount === 'string') {
+                    stoneAmount = JSON.parse(stoneAmount);
+                }
+            } else {
+                stoneAmount = assetResponse;
+            }
+
+            console.log('💎 [登录流程] 资产信息获取成功:', stoneAmount);
+
+            // 原子性设置用户信息和资产信息
+            const completeUserInfo = {
+                ...userInfo,
+                stoneAmount: stoneAmount
+            };
+
+            setUserInfo(completeUserInfo);
+            console.log('✅ [登录流程] 用户信息设置完成:', completeUserInfo);
+
+            // 等待动画完成后跳转
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            hideLoading();
+            
+            console.log('🧭 [登录流程] 登录成功，跳转到游戏主页...');
+            await navigateWithTransition('/game');
+
         } catch (err: any) {
-            //setMessage(err.message || "登录失败");
+            console.error('❌ [登录流程] 登录失败:', err);
+            
+            let errorMessage = '登录失败';
+            if (typeof err === 'string') {
+                try {
+                    const errorObj = JSON.parse(err);
+                    errorMessage = errorObj.message || errorObj.error || err;
+                } catch {
+                    errorMessage = err;
+                }
+            } else if (err?.message) {
+                errorMessage = err.message;
+            }
+            
+            setError(errorMessage);
+            hideLoading();
         }
     };
 
