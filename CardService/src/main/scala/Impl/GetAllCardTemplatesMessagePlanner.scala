@@ -20,8 +20,6 @@ case class GetAllCardTemplatesMessagePlanner(
 
   override def plan(using PlanContext): IO[List[CardTemplate]] = {
     for {
-      // Step 1: Validate user token (optional, since we're just fetching templates)
-      _ <- IO(logger.info(s"[Step 1] 获取全部卡牌模板，用户Token: ${userToken}"))
       
       // Step 2: Query all card templates from database
       _ <- IO(logger.info(s"[Step 2] 从数据库查询全部卡牌模板"))
