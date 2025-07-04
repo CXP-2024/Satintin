@@ -10,7 +10,7 @@ import { GameOverModal } from '../components/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { getUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserInfo,useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
@@ -54,7 +54,7 @@ const BattleRoom: React.FC = () => {
 	// 初始化WebSocket连接
 	useEffect(() => {
 		const initializeConnection = async () => {
-			const token = getUserToken();
+			const token = getUserInfo().userID;
 			if (!user || !token) {
 				console.error('❌ [BattleRoom] 用户未登录');
 				navigate('/login');
@@ -70,7 +70,7 @@ const BattleRoom: React.FC = () => {
 				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
 
 				// 连接WebSocket
-				await webSocketService.connect(battleRoomId, getUserToken());
+				await webSocketService.connect(battleRoomId, getUserInfo().userID);
 				setConnectionStatus(true);
 				setIsConnecting(false);
 				setRoomStatus('waiting');
