@@ -1,4 +1,4 @@
-import { config } from 'Globals/Config';
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export interface BattleAction {
 	type: 'cake' | 'defense' | 'spray'; // 饼、防、撒
@@ -13,7 +13,8 @@ export interface GameState {
 	currentRound: number;
 	roundPhase: 'waiting' | 'action' | 'result' | 'finished';
 	remainingTime: number;
-	winner?: string;
+	winner: string;
+	isReady: boolean; // 是否准备就绪
 }
 
 export interface PlayerState {
@@ -23,9 +24,11 @@ export interface PlayerState {
 	energy: number;
 	rank: string;
 	cards: CardState[];
-	currentAction?: BattleAction;
+	currentAction: BattleAction;
 	isReady: boolean;
 	isConnected: boolean;
+	remainingTime: number; // 剩余时间，仅在行动阶段有效
+	hasActed: boolean; // 是否已行动，仅在行动阶段有效
 }
 
 export interface CardState {
@@ -65,7 +68,7 @@ export interface CardEffect {
 
 export interface GameOverResult {
 	winner: string;
-	reason: 'health_zero' | 'disconnect' | 'surrender';
+	reason: 'health_zero' | 'disconnect' | 'surrender' | 'time_up';
 	rewards?: {
 		stones: number;
 		rankChange?: number;
@@ -92,14 +95,15 @@ export class WebSocketService {
 	connect(roomId: string, userToken: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.roomId = roomId;
-			const wsUrl = `ws://${config.battleServiceUrl}/battle/${roomId}?token=${userToken}`;
+            const battleServiceUrl = ServiceConfig.getBattleServiceAddress()
+			const wsUrl = `ws://${battleServiceUrl}/battle/${roomId}?token=${userToken}`;
 
 			console.log('🔌 [WebSocket] 连接到对战房间:', wsUrl);
 
 			this.ws = new WebSocket(wsUrl);
-
 			this.ws.onopen = () => {
 				console.log('✅ [WebSocket] 连接成功');
+				console.log('🔌 [WebSocket] 连接状态:', this.ws?.readyState);
 				this.reconnectAttempts = 0;
 				resolve();
 			};
@@ -115,12 +119,14 @@ export class WebSocketService {
 			};
 
 			this.ws.onclose = (event) => {
-				console.log('🔌 [WebSocket] 连接关闭:', event.code, event.reason);
+				console.log('🔌 [WebSocket] 连接关闭 - Code:', event.code, 'Reason:', event.reason, 'WasClean:', event.wasClean);
+				console.log('🔌 [WebSocket] 关闭时连接状态:', this.ws?.readyState);
 				this.handleDisconnect();
 			};
 
 			this.ws.onerror = (error) => {
 				console.error('❌ [WebSocket] 连接错误:', error);
+				console.log('🔌 [WebSocket] 错误时连接状态:', this.ws?.readyState);
 				reject(error);
 			};
 		});

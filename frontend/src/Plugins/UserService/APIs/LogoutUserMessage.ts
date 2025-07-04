@@ -5,6 +5,7 @@
  * @return result: String (登出结果提示，固定返回"登出成功!")
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -15,7 +16,7 @@ export class LogoutUserMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getUserServiceAddress()
     }
 }
 

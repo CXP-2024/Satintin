@@ -6,6 +6,7 @@
  * @return loginResult: String (包含用户ID和usertoken的JSON字符串)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class LoginUserMessage extends TongWenMessage {
     constructor(
@@ -16,7 +17,7 @@ export class LoginUserMessage extends TongWenMessage {
     }
     
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getUserServiceAddress()
     }
 }
 

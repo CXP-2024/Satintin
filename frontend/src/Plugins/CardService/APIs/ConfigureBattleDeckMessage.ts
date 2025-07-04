@@ -6,6 +6,7 @@
  * @return result: String (卡组配置的操作结果信息，例如'战斗卡组设置成功！')
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -17,7 +18,7 @@ export class ConfigureBattleDeckMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }
 

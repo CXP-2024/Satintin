@@ -1,6 +1,7 @@
 
 package Process
 
+import APIs.UserService.GetUserInfoMessage
 import Common.API.PlanContext
 import Common.DBAPI.DidRollbackException
 import cats.effect.*
@@ -117,24 +118,32 @@ object Routes:
             // Create a queue for this connection
             for {
               queue <- Queue.unbounded[IO, WebSocketFrame]
+              _ <- IO(logger.info(s"Created queue for user $userId"))
 
               // Register connection with room manager
               _ <- manager.addConnection(userId, queue)
+              _ <- IO(logger.info(s"Added connection for user $userId"))
 
               // Build WebSocket
               response <- wsBuilder.build(
                 // Handle incoming messages
-                receive = _.evalMap {
+                receive = s => s.evalMap {
                   case WebSocketFrame.Text(msg, _) =>
                     for {
                       _ <- IO(logger.info(s"Received message from user $userId: $msg"))
                       _ <- handleWebSocketMessage(roomId, userId, msg)
                     } yield ()
-                  case _ => IO.unit
-                },
+                  case frame =>
+                    IO(logger.info(s"Received non-text frame from user $userId: ${frame.getClass.getSimpleName}"))
+                }.onFinalize(
+                  // 当 WebSocket 流结束时，清理连接
+                  IO(logger.info(s"WebSocket connection closed for user $userId")) >> 
+                  manager.removeConnection(userId)
+                ),
                 // Send messages from queue
                 send = Stream.fromQueueUnterminated(queue)
-              ).guarantee(manager.removeConnection(userId))
+              )
+              _ <- IO(logger.info(s"WebSocket built successfully for user $userId"))
             } yield response
 
           case None =>
@@ -169,11 +178,16 @@ object Routes:
         wsMessage.`type` match {
           case "player_action" =>
             // Handle player action
-            for {
-              _ <- IO(logger.info(s"Processing player action from user $userId"))
-              action <- IO.fromEither(decode[BattleAction](wsMessage.data.noSpaces))
-              _ <- processPlayerAction(roomId, userId, action)
-            } yield ()
+            wsMessage.data match {
+              case Some(dataJson) =>
+                for {
+                  _ <- IO(logger.info(s"Processing player action from user $userId"))
+                  action <- IO.fromEither(decode[BattleAction](dataJson.noSpaces))
+                  _ <- processPlayerAction(roomId, userId, action)
+                } yield ()
+              case None =>
+                IO(logger.error(s"player_action message missing data field"))
+            }
 
           case "player_ready" =>
             // Handle player ready
@@ -223,7 +237,7 @@ object Routes:
   }
 
   // WebSocket message structure
-  case class WebSocketMessage(`type`: String, data: Json)
+  case class WebSocketMessage(`type`: String, data: Option[Json] = None)
 
   val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "health" =>

@@ -7,6 +7,7 @@
  * @return result: String (操作成功的提示信息，例如'用户封禁成功！')
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -19,7 +20,7 @@ export class BanUserMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10013"
+        return ServiceConfig.getAdminServiceAddress()
     }
 }
 

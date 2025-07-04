@@ -6,6 +6,7 @@
  */
 
 import { TongWenMessage } from '../../../Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export interface DrawHistoryEntry {
     drawId: string;
@@ -26,6 +27,6 @@ export class GetDrawHistoryMessage extends TongWenMessage {
     }
     
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }

@@ -9,6 +9,7 @@
  * @return cardTemplateId: String (创建的卡牌模板ID)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class CreateCardTemplateMessage extends TongWenMessage {
     constructor(
@@ -21,6 +22,6 @@ export class CreateCardTemplateMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }

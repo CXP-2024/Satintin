@@ -66,6 +66,14 @@ case object PlayerActionProcess {
     } yield ()
   }
 
+  // Convert frontend action types to backend action types
+  private def convertActionType(frontendAction: String): String = frontendAction match {
+    case "cake" => "代表Pancake动作"
+    case "defense" => "代表防御动作"
+    case "spray" => "代表喷射动作"
+    case _ => throw new Exception(s"Unknown frontend action type: $frontendAction")
+  }
+
   // Process simultaneous actions from both players
   def processSimultaneousActions(
       roomID: String,
@@ -83,8 +91,12 @@ case object PlayerActionProcess {
       action1ID <- IO(java.util.UUID.randomUUID().toString)
       action2ID <- IO(java.util.UUID.randomUUID().toString)
       
-      player1ActionEnum <- IO(ActionType.fromString(player1Action))
-      player2ActionEnum <- IO(ActionType.fromString(player2Action))
+      // Convert frontend action types to backend action types
+      player1ActionBackend <- IO(convertActionType(player1Action))
+      player2ActionBackend <- IO(convertActionType(player2Action))
+      
+      player1ActionEnum <- IO(ActionType.fromString(player1ActionBackend))
+      player2ActionEnum <- IO(ActionType.fromString(player2ActionBackend))
       
       _ <- writeDB(
         s"""
@@ -246,7 +258,7 @@ case object PlayerActionProcess {
       case (ActionType.Pancake, ActionType.Defense) =>
         // P1 pancake, P2 defend - both gain energy
         p1Energy += 1
-        p2Energy += 1
+        p2Energy += 0
         battleLog += "Player 1 uses pancake, Player 2 defends! Both gain energy."
         
       case (ActionType.Defense, ActionType.Pancake) =>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGlobalLoading } from '../store/globalLoadingStore';
-import loginVideo from '../assets/videos/yslogin.mp4';
+import loginVideo from '../assets/videos/SaTTlogin.mp4';
 import './GlobalLoadingOverlay.css';
 
 const GlobalLoadingOverlay: React.FC = () => {

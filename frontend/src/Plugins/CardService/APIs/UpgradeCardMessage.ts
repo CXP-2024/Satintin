@@ -6,6 +6,7 @@
  * @return result: String (卡牌升级完成后的提示信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -17,7 +18,7 @@ export class UpgradeCardMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10011"
+        return ServiceConfig.getCardServiceAddress()
     }
 }
 

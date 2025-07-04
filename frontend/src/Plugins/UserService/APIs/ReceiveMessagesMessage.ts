@@ -5,6 +5,7 @@
  * @return messages: MessageEntry:1022 (用户的消息记录列表，包含消息来源、内容及时间。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -15,7 +16,7 @@ export class ReceiveMessagesMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getUserServiceAddress()
     }
 }
 

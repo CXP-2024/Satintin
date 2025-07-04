@@ -6,6 +6,7 @@
  * @return drawCount: Int (用户在指定卡池的当前抽卡次数)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class QueryCardDrawCountMessage extends TongWenMessage {
     constructor(
@@ -15,6 +16,6 @@ export class QueryCardDrawCountMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServiceConfig.getAssetServiceAddress()
     }
 }

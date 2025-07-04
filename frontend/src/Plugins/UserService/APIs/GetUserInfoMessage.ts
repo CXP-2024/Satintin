@@ -6,6 +6,7 @@
  * @return user: User:1049 (完整的用户信息，包括基本信息、资产状态及好友/黑名单等补充信息)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -17,7 +18,7 @@ export class GetUserInfoMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getUserServiceAddress()
     }
 }
 

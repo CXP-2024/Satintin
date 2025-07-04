@@ -6,6 +6,7 @@
  * @return result: String (操作结果的描述信息，例如“奖励发放成功！”。)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import { ServiceConfig } from 'Globals/ServiceConfig'
 
 
 
@@ -17,7 +18,7 @@ export class RewardAssetMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10012"
+        return ServiceConfig.getAssetServiceAddress()
     }
 }
 
