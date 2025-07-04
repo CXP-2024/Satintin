@@ -23,6 +23,7 @@ import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage"
 const GameHomePage: React.FC = () => {
 	const user = useUserInfo();
 	const userToken = useUserToken();
+	const userID = user?.userID 
 	const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
 	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
 	function logout() {
@@ -63,7 +64,7 @@ const GameHomePage: React.FC = () => {
 		try {
 			console.log('🃏 [GameHomePage] 开始获取用户卡牌数量');
 			const response: any = await new Promise((resolve, reject) => {
-				new GetPlayerCardsMessage(userToken).send(
+				new GetPlayerCardsMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);

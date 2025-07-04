@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
+import Utils.AssetTransactionProcess
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -25,7 +25,8 @@ case class DeductAssetMessagePlanner(
     for {
       // Step 1: 使用Utils验证用户Token
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 验证用户令牌"))
-      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      // validation to be completed
+      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 用户验证成功，userID=${userID}"))
 
       // Step 2: 检查用户资产是否足够

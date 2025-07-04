@@ -130,6 +130,7 @@ const RARITIES = [
 const CardCollectionPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const user = useUserInfo();
+	const userID = user?.userID;
 	const userToken = useUserToken();
 	const { navigateQuick } = usePageTransition();
 	// 用户卡牌数据状态
@@ -153,7 +154,7 @@ const CardCollectionPage: React.FC = () => {
 			
 			// 使用回调方式调用 API
 			const response: any = await new Promise((resolve, reject) => {
-				new GetPlayerCardsMessage(userToken).send(
+				new GetPlayerCardsMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -194,11 +195,11 @@ const CardCollectionPage: React.FC = () => {
 		}
 	};	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
-		if (userToken) {
+		if (userID) {
 			fetchUserCards();
 			fetchAllCardTemplates();
 		}
-	}, [userToken]);
+	}, [userID]); 
 	// 从后端获取全部卡牌模板
 	const fetchAllCardTemplates = async () => {
 		try {
@@ -207,7 +208,7 @@ const CardCollectionPage: React.FC = () => {
 			
 			// 使用回调方式调用 API
 			const response: any = await new Promise((resolve, reject) => {
-				new GetAllCardTemplatesMessage(userToken).send(
+				new GetAllCardTemplatesMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -233,7 +234,7 @@ const CardCollectionPage: React.FC = () => {
 			
 			// 使用回调方式调用 API
 			const response: any = await new Promise((resolve, reject) => {
-				new LoadBattleDeckMessage(userToken).send(
+				new LoadBattleDeckMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -455,7 +456,7 @@ const CardCollectionPage: React.FC = () => {
 			
 			// 调用配置卡组API
 			const response: any = await new Promise((resolve, reject) => {
-				new ConfigureBattleDeckMessage(userToken, cardIds).send(
+				new ConfigureBattleDeckMessage(userID, cardIds).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);

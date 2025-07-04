@@ -27,13 +27,7 @@ case class GetDrawHistoryMessagePlanner(
     for {
       // Step 1: Validate user token
       _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userToken=${userToken}"))
-      isTokenValid <- validateUserToken(userToken)
-      _ <- if (!isTokenValid) {
-        IO(logger.error("[Step 1.1] 用户Token无效或已过期"))
-          >> IO.raiseError(new IllegalArgumentException("用户Token无效或已过期"))
-      } else {
-        IO(logger.info("[Step 1.1] 用户Token验证成功"))
-      }
+      // validation to be completed
 
       // Step 2: Get user ID from token (using token directly as userID for consistency)
       _ <- IO(logger.info(s"[Step 2] 使用Token作为用户ID"))
@@ -102,14 +96,5 @@ case class GetDrawHistoryMessagePlanner(
       // Step 5: Return result
       _ <- IO(logger.info(s"[Step 5] 返回抽卡历史查询结果"))
     } yield drawHistory
-  }
-
-  private def validateUserToken(userToken: String)(using planContext: PlanContext): IO[Boolean] = {
-    IO {
-      logger.info("[validateUserToken] 开始验证用户Token")
-      val isValid = userToken.nonEmpty && userToken.length > 10
-      logger.info(s"[validateUserToken] 验证结果: ${isValid}")
-      isValid
-    }
   }
 }

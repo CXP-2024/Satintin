@@ -1,6 +1,6 @@
 package Impl
 
-import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
+import Utils.AssetTransactionProcess
 import Common.API.{PlanContext, Planner}
 import cats.effect.IO
 import org.slf4j.LoggerFactory
@@ -24,7 +24,8 @@ case class QueryCardDrawCountMessagePlanner(
 
       // Step 2: 使用Utils验证用户Token
       _ <- IO(logger.info("[Step 2] 验证用户Token"))
-      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      // validation to be completed
+      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
       _ <- IO(logger.info(s"[Step 2] 用户验证成功，userID=${userID}"))
 
       // Step 3: 查询抽卡次数

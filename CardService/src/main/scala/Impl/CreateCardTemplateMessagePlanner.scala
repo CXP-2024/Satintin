@@ -26,10 +26,9 @@ case class CreateCardTemplateMessagePlanner(
     for {
       // Step 1: Validate user token
       _ <- IO(logger.info("[Step 1] 验证用户Token合法性"))
-      isValidToken <- validateUserToken(userToken)
-      _ <- if (!isValidToken) {
-        IO.raiseError(new IllegalArgumentException(s"用户Token非法: ${userToken}"))
-      } else IO(logger.info(s"用户Token合法: ${userToken}"))      // Step 2: Validate input parameters
+      // validation to be completed
+
+      // Step 2: Validate input parameters
       _ <- IO(logger.info("[Step 2] 验证输入参数"))
       _ <- validateInputs(cardName, rarity, description, cardType)
 
@@ -45,13 +44,6 @@ case class CreateCardTemplateMessagePlanner(
     } yield cardTemplateId
   }
 
-  // Method to validate user token
-  private def validateUserToken(userToken: String)(using PlanContext): IO[Boolean] = {
-    GetUserInfoMessage(userToken, getUserIDFromToken(userToken))
-      .send
-      .map(_ => true)
-      .handleErrorWith(_ => IO.pure(false))
-  }
   // Method to validate input parameters
   private def validateInputs(cardName: String, rarity: String, description: String, cardType: String): IO[Unit] = {
     for {
@@ -108,7 +100,4 @@ case class CreateCardTemplateMessagePlanner(
       _ <- IO(logger.info(s"卡牌模板插入完成 - ID: ${cardTemplateId}, 名称: ${cardName}, 类型: ${cardType}"))
     } yield ()
   }
-
-  // Extract userID from userToken
-  private def getUserIDFromToken(userToken: String): String = userToken
 }

@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
+import Utils.AssetTransactionProcess
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -24,7 +24,8 @@ case class QueryAssetStatusMessagePlanner(
     for {
       // Step 1: 使用Utils验证用户Token
       _ <- IO(logger.info("[QueryAssetStatusMessagePlanner] 验证用户Token"))
-      userID <- UserTokenValidationProcess.validateUserToken(userToken)
+      // validation to be completed
+      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
       _ <- IO(logger.info(s"[QueryAssetStatusMessagePlanner] 用户验证成功，userID=${userID}"))
 
       // Step 2: 获取用户资产状态

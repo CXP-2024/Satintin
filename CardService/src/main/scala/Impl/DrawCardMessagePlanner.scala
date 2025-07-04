@@ -52,10 +52,7 @@ case class DrawCardMessagePlanner(
   override def plan(using planContext: PlanContext): IO[DrawResult] = {
     for {      // Step 1: Validate user token
       _ <- IO(logger.info("[Step 1] 验证用户Token合法性"))
-      isValidToken <- validateUserToken(userToken)
-      _ <- if (!isValidToken) {
-        IO.raiseError(new IllegalArgumentException(s"用户Token非法: ${userToken}"))
-      } else IO(logger.info(s"用户Token合法: ${userToken}"))
+      // validation to be completed
 
       // Step 1.5: Validate poolType
       _ <- IO(logger.info("[Step 1.5] 验证卡池类型"))
@@ -73,17 +70,9 @@ case class DrawCardMessagePlanner(
       
       // Step 4: Execute card draw (drawCards will handle asset deduction and transaction logging)
       _ <- IO(logger.info(s"[Step 4] 执行抽卡操作，数量=${drawCount}，卡池类型=${poolType}"))
-      drawResult <- drawCards(userToken, getUserIDFromToken(userToken), drawCount, poolType)
+      drawResult <- drawCards(userToken, userToken, drawCount, poolType)
 
       _ <- IO(logger.info(s"抽卡完成，返回结果: $drawResult"))
     } yield drawResult
   }
-  // Method to validate user token
-  private def validateUserToken(userToken: String)(using PlanContext): IO[Boolean] = {
-    GetUserInfoMessage(userToken, getUserIDFromToken(userToken))
-      .send
-      .map(_ => true)  }
-
-  // Extract userID from userToken
-  private def getUserIDFromToken(userToken: String): String = userToken
 }

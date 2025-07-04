@@ -15,11 +15,7 @@ case class LoadBattleDeckMessagePlanner(
     for {
       // Step 1: Validate input parameters
       _ <- IO(logger.info(s"[Step 1] 开始验证输入参数: userToken=${userToken}"))
-      _ <- if (userToken == null || userToken.trim.isEmpty) {
-        IO.raiseError(new IllegalArgumentException("用户Token不能为空"))
-      } else {
-        IO(logger.info("[Step 1] 输入参数验证通过"))
-      }
+      // validation to be completed
 
       // Step 2: Use userToken as userID (consistent with other services)
       userID = userToken
