@@ -208,7 +208,7 @@ const CardCollectionPage: React.FC = () => {
 			
 			// 使用回调方式调用 API
 			const response: any = await new Promise((resolve, reject) => {
-				new GetAllCardTemplatesMessage(userID).send(
+				new GetAllCardTemplatesMessage().send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
