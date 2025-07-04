@@ -8,9 +8,7 @@ import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
 import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class GetAllCardTemplatesMessage extends TongWenMessage {
-    constructor(
-        public userToken: string
-    ) {
+    constructor() {
         super()
     }
     getAddress(): string {

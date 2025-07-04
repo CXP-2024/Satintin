@@ -41,7 +41,7 @@ import APIs.AssetService.DeductAssetMessage
 import APIs.UserService.GetUserInfoMessage
 
 case class UpgradeCardMessagePlanner(
-  userToken: String,
+  userID: String,
   cardID: String,
   override val planContext: PlanContext
 ) extends Planner[String] {
@@ -51,7 +51,8 @@ case class UpgradeCardMessagePlanner(
     for {
       // Step 1: Verify userToken validity
       _ <- IO(logger.info("验证用户身份令牌的合法性"))
-      userID <- verifyUserToken(userToken)
+      // validation to be completed
+      userToken <- IO(userID)
 
       // Step 2: Check if user owns the card
       _ <- IO(logger.info(s"检查用户 ${userID} 是否拥有卡片 ${cardID}"))
@@ -84,20 +85,6 @@ case class UpgradeCardMessagePlanner(
       result <- IO.pure("卡牌升级成功！")
       _ <- IO(logger.info(result))
     } yield result
-  }
-
-  // Step 1.1: Validate user token using UserService API
-  private def verifyUserToken(userToken: String)(using PlanContext): IO[String] = {
-    for {
-      _ <- IO(logger.info(s"通过 UserService 验证用户令牌: ${userToken}"))
-      // 使用 token 作为 userID，与其他服务保持一致
-      userID = userToken
-      user <- GetUserInfoMessage(userToken, userID).send.handleErrorWith { error =>
-        IO(logger.error(s"用户令牌验证失败: ${error.getMessage}"))
-          >> IO.raiseError(new IllegalStateException("用户身份令牌无效"))
-      }
-      _ <- IO(logger.info(s"用户令牌有效，用户ID为: ${user.userID}"))
-    } yield user.userID
   }
 
   // Step 2.1: Check if user owns the specified card

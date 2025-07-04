@@ -31,6 +31,7 @@ import Impl.GetUserInfoMessagePlanner
 import Impl.ValidateUserTokenMessagePlanner
 import Impl.CheckUserTokenValidityMessagePlanner
 import Impl.FetchUserStatusMessagePlanner
+import Impl.QueryIDByUserNameMessagePlanner  // 添加新的导入
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -157,6 +158,13 @@ object Routes:
         IO(
           decode[FetchUserStatusMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for FetchUserStatusMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "QueryIDByUserNameMessage" => 
+        IO(
+          decode[QueryIDByUserNameMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryIDByUserNameMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 

@@ -305,8 +305,8 @@ case object AssetTransactionProcess {
   )(using PlanContext): IO[String] = {
     for {
       // 验证用户
-      userID <- UserTokenValidationProcess.validateUserToken(userToken)
-      
+      // validation to be completed
+      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
       // 修改资产
       _ <- modifyAsset(userID, changeAmount)
       

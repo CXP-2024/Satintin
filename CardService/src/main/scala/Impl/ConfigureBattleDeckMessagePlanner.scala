@@ -42,7 +42,8 @@ case class ConfigureBattleDeckMessagePlanner(
     for {
       // Step 1: Validate user token
       _ <- IO(logger.info("[Step 1] 验证用户令牌状态"))
-      userID <- validateUserToken()
+      // validation to be completed
+      userID <- IO(userToken) 
 
       // Step 2: Validate cardIDs list length
       _ <- IO(logger.info("[Step 2] 检查cardIDs列表的长度"))
@@ -59,20 +60,6 @@ case class ConfigureBattleDeckMessagePlanner(
 
       _ <- IO(logger.info("[Step 5] 战斗卡组配置完成"))
     } yield updateResult
-  }
-
-  // Function to validate the user token using UserService API
-  private def validateUserToken()(using PlanContext): IO[String] = {
-    // Use userToken as userID, consistent with other services
-    val userID = userToken
-    for {
-      _ <- IO(logger.info(s"通过 UserService 验证用户令牌: ${userToken}"))
-      user <- GetUserInfoMessage(userToken, userID).send.handleErrorWith { error =>
-        IO(logger.error(s"用户令牌验证失败: ${error.getMessage}"))
-          >> IO.raiseError(new IllegalArgumentException("无效的用户令牌，请重新登录"))
-      }
-      _ <- IO(logger.info(s"用户令牌有效，用户ID为: ${user.userID}"))
-    } yield user.userID
   }
 
   // Function to validate the length of cardIDs list

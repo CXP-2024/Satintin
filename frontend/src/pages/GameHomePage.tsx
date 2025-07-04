@@ -17,10 +17,13 @@ import {
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {GetPlayerCardsMessage} from "Plugins/CardService/APIs/GetPlayerCardsMessage";
 import { autoLogoutManager } from '../utils/autoLogout';
+import { QueryIDByUserNameMessage } from "Plugins/UserService/APIs/QueryIDByUserNameMessage";
+import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
 
 const GameHomePage: React.FC = () => {
 	const user = useUserInfo();
 	const userToken = useUserToken();
+	const userID = user?.userID 
 	const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
 	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
 	function logout() {
@@ -41,10 +44,14 @@ const GameHomePage: React.FC = () => {
 		
 		// 立即导航到登录页
 		navigateWithTransition('/login');
-	}
-	const { navigateWithTransition } = usePageTransition();
+	}	const { navigateWithTransition } = usePageTransition();
 	const [showUserProfile, setShowUserProfile] = useState(false);
 	const [showRewardModal, setShowRewardModal] = useState(false);
+	const [showSearchUser, setShowSearchUser] = useState(false);
+	const [searchUsername, setSearchUsername] = useState('');
+	const [searchedUser, setSearchedUser] = useState<any>(null);
+	const [searchLoading, setSearchLoading] = useState(false);
+	const [searchError, setSearchError] = useState('');
 	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
@@ -57,7 +64,7 @@ const GameHomePage: React.FC = () => {
 		try {
 			console.log('🃏 [GameHomePage] 开始获取用户卡牌数量');
 			const response: any = await new Promise((resolve, reject) => {
-				new GetPlayerCardsMessage(userToken).send(
+				new GetPlayerCardsMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -144,22 +151,95 @@ const GameHomePage: React.FC = () => {
 		console.log('👤 [GameHomePage] 关闭用户详情页面');
 		setShowUserProfile(false);
 	};
-
 	const handleCloseRewardModal = () => {
 		console.log('🎁 [GameHomePage] 关闭奖励弹窗');
 		setShowRewardModal(false);
+	};
+
+	const handleSearchUser = async () => {
+		if (!searchUsername.trim()) {
+			setSearchError('请输入用户名');
+			return;
+		}
+
+		setSearchLoading(true);
+		setSearchError('');
+		
+		try {
+			console.log('🔍 [GameHomePage] 开始搜索用户:', searchUsername);
+			
+			// Step 1: 根据用户名查询用户ID
+			const userIdResponse: any = await new Promise((resolve, reject) => {
+				new QueryIDByUserNameMessage(searchUsername).send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+			
+			const targetUserId = typeof userIdResponse === 'string' ? userIdResponse : userIdResponse.userID;
+			console.log('🔍 [GameHomePage] 查询到用户ID:', targetUserId);
+			
+			// Step 2: 根据用户ID获取用户详细信息
+			const userInfoResponse: any = await new Promise((resolve, reject) => {
+				new GetUserInfoMessage(userToken, targetUserId).send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+			
+			const userInfo = typeof userInfoResponse === 'string' ? JSON.parse(userInfoResponse) : userInfoResponse;
+			console.log('🔍 [GameHomePage] 获取到用户信息:', userInfo);
+			
+			setSearchedUser(userInfo);
+			setSearchError('');
+			
+		} catch (error) {
+			console.error('🔍 [GameHomePage] 搜索用户失败:', error);
+			if (error instanceof Error) {
+				if (error.message.includes('不存在')) {
+					setSearchError('用户不存在');
+				} else {
+					setSearchError('搜索失败，请重试');
+				}
+			} else {
+				setSearchError('搜索失败，请重试');
+			}
+			setSearchedUser(null);
+		} finally {
+			setSearchLoading(false);
+		}
+	};
+
+	const handleShowSearchUser = () => {
+		console.log('🔍 [GameHomePage] 显示搜索用户弹窗');
+		playClickSound();
+		setShowSearchUser(true);
+		setSearchUsername('');
+		setSearchedUser(null);
+		setSearchError('');
+	};
+
+	const handleCloseSearchUser = () => {
+		console.log('🔍 [GameHomePage] 关闭搜索用户弹窗');
+		setShowSearchUser(false);
+		setSearchUsername('');
+		setSearchedUser(null);
+		setSearchError('');
 	};
 
 	return (
 		<PageTransition className="game-page">
 			<div className="game-home">
 				{/* 顶部状态栏 */}
-				<header className="game-header">
-					<div className="header-left">
+				<header className="game-header">					<div className="header-left">
 						<h1>Satintin</h1>
 						<button className="rules-btn" onClick={handleNavigateToRules}>
 							<span className="rules-icon">📖</span>
 							对战规则
+						</button>
+						<button className="search-user-btn" onClick={handleShowSearchUser}>
+							<span className="search-icon">🔍</span>
+							搜索用户
 						</button>
 					</div>
 					<div className="header-right">
@@ -187,16 +267,14 @@ const GameHomePage: React.FC = () => {
 							<h2 className="welcome-title">欢迎回来，{user?.userName}！</h2>
 							<p className="welcome-subtitle">准备好迎接激烈的卡牌对战了吗？</p>
 						</div>
-					</section>
-
-					{/* 用户状态卡片 */}
+					</section>					{/* 用户状态卡片 */}
 					<section className="user-stats-section">
 						<div className="stats-grid">
 							<div className="stat-card rank">
 								<div className="stat-icon">🏆</div>
 								<div className="stat-content">
 									<span className="stat-label">当前段位</span>
-									<span className="stat-value">{useUserInfo().rank}</span>
+									<span className="stat-value">{user?.rank}</span>
 								</div>
 							</div>
 							<div className="stat-card currency">
@@ -205,9 +283,9 @@ const GameHomePage: React.FC = () => {
 								</div>
 								<div className="stat-content">
 									<span className="stat-label">原石</span>
-									<span className="stat-value">{useUserInfo().stoneAmount}</span>
+									<span className="stat-value">{user?.stoneAmount}</span>
 								</div>
-							</div>							<div className="stat-card cards">
+							</div><div className="stat-card cards">
 								<div className="stat-icon">🃏</div>
 								<div className="stat-content">
 									<span className="stat-label">卡牌数量</span>
@@ -290,9 +368,7 @@ const GameHomePage: React.FC = () => {
 				<UserProfile
 					isOpen={showUserProfile}
 					onClose={handleCloseUserProfile}
-				/>
-
-				{/* 奖励弹窗 */}
+				/>				{/* 奖励弹窗 */}
 				<RewardModal
 					isOpen={showRewardModal}
 					onClose={handleCloseRewardModal}
@@ -301,6 +377,75 @@ const GameHomePage: React.FC = () => {
 					rewardTitle="每日奖励"
 					rewardDescription="恭喜您获得每日登录奖励！"
 				/>
+
+				{/* 搜索用户弹窗 */}
+				{showSearchUser && (
+					<div className="modal-overlay" onClick={handleCloseSearchUser}>
+						<div className="search-user-modal" onClick={(e) => e.stopPropagation()}>
+							<div className="modal-header">
+								<h3>搜索用户</h3>
+								<button className="close-btn" onClick={handleCloseSearchUser}>×</button>
+							</div>
+							<div className="modal-content">
+								<div className="search-input-group">
+									<input
+										type="text"
+										placeholder="请输入用户名"
+										value={searchUsername}
+										onChange={(e) => setSearchUsername(e.target.value)}
+										onKeyPress={(e) => e.key === 'Enter' && handleSearchUser()}
+									/>
+									<button 
+										className="search-btn" 
+										onClick={handleSearchUser}
+										disabled={searchLoading}
+									>
+										{searchLoading ? '搜索中...' : '搜索'}
+									</button>
+								</div>
+								
+								{searchError && (
+									<div className="error-message">
+										{searchError}
+									</div>
+								)}
+								
+								{searchedUser && (
+									<div className="user-search-result">
+										<div className="user-card">
+											<div className="user-avatar">
+												<span className="avatar-icon">👤</span>
+											</div>
+											<div className="user-details">
+												<h4>{searchedUser.userName}</h4>
+												<div className="user-stats">
+													<div className="stat-item">
+														<span className="stat-label">段位:</span>
+														<span className="stat-value">{searchedUser.rank || 'N/A'}</span>
+													</div>
+													<div className="stat-item">
+														<span className="stat-label">原石:</span>
+														<span className="stat-value">{searchedUser.stoneAmount || 0}</span>
+													</div>
+													<div className="stat-item">
+														<span className="stat-label">邮箱:</span>
+														<span className="stat-value">{searchedUser.email || 'N/A'}</span>
+													</div>
+													<div className="stat-item">
+														<span className="stat-label">在线状态:</span>
+														<span className={`stat-value ${searchedUser.isOnline ? 'online' : 'offline'}`}>
+															{searchedUser.isOnline ? '在线' : '离线'}
+														</span>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 		</PageTransition>
 	);

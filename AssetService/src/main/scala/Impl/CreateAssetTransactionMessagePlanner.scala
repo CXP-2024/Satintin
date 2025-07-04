@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.{AssetTransactionProcess, UserTokenValidationProcess}
+import Utils.AssetTransactionProcess
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._

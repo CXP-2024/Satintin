@@ -11,7 +11,7 @@ import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAsset
 
 const ShopPage: React.FC = () => {
     const user = useUserInfo();
-    const userToken = useUserToken(); // 在组件顶层调用 Hook
+	const userID = user?.userID;
     const { navigateWithTransition } = usePageTransition();
     const [rechargingIndex, setRechargingIndex] = useState<number | null>(null);
 
@@ -33,7 +33,7 @@ const ShopPage: React.FC = () => {
     const refreshUserAssets = async () => {
         try {
             const response: any = await new Promise((resolve, reject) => {
-                new QueryAssetStatusMessage(userToken).send(
+                new QueryAssetStatusMessage(userID).send(
                     (res: any)  => resolve(res),
                     (err: any) => reject(err)
                 );
@@ -70,7 +70,7 @@ const ShopPage: React.FC = () => {
         setRechargingIndex(index);
           try {
             const result = await new Promise((resolve, reject) => {
-                new RewardAssetMessage(userToken, crystals).send(
+                new RewardAssetMessage(userID, crystals).send(
                     (response: any) => response.error ? reject(new Error(response.error)) : resolve(response)
                 );
             });

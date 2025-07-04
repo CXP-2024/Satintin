@@ -16,7 +16,7 @@ import { GetDrawHistoryMessage, DrawHistoryEntry } from '../Plugins/CardService/
 
 const WishPage: React.FC = () => {
 	const user = useUserInfo();
-	const userToken = useUserToken();
+	const userID = user?.userID;
 	const { navigateQuick } = usePageTransition();
 	const [selectedBanner, setSelectedBanner] = useState<'standard' | 'featured'>('featured');
 	const [showHistory, setShowHistory] = useState(false);
@@ -67,7 +67,7 @@ const WishPage: React.FC = () => {
 			setAnimationClass(slideInClass);
 
 			// 切换卡池时刷新对应卡池的抽卡次数（如果还没有加载过）
-			if (userToken && cardDrawCounts[newBanner] === 0) {
+			if (userID && cardDrawCounts[newBanner] === 0) {
 				fetchCardDrawCount(newBanner);
 			}
 
@@ -122,7 +122,7 @@ const WishPage: React.FC = () => {
 		try {
 			// wrap send() so `response` is what your callback receives
 			const response: any = await new Promise((resolve, reject) => {
-			new QueryAssetStatusMessage(userToken).send(
+			new QueryAssetStatusMessage(userID).send(
 				(res: any)  => resolve(res),
 				(err: any) => reject(err)
 			);			});
@@ -138,11 +138,11 @@ const WishPage: React.FC = () => {
 	};
 	// 获取用户指定卡池的当前抽卡次数
 	const fetchCardDrawCount = async (poolType: 'standard' | 'featured') => {
-		if (!userToken) return;
+		if (!userID) return;
 
 		try {
 			const response: any = await new Promise((resolve, reject) => {
-				new QueryCardDrawCountMessage(userToken, poolType).send(
+				new QueryCardDrawCountMessage(userID, poolType).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
@@ -165,7 +165,7 @@ const WishPage: React.FC = () => {
 
 	// 获取所有卡池的抽卡次数
 	const fetchAllCardDrawCounts = async () => {
-		if (!userToken) return;
+		if (!userID) return;
 		
 		await Promise.all([
 			fetchCardDrawCount('standard'),
@@ -184,7 +184,7 @@ const WishPage: React.FC = () => {
 			// 调用后端抽卡API
 			const drawResult = await new Promise((resolve, reject) => {
 				new DrawCardMessage(
-					userToken, 
+					userID, 
 					1, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {
@@ -231,7 +231,7 @@ const WishPage: React.FC = () => {
 		}		try {
 			// 调用后端抽卡API
 			const drawResult = await new Promise((resolve, reject) => {				new DrawCardMessage(
-					userToken, 
+					userID, 
 					10, // 抽卡数量
 					selectedBanner // 传入卡池类型
 				).send((response: any) => {
@@ -293,7 +293,7 @@ const WishPage: React.FC = () => {
 	const currentBanner = banners[selectedBanner];
 	// 加载抽卡历史记录
 	const loadDrawHistory = async () => {
-		if (!userToken) {
+		if (!userID) {
 			console.warn('用户token不存在，无法加载抽卡历史');
 			return;
 		}
@@ -301,7 +301,7 @@ const WishPage: React.FC = () => {
 		setIsLoadingHistory(true);		
 		try {
 			const historyData = await new Promise<any>((resolve, reject) => {
-				new GetDrawHistoryMessage(userToken).send(
+				new GetDrawHistoryMessage(userID).send(
 					(response: any) => {
 						if (response.error) {
 							reject(new Error(response.error));
@@ -388,15 +388,15 @@ const WishPage: React.FC = () => {
 			setIsLoadingHistory(false);
 		}	};	// 组件加载时获取抽卡历史和抽卡次数
 	useEffect(() => {
-		if (userToken) {
+		if (userID) {
 			loadDrawHistory();
 			fetchAllCardDrawCounts();
 		}
-	}, [userToken]);
+	}, [userID]);
 	// 监听页面重新可见时刷新抽卡次数（从抽卡结果页返回时）
 	useEffect(() => {
 		const handleVisibilityChange = () => {
-			if (!document.hidden && userToken) {
+			if (!document.hidden && userID) {
 				// 页面重新可见时刷新抽卡次数
 				fetchAllCardDrawCounts();
 			}
@@ -406,7 +406,7 @@ const WishPage: React.FC = () => {
 		
 		// 组件焦点重新获得时也刷新（针对页面路由返回）
 		const handleFocus = () => {
-			if (userToken) {
+			if (userID) {
 				fetchAllCardDrawCounts();
 			}
 		};
@@ -417,7 +417,7 @@ const WishPage: React.FC = () => {
 			document.removeEventListener('visibilitychange', handleVisibilityChange);
 			window.removeEventListener('focus', handleFocus);
 		};
-	}, [userToken]);
+	}, [userID]);
 
 	const renderBannerSelector = () => (
 		<div className="banner-selector">

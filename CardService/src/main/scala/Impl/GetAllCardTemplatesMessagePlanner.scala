@@ -14,7 +14,6 @@ import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class GetAllCardTemplatesMessagePlanner(
-  userToken: String,
   override val planContext: PlanContext
 ) extends Planner[List[CardTemplate]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
