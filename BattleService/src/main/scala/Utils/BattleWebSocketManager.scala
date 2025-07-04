@@ -12,6 +12,7 @@ import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
 import Objects.BattleService.{BattleAction, GameState, PlayerState, RoundResult, GameOverResult, CardEffect}
+import APIs.UserService.FetchUserStatusMessage
 import org.joda.time.DateTime
 import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration.*
@@ -47,29 +48,25 @@ class BattleWebSocketManager(roomId: String) {
   private def getUsernameByPlayerId(playerId: String): IO[String] = {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
     
-    logger.info(s"Start fetching username for player $playerId from database")
-    
-    // 直接查询 UserService 数据库表格，模仿 AdminService 中的实现
-    readDBJsonOptional(
-      s"SELECT username FROM userservice.user_table WHERE user_id = ?",
-      List(SqlParameter("String", playerId))
-    ).map {
-      case Some(json) =>
-        // 从 JSON 对象中提取 username 字段
-        json.hcursor.get[String]("username") match {
-          case Right(username) => 
-            logger.info(s"Successfully fetched username: $username for player $playerId")
-            username
-          case Left(err) => 
-            logger.warn(s"Failed to parse username for player $playerId: ${err.getMessage}")
-            s"Player $playerId" // Fallback to default name
-        }
-      case None =>
-        logger.warn(s"No user found for player $playerId in database")
-        s"Player $playerId" // Fallback to default name
-    }.handleErrorWith { error =>
-      logger.warn(s"Database error when fetching username for player $playerId: ${error.getMessage}")
-      IO.pure(s"Player $playerId") // Fallback to default name
+    for {
+      _ <- IO(logger.info(s"[getUsernameByPlayerId] 开始获取用户名: playerId=$playerId"))
+      
+      // 使用 FetchUserStatusMessage API 获取用户信息
+      userOpt <- FetchUserStatusMessage(playerId).send
+      
+      username <- userOpt match {
+        case Some(user) =>
+          IO(logger.info(s"[getUsernameByPlayerId] 成功获取用户名: ${user.userName} for playerId=$playerId")) >>
+          IO.pure(user.userName)
+        case None =>
+          IO(logger.warn(s"[getUsernameByPlayerId] 用户不存在: playerId=$playerId，使用默认名称")) >>
+          IO.pure(s"Player $playerId")
+      }
+    } yield username
+  }.handleErrorWith { error =>
+    IO {
+      logger.warn(s"[getUsernameByPlayerId] 获取用户名失败: playerId=$playerId, error=${error.getMessage}")
+      s"Player $playerId" // 返回默认名称
     }
   }
 
