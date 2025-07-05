@@ -19,6 +19,7 @@ import {GetPlayerCardsMessage} from "Plugins/CardService/APIs/GetPlayerCardsMess
 import { autoLogoutManager } from '../utils/autoLogout';
 import { QueryIDByUserNameMessage } from "Plugins/UserService/APIs/QueryIDByUserNameMessage";
 import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
+import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
@@ -176,7 +177,6 @@ const GameHomePage: React.FC = () => {
 		console.log('🎁 [GameHomePage] 关闭奖励弹窗');
 		setShowRewardModal(false);
 	};
-
 	const handleSearchUser = async () => {
 		if (!searchUsername.trim()) {
 			setSearchError('请输入用户名');
@@ -210,6 +210,28 @@ const GameHomePage: React.FC = () => {
 			
 			const userInfo = typeof userInfoResponse === 'string' ? JSON.parse(userInfoResponse) : userInfoResponse;
 			console.log('🔍 [GameHomePage] 获取到用户信息:', userInfo);
+			
+			// Step 3: 获取用户的原石数量
+			try {
+				const assetStatusResponse: any = await new Promise((resolve, reject) => {
+					new QueryAssetStatusMessage(userID).send(
+						(res: any) => resolve(res),
+						(err: any) => reject(err)
+					);
+				});
+				
+				const stoneAmount = typeof assetStatusResponse === 'string' ? 
+					parseInt(assetStatusResponse) : assetStatusResponse.stoneAmount || assetStatusResponse;
+				
+				console.log('🔍 [GameHomePage] 获取到原石数量:', stoneAmount);
+				
+				// 更新用户信息中的原石数量
+				userInfo.stoneAmount = stoneAmount;
+			} catch (assetError) {
+				console.warn('🔍 [GameHomePage] 获取原石数量失败:', assetError);
+				// 如果获取原石失败，使用默认值或保持原有值
+				userInfo.stoneAmount = userInfo.stoneAmount || 'N/A';
+			}
 			
 			setSearchedUser(userInfo);
 			setSearchError('');
@@ -438,27 +460,26 @@ const GameHomePage: React.FC = () => {
 												<span className="avatar-icon">👤</span>
 											</div>
 											<div className="user-details">
-												<h4>{searchedUser.userName}</h4>
-												<div className="user-stats">
-													<div className="stat-item">
-														<span className="stat-label">段位:</span>
-														<span className="stat-value">{searchedUser.rank || 'N/A'}</span>
-													</div>
-													<div className="stat-item">
-														<span className="stat-label">原石:</span>
-														<span className="stat-value">{searchedUser.stoneAmount || 0}</span>
-													</div>
-													<div className="stat-item">
-														<span className="stat-label">邮箱:</span>
-														<span className="stat-value">{searchedUser.email || 'N/A'}</span>
-													</div>
-													<div className="stat-item">
-														<span className="stat-label">在线状态:</span>
-														<span className={`stat-value ${searchedUser.isOnline ? 'online' : 'offline'}`}>
-															{searchedUser.isOnline ? '在线' : '离线'}
-														</span>
-													</div>
+												<h4>{searchedUser.userName}</h4>											<div className="user-stats">
+												<div className="search-stat-item">
+													<span className="search-stat-label">段位:</span>
+													<span className="search-stat-value">{searchedUser.rank || 'N/A'}</span>
 												</div>
+												<div className="search-stat-item">
+													<span className="search-stat-label">原石:</span>
+													<span className="search-stat-value">{searchedUser.stoneAmount || 0}</span>
+												</div>
+												<div className="search-stat-item">
+													<span className="search-stat-label">邮箱:</span>
+													<span className="search-stat-value">{searchedUser.email || 'N/A'}</span>
+												</div>
+												<div className="search-stat-item">
+													<span className="search-stat-label">在线状态:</span>
+													<span className={`search-stat-value ${searchedUser.isOnline ? 'online' : 'offline'}`}>
+														{searchedUser.isOnline ? '在线' : '离线'}
+													</span>
+												</div>
+											</div>
 											</div>
 										</div>
 									</div>
