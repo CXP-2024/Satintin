@@ -92,11 +92,11 @@ export class WebSocketService {
 	/**
 	 * 连接到对战房间
 	 */
-	connect(roomId: string, userToken: string): Promise<void> {
+	connect(roomId: string, userID: string, userName: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.roomId = roomId;
             const battleServiceUrl = ServiceConfig.getBattleServiceAddress()
-			const wsUrl = `ws://${battleServiceUrl}/battle/${roomId}?token=${userToken}`;
+			const wsUrl = `ws://${battleServiceUrl}/battle/${roomId}?userid=${userID}&name=${userName}`;
 
 			console.log('🔌 [WebSocket] 连接到对战房间:', wsUrl);
 

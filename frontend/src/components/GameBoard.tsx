@@ -53,15 +53,16 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 	// 获取卡牌图片
 	const getCardImage = (cardId: string) => {
 		const imageMap: { [key: string]: string } = {
-			'nailong': nailongImg,
-			'gaiya': gaiyaImg,
-			'mygo': mygoImg,
-			'jiege': jiegeImg,
-			'paimeng': paimengImg,
-			'kun': kunImg,
-			'man': manImg,
-			'bingbing': bingbingImg,
-			'wlm': wlmImg
+            // 新格式（匹配后端模板ID）
+            'template-ice': bingbingImg, // 冰 -> bingbing
+            'template-wlm': wlmImg,      // wlm -> wlm
+            'template-man': manImg,      // man -> man
+            'template-kun': kunImg,      // 坤 -> kun
+            'template-paimon': paimengImg, // Paimon -> paimeng
+            'template-dragon-nai': nailongImg, // Dragon Nai -> nailong
+            'template-gaia': gaiyaImg,   // 盖亚 -> gaiya
+            'template-go': mygoImg,      // Go -> mygo
+            'template-jie': jiegeImg,    // 杰哥 -> jiege
 		};
 		return imageMap[cardId] || null;
 	};

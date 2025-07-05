@@ -24,7 +24,7 @@ case object AssetQueryProcess {
       
       assetAmount <- assetOpt match {
         case Some(json) =>
-          val stoneAmountResult = json.hcursor.get[Int]("stone_amount")  // 修复：使用正确的字段名
+          val stoneAmountResult = json.hcursor.get[Int]("stoneAmount")  
           stoneAmountResult match {
             case Right(amount) =>
               IO(logger.info(s"[fetchUserAssetStatus] 查询成功，用户原石数量: ${amount}")) >>

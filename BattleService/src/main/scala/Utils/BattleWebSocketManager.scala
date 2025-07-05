@@ -46,42 +46,14 @@ class BattleWebSocketManager(roomId: String) {
     gameState = Some(newState)
   }
 
-  /**
-   * Get username from UserService by playerId
-   */
-  private def getUsernameByPlayerId(playerId: String): IO[String] = {
-    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
-    
-    for {
-      _ <- IO(logger.info(s"[getUsernameByPlayerId] 开始获取用户名: playerId=$playerId"))
-      
-      // 使用 FetchUserStatusMessage API 获取用户信息
-      userOpt <- FetchUserStatusMessage(playerId).send
-      
-      username <- userOpt match {
-        case Some(user) =>
-          IO(logger.info(s"[getUsernameByPlayerId] 成功获取用户名: ${user.userName} for playerId=$playerId")) >>
-          IO.pure(user.userName)
-        case None =>
-          IO(logger.warn(s"[getUsernameByPlayerId] 用户不存在: playerId=$playerId，使用默认名称")) >>
-          IO.pure(s"Player $playerId")
-      }
-    } yield username
-  }.handleErrorWith { error =>
-    IO {
-      logger.warn(s"[getUsernameByPlayerId] 获取用户名失败: playerId=$playerId, error=${error.getMessage}")
-      s"Player $playerId" // 返回默认名称
-    }
-  }
-
   // get 3 cards ID from LoadBattleDeckMessage API
-  private def getInitialCardList(playerId: String): IO[List[String]] = {
+  private def getInitialCardList(playerId: String, userName: String): IO[List[String]] = {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
-    logger.info(s"Start Fetching username for player $playerId")
+    logger.info(s"Start Fetching Initial Card List for player $userName")
     LoadBattleDeckMessage(playerId).send.map { battleDeck =>
       battleDeck
     }.handleErrorWith { error =>
-      logger.warn(s"Failed to get username for player $playerId: ${error.getMessage}")
+      logger.warn(s"Failed to get Initial Card List for player $playerId: ${error.getMessage}")
       IO.pure(List(s"!!!!!!!!!!!!!!!!!!!!!!! Error in getInitialCards of Player $playerId ")) // Fallback to default name
     }
   }
@@ -89,17 +61,17 @@ class BattleWebSocketManager(roomId: String) {
   /**
    * Add a new WebSocket connection for a player
    */
-  def addConnection(playerId: String, queue: Queue[IO, WebSocketFrame]): IO[Unit] = {
+  def addConnection(playerId: String, userName: String, queue: Queue[IO, WebSocketFrame]): IO[Unit] = {
     for {
-      _ <- IO(logger.info(s"Adding connection for player $playerId in room $roomId"))
+      _ <- IO(logger.info(s"Adding connection for player $userName in room $roomId"))
       _ <- IO(connections.put(playerId, queue))
 
       // Initialize player state if needed
       _ <- if (!gameState.exists(_.player1.playerId == playerId) && 
                !gameState.exists(_.player2.playerId == playerId)) {
-        IO(logger.info(s"Initializing player $playerId in game state for room $roomId")) >>
-        initializePlayerInGameStateIO(playerId) >>
-        IO(logger.info(s"Finished Player $playerId initialized in game state for room $roomId"))
+        IO(logger.info(s"Initializing player $userName in game state for room $roomId")) >>
+        initializePlayerInGameStateIO(playerId, userName) >>
+        IO(logger.info(s"Finished Player $userName initialized in game state for room $roomId"))
       } else {
         IO.unit
       }
@@ -113,13 +85,11 @@ class BattleWebSocketManager(roomId: String) {
         }
       }
 
-      // Get username from UserService and notify other players that this player joined
-      username <- getUsernameByPlayerId(playerId)
       playerJoinedMessage = WebSocketMessage(
         "player_joined", 
         Json.obj(
           "playerId" -> Json.fromString(playerId),
-          "username" -> Json.fromString(username)
+          "username" -> Json.fromString(userName)
         )
       )
       _ <- IO(logger.info(s"In addConnection, start broadcastExcept"))
@@ -475,13 +445,12 @@ class BattleWebSocketManager(roomId: String) {
   /**
    * Initialize a player in the game state (IO version)
    */
-  private def initializePlayerInGameStateIO(playerId: String): IO[Unit] = {
+  private def initializePlayerInGameStateIO(playerId: String, userName: String): IO[Unit] = {
     implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
     
     (for {
-      username <- getUsernameByPlayerId(playerId)
-      initialCardList <- getInitialCardList(playerId)
-      _ <- IO(logger.info(s"初始化Cards: Player $username initialized with cards: $initialCardList"))
+      initialCardList <- getInitialCardList(playerId, userName)
+      _ <- IO(logger.info(s"初始化Cards: Player $userName initialized with cards: $initialCardList"))
       // Use card list to get initial cards by getCardTemplateByIDMessage API
       card1 <- GetCardTemplateByIDMessage(initialCardList.head).send
       card1_battle = ConvertCardTemplateToBattleCard(card1)
@@ -496,7 +465,7 @@ class BattleWebSocketManager(roomId: String) {
       _ <- IO {
         val newPlayerState = PlayerState(
           playerId = playerId,
-          username = username,
+          username = userName,
           health = 6,
           energy = 0,
           rank = "Bronze",
