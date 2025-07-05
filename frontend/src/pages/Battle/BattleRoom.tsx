@@ -1,46 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBattleStore } from '../store/battleStore';
-import { webSocketService, GameState, GameOverResult } from '../services/WebSocketService';
-import PageTransition from '../components/PageTransition';
-import GameBoard from '../components/GameBoard';
-import ActionSelector from '../components/ActionSelector';
-import RoundResultModal from '../components/RoundResultModal';
-import { GameOverModal } from '../components/GameOverModal';
+import { useBattleStore } from '../../store/battleStore';
+import { webSocketService } from '../../services/WebSocketService';
+import { webSocketHandles } from '../../services/WebsocketHandles';
+import PageTransition from '../../components/PageTransition';
+import GameBoard from './GameBoard';
+import ActionSelector from './ActionSelector';
+import RoundResultModal from './RoundResultModal';
+import { GameOverModal } from './GameOverModal';
 import './BattleRoom.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserInfo,useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
 	const user = useUserInfo();
 	const {
-		roomId,
-		gameState,
-		isConnected,
-		connectionError,
-		currentPlayer,
-		opponent,
-		showActionSelector,
-		actionSelectorTemporarilyHidden,
-		showRoundResult,
-		currentRoundResult,
-		lastRoundResult,
-		showGameOver,
-		currentGameOverResult,
-		setRoomId,
-		setGameState,
-		setConnectionStatus,
-		addRoundResult,
-		showRoundResultModal,
-		hideRoundResultModal,
-		hideRoundResultTemporarily,
-		showLastRoundResult,
-		showGameOverModal,
-		hideGameOverModal,
-		showActionSelectorAgain,
-		resetBattle
+		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, currentGameOverResult,
+		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, showActionSelectorAgain, resetBattle
 	} = useBattleStore();
 
 	const [isConnecting, setIsConnecting] = useState(true);
@@ -54,142 +32,36 @@ const BattleRoom: React.FC = () => {
 	// 初始化WebSocket连接
 	useEffect(() => {
 		const initializeConnection = async () => {
-			const userID = getUserInfo().userID;
-			if (!user || !userID) {
-				console.error('❌ [BattleRoom] 用户未登录');
-				navigate('/login');
-				return;
-			}
-
 			try {
 				// 生成或获取房间ID（实际应用中可能从路由参数获取）
 				const battleRoomId = new URLSearchParams(window.location.search).get('roomId') ||
 					`room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
 				setRoomId(battleRoomId);
 				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
-
 				// 连接WebSocket
 				await webSocketService.connect(battleRoomId, user.userID, user.userName);
 				setConnectionStatus(true);
 				setIsConnecting(false);
 				setRoomStatus('waiting');
-
 				// 设置事件监听器
 				console.log('🔌 [BattleRoom] 设置事件监听器');
-				setupWebSocketListeners();
+				webSocketHandles.updateBattleStore();
+				webSocketHandles.setupWebSocketListeners(setRoomStatus);
 				console.log('🎮 [BattleRoom] 事件监听器已设置');
-
 			} catch (error) {
 				console.error('❌ [BattleRoom] 连接失败:', error);
 				setConnectionStatus(false, '连接失败，请重试');
 				setIsConnecting(false);
 			}
 		};
-
 		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接');
 		initializeConnection();
 		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接完成');
-
-		// 清理函数
 		return () => {
 			console.log('🔌 [BattleRoom] useEffect return 清理WebSocket连接');
-			// 清理所有事件监听器
-			webSocketService.off('game_state', handleGameStateUpdate);
-			webSocketService.off('round_result', handleRoundResult);
-			webSocketService.off('game_over', handleGameOver);
-			webSocketService.off('player_joined', handlePlayerJoined);
-			webSocketService.off('player_left', handlePlayerLeft);
-			webSocketService.off('error', handleWebSocketError);
-			webSocketService.off('connection_failed', handleConnectionFailed);
+			webSocketHandles.cleanupWebSocketListeners(setRoomStatus);
 		};
 	}, [user, setRoomId, setConnectionStatus]);
-
-	// 游戏状态更新处理器
-	const handleGameStateUpdate = (gameState: GameState) => {
-		console.log('🎮 [BattleRoom] 收到游戏状态更新:', gameState);
-		setGameState(gameState);
-		// 更新房间状态 - 基于游戏状态判断
-		updateRoomStatusFromGameState(gameState);
-	};
-
-	// 回合结果处理器
-	const handleRoundResult = (result: any) => {
-		console.log('🎮 [BattleRoom] 收到回合结果:', result);
-		addRoundResult(result);
-		showRoundResultModal(result);
-	};
-
-	// 游戏结束处理器
-	const handleGameOver = (result: GameOverResult) => {
-		console.log('🎮 [BattleRoom] 游戏结束:', result);
-		// 显示游戏结束弹窗
-		showGameOverModal(result);
-	};
-
-	// 玩家加入处理器
-	const handlePlayerJoined = (data: any) => {
-		console.log('🎮 [BattleRoom] 玩家加入:', data);
-		console.log('🎮 [BattleRoom] 等待后端发送更新的 game_state...');
-		// 前端不做任何状态推断，完全依赖后端发送的 game_state
-	};
-
-	// 玩家离开处理器
-	const handlePlayerLeft = (data: any) => {
-		console.log('🎮 [BattleRoom] 玩家离开:', data);
-		setRoomStatus('waiting');
-	};
-
-	// WebSocket错误处理器
-	const handleWebSocketError = (error: any) => {
-		console.error('❌ [BattleRoom] WebSocket错误:', error);
-		setConnectionStatus(false, error.message);
-	};
-
-	// 连接失败处理器
-	const handleConnectionFailed = () => {
-		console.error('❌ [BattleRoom] 连接失败');
-		setConnectionStatus(false, '连接断开，正在重试...');
-	};
-
-	// 设置WebSocket事件监听器
-	const setupWebSocketListeners = () => {
-		// 清理可能存在的旧监听器
-		webSocketService.off('game_state', handleGameStateUpdate);
-		webSocketService.off('round_result', handleRoundResult);
-		webSocketService.off('game_over', handleGameOver);
-		webSocketService.off('player_joined', handlePlayerJoined);
-		webSocketService.off('player_left', handlePlayerLeft);
-		webSocketService.off('error', handleWebSocketError);
-		webSocketService.off('connection_failed', handleConnectionFailed);
-
-		// 注册新的监听器
-		webSocketService.on('game_state', handleGameStateUpdate);
-		webSocketService.on('round_result', handleRoundResult);
-		webSocketService.on('game_over', handleGameOver);
-		webSocketService.on('player_joined', handlePlayerJoined);
-		webSocketService.on('player_left', handlePlayerLeft);
-		webSocketService.on('error', handleWebSocketError);
-		webSocketService.on('connection_failed', handleConnectionFailed);
-	};
-
-	// 根据游戏状态更新房间状态
-	const updateRoomStatusFromGameState = (gameState: GameState) => {
-		const bothPlayersConnected = gameState.player1.isConnected &&
-			gameState.player2.isConnected &&
-			gameState.player1.playerId !== '' &&
-			gameState.player2.playerId !== '';
-
-		if (gameState.roundPhase === 'action') {
-			setRoomStatus('playing');
-		} else if (bothPlayersConnected) {
-			setRoomStatus('ready');
-			console.log('🎮 [BattleRoom] 两个玩家都已连接，房间状态设为ready');
-		} else {
-			setRoomStatus('waiting');
-			console.log('🎮 [BattleRoom] 等待更多玩家，房间状态设为waiting');
-		}
-	};
 
 	// 离开房间
 	const handleLeaveRoom = () => {

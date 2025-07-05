@@ -5,9 +5,9 @@ import './ShopPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo, setUserInfoField, useUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
-import { RewardAssetMessage } from '../Plugins/AssetService/APIs/RewardAssetMessage';
-import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 新增
+import { useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { RewardAssetMessage } from 'Plugins/AssetService/APIs/RewardAssetMessage';
+import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 新增
 
 const ShopPage: React.FC = () => {
     const user = useUserInfo();

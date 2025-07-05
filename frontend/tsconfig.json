@@ -28,18 +28,18 @@
       "Images/*": [
         "Images/*"
       ], // Images/* → src/Images/*
-      "Pages/*": [
-        "Pages/*"
-      ], // Pages/* → src/Pages/*
+      "pages/*": [
+        "pages/*"
+      ], // pages/* → src/pages/*
       "Plugins/*": [
         "Plugins/*"
-      ], // Plugins/* → src/Plugins/*
-      "Styles/*": [
-        "Styles/*"
-      ], // Styles/* → src/Styles/*
+      ], // plugins/* → src/plugins/*
+      "styles/*": [
+        "styles/*"
+      ], // styles/* → src/styles/*
       "Utils/*": [
         "Utils/*"
-      ] // Utils/* → src/Utils/*
+      ] // utils/* → src/utils/*
     }
     //"downlevelIteration": true // 添加这个选项支持迭代器
   },

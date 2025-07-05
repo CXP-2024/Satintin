@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import PageTransition from '../components/PageTransition';
+import { usePageTransition } from '../../hooks/usePageTransition';
+import PageTransition from '../../components/PageTransition';
 import './BattlePage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
@@ -35,7 +35,7 @@ const BattlePage: React.FC = () => {
 		setMatchingMode(mode);
 
 		// 模拟匹配过程
-		const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
+		//const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
 
 		// 模拟匹配成功后跳转到对战房间
 		setTimeout(() => {

@@ -7,11 +7,11 @@ import nailongImage from '../assets/images/nailong.webp';
 import jiegeImage from '../assets/images/jiege.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {useUserInfo, useUserToken, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
-import { DrawCardMessage } from '../Plugins/CardService/APIs/DrawCardMessage';
-import { QueryAssetStatusMessage } from '../Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 添加导入
-import { QueryCardDrawCountMessage } from '../Plugins/AssetService/APIs/QueryCardDrawCountMessage'; // 添加抽卡次数查询
-import { GetDrawHistoryMessage, DrawHistoryEntry } from '../Plugins/CardService/APIs/GetDrawHistoryMessage';
+import {useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { DrawCardMessage } from 'Plugins/CardService/APIs/DrawCardMessage';
+import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetStatusMessage'; // 添加导入
+import { QueryCardDrawCountMessage } from 'Plugins/AssetService/APIs/QueryCardDrawCountMessage'; // 添加抽卡次数查询
+import { GetDrawHistoryMessage, DrawHistoryEntry } from 'Plugins/CardService/APIs/GetDrawHistoryMessage';
 
 
 const WishPage: React.FC = () => {
@@ -26,7 +26,8 @@ const WishPage: React.FC = () => {
 	const [isAnimating, setIsAnimating] = useState<boolean>(false);	const [wishHistory, setWishHistory] = useState<{featured: any[], standard: any[]}>({
 		featured: [],
 		standard: []
-	});	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+	});
+	const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 	const [cardDrawCounts, setCardDrawCounts] = useState<{standard: number, featured: number}>({
 		standard: 0,
 		featured: 0
