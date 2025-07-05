@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess
+import Utils.{AssetStatusService, TransactionService}
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -27,11 +27,9 @@ case class DeductAssetMessagePlanner(
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 验证用户令牌"))
       // validation to be completed
       userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 用户验证成功，userID=${userID}"))
-
-      // Step 2: 检查用户资产是否足够
+      _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 用户验证成功，userID=${userID}"))      // Step 2: 检查用户资产是否足够
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 检查用户资产是否足够"))
-      currentAsset <- AssetTransactionProcess.fetchAssetStatus(userID)
+      currentAsset <- AssetStatusService.fetchAssetStatus(userID)
       _ <- IO {
         if (currentAsset < deductAmount) 
           throw new IllegalStateException(s"用户资产不足，当前资产: ${currentAsset}, 请求扣减: ${deductAmount}")
@@ -40,12 +38,12 @@ case class DeductAssetMessagePlanner(
 
       // Step 3: 执行扣减操作
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 执行扣减操作"))
-      _ <- AssetTransactionProcess.modifyAsset(userID, -deductAmount)
+      _ <- AssetStatusService.modifyAsset(userID, -deductAmount)
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 资产扣减成功"))
 
       // Step 4: 记录交易
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 记录交易日志"))
-      transactionID <- AssetTransactionProcess.createTransactionRecord(userID, "PURCHASE", -deductAmount, "资产扣减")
+      transactionID <- TransactionService.createTransactionRecord(userID, "PURCHASE", -deductAmount, "资产扣减")
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 交易记录成功，交易ID=${transactionID}"))
 
     } yield "资产扣减成功！"

@@ -1,22 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
+import { getCardImage } from '../utils/cardImageMap';
 import './WishResultPage.css';
 import danziVideo from '../assets/videos/danzi.mp4';
 import danlanVideo from '../assets/videos/danlan.mp4';
 import danjinVideo from '../assets/videos/danjin.mp4';
 import shiziVideo from '../assets/videos/shizi.mp4';
 import shijinVideo from '../assets/videos/shijin.mp4';
-
-import gaiyaImage from '../assets/images/gaiya.png';
-import nailongImage from '../assets/images/nailong.webp';
-import jiegeImage from '../assets/images/jiege.png';
-import mygoImage from '../assets/images/mygo.png'
-import paimengImage from '../assets/images/paimeng.png';
-import kunImage from '../assets/images/kun.png';
-import manImage from '../assets/images/man.png';
-import bingbingImage from '../assets/images/bingbing.png';
-import wlmImage from '../assets/images/wlm.png';
 
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -91,27 +82,13 @@ const WishResultPage: React.FC = () => {
 			console.log('Parsed result:', { cardList, isNewCard, type, banner }); // 调试日志
 
 			setWishType(type || 'single');
-			setBannerType(banner || 'featured');
-
-			// Map backend CardEntry to WishResult
-			const rarityMap: Record<string, number> = { '传说': 5, '稀有': 4, '普通': 3 };
-			const imageMap: Record<string, string> = {
-				'Dragon Nai': nailongImage,
-				'盖亚': gaiyaImage,
-				'Go': mygoImage,
-				'杰哥': jiegeImage,
-				'Paimon': paimengImage,
-				'坤': kunImage,
-				'man': manImage,
-				'冰': bingbingImage,
-				'wlm': wlmImage,
-			};
-
+			setBannerType(banner || 'featured');			// Map backend CardEntry to WishResult
+			const rarityMap: Record<string, number> = { '传说': 5, '稀有': 4, '普通': 3 };			
 			const mapped = (cardList || []).map((card: any, index: number) => ({
 				id: `${card.cardID}-${index}`, // 使用 cardID + index 确保唯一性
 				name: card.cardName,
 				rarity: rarityMap[card.rarityLevel] || 3, // 使用 rarityLevel 而不是 rarity
-				image: imageMap[card.cardName] || '',
+				image: card.cardID, // 直接使用 cardID 作为图片标识
 				type: 'character' as const
 			}));
 
@@ -250,12 +227,10 @@ const WishResultPage: React.FC = () => {
 							</div>
 
 							<div className={`card-result ${getRarityClass(currentWishResult.rarity)}`}>
-								<div className="card-glow" style={{ backgroundColor: getRarityColor(currentWishResult.rarity) }} />
-
-								<div className="card-container">
+								<div className="card-glow" style={{ backgroundColor: getRarityColor(currentWishResult.rarity) }} />								<div className="card-container">
 									<div className="card-image">
-										{typeof currentWishResult.image === 'string' && (currentWishResult.image.startsWith('/') || currentWishResult.image.includes('.')) ? (
-											<img src={currentWishResult.image} alt={currentWishResult.name} className="card-img" />
+										{getCardImage(currentWishResult.image) ? (
+											<img src={getCardImage(currentWishResult.image)!} alt={currentWishResult.name} className="card-img" />
 										) : (
 											<span className="card-emoji">{currentWishResult.image}</span>
 										)}
@@ -321,10 +296,9 @@ const WishResultPage: React.FC = () => {
 											animationDelay: `${index * 0.1}s`
 										}}
 									>
-										<div className="mini-card-glow" style={{ backgroundColor: getRarityColor(card.rarity) }} />
-										<div className="mini-card-image">
-											{typeof card.image === 'string' && (card.image.startsWith('/') || card.image.includes('.')) ? (
-												<img src={card.image} alt={card.name} className="mini-card-img" />
+										<div className="mini-card-glow" style={{ backgroundColor: getRarityColor(card.rarity) }} />										<div className="mini-card-image">
+											{getCardImage(card.image) ? (
+												<img src={getCardImage(card.image)!} alt={card.name} className="mini-card-img" />
 											) : (
 												<span className="mini-card-emoji">{card.image}</span>
 											)}

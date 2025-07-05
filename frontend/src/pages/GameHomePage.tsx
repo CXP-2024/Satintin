@@ -21,11 +21,14 @@ import { QueryIDByUserNameMessage } from "Plugins/UserService/APIs/QueryIDByUser
 import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
 
 const GameHomePage: React.FC = () => {
-	const user = useUserInfo();
-	const userToken = useUserToken();
-	const userID = user?.userID 
-	const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
-	console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
+    const user = useUserInfo();
+    const userToken = useUserToken();
+    const userID = user?.userID; // 确保这里有正确的userID
+    const [cardCount, setCardCount] = useState<number>(0); // 卡牌总数状态
+    
+    console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
+    console.log('🔍 [GameHomePage] userID:', userID, 'userToken:', userToken ? '有token' : '无token');
+
 	function logout() {
 		console.log('🚪 [GameHomePage] 手动退出登录');
 		playClickSound();
@@ -59,36 +62,54 @@ const GameHomePage: React.FC = () => {
 
 	// 获取用户卡牌数量
 	const fetchCardCount = async () => {
-		if (!userToken) return;
-		
-		try {
-			console.log('🃏 [GameHomePage] 开始获取用户卡牌数量');
-			const response: any = await new Promise((resolve, reject) => {
-				new GetPlayerCardsMessage(userID).send(
-					(res: any) => resolve(res),
-					(err: any) => reject(err)
-				);
-			});
-			
-			// 解析响应数据
-			const cardEntries = typeof response === 'string' ? JSON.parse(response) : response;
-			const totalCards = cardEntries.length; // 计算包含重复卡牌的总数
-			
-			console.log('🃏 [GameHomePage] 获取到卡牌数量:', totalCards);
-			setCardCount(totalCards);
-			
-		} catch (err) {
-			console.error('🃏 [GameHomePage] 获取卡牌数量失败:', err);
-			setCardCount(0);
-		}
-	};
+        // 确保userToken和userID都存在
+        if (!userToken || !userID) {
+            console.warn('🃏 [GameHomePage] 缺少必要参数 - userToken:', !!userToken, 'userID:', !!userID);
+            return;
+        }
+        
+        try {
+            console.log('🃏 [GameHomePage] 开始获取用户卡牌数量, userID:', userID);
+            const response: any = await new Promise((resolve, reject) => {
+                new GetPlayerCardsMessage(userID).send(
+                    (res: any) => {
+                        console.log('🃏 [GameHomePage] 获取卡牌原始响应:', res);
+                        resolve(res);
+                    },
+                    (err: any) => {
+                        console.error('🃏 [GameHomePage] 获取卡牌失败:', err);
+                        reject(err);
+                    }
+                );
+            });
+            
+            // 解析响应数据
+            const cardEntries = typeof response === 'string' ? JSON.parse(response) : response;
+            console.log('🃏 [GameHomePage] 解析后的卡牌数据:', cardEntries);
+            
+            // 确保cardEntries是数组
+            if (Array.isArray(cardEntries)) {
+                const totalCards = cardEntries.length; // 计算包含重复卡牌的总数
+                console.log('🃏 [GameHomePage] 获取到卡牌数量:', totalCards);
+                setCardCount(totalCards);
+            } else {
+                console.warn('🃏 [GameHomePage] 卡牌数据格式不正确:', cardEntries);
+                setCardCount(0);
+            }
+            
+        } catch (err) {
+            console.error('🃏 [GameHomePage] 获取卡牌数量失败:', err);
+            setCardCount(0);
+        }
+    };
 
-	// 在组件挂载时获取卡牌数量
-	useEffect(() => {
-		if (userToken) {
-			fetchCardCount();
-		}
-	}, [userToken]);
+    // 在组件挂载时获取卡牌数量 - 同时检查userToken和userID
+    useEffect(() => {
+        console.log('🃏 [GameHomePage] useEffect触发 - userToken:', !!userToken, 'userID:', !!userID);
+        if (userToken && userID) {
+            fetchCardCount();
+        }
+    }, [userToken, userID]); // 依赖数组中添加userID
 
 	// 播放按钮点击音效
 	const playClickSound = () => {

@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess
+import Utils.AssetTransactionFacade
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -22,11 +22,10 @@ case class CreateAssetTransactionMessagePlanner(
 ) extends Planner[String] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
-  
-  override def plan(using context: PlanContext): IO[String] = {
+    override def plan(using context: PlanContext): IO[String] = {
     for {
       _ <- IO(logger.info(s"[CreateAssetTransactionMessagePlanner] 开始执行资产交易"))
-      result <- AssetTransactionProcess.executeAssetTransaction(
+      result <- AssetTransactionFacade.executeAssetTransaction(
         userToken, transactionType, changeAmount, changeReason
       )
       _ <- IO(logger.info(s"[CreateAssetTransactionMessagePlanner] ${result}"))
