@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess
+import Utils.{AssetStatusService, TransactionService}
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -38,16 +38,14 @@ case class RewardAssetMessagePlanner(
       _ <- IO {
         if (rewardAmount <= 0) throw new IllegalArgumentException("奖励金额必须大于0")
       }
-      _ <- IO(logger.info(s"[Step 2] 奖励金额验证通过: ${rewardAmount}"))
-
-      // Step 3: 修改资产
+      _ <- IO(logger.info(s"[Step 2] 奖励金额验证通过: ${rewardAmount}"))      // Step 3: 修改资产
       _ <- IO(logger.info("[Step 3] 修改用户资产"))
-      _ <- AssetTransactionProcess.modifyAsset(userID, rewardAmount)
+      _ <- AssetStatusService.modifyAsset(userID, rewardAmount)
       _ <- IO(logger.info("[Step 3] 资产修改完成"))
 
       // Step 4: 创建交易记录
       _ <- IO(logger.info("[Step 4] 创建奖励交易记录"))
-      transactionID <- AssetTransactionProcess.createTransactionRecord(
+      transactionID <- TransactionService.createTransactionRecord(
         userID, 
         "REWARD", 
         rewardAmount, 
