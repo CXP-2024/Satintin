@@ -1,5 +1,6 @@
 package Utils
 
+import APIs.CardService.{CardTemplate, GetCardTemplateByIDMessage, LoadBattleDeckMessage}
 import cats.effect.*
 import cats.effect.std.Queue
 import cats.implicits.*
@@ -8,16 +9,19 @@ import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.websocket.WebSocketFrame
 import org.slf4j.LoggerFactory
+
 import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
-import Objects.BattleService.{BattleAction, GameState, PlayerState, RoundResult, GameOverResult, CardEffect}
+import Objects.BattleService.{BattleAction, CardEffect, CardState, GameOverResult, GameState, PlayerState, RoundResult}
 import APIs.UserService.FetchUserStatusMessage
 import org.joda.time.DateTime
 import cats.effect.unsafe.implicits.global
+
 import scala.concurrent.duration.*
-import Common.DBAPI.{readDBJsonOptional, decodeField, decodeType}
+import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
 import Common.Object.SqlParameter
+import ch.qos.logback.core.pattern.Converter
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -67,6 +71,18 @@ class BattleWebSocketManager(roomId: String) {
     IO {
       logger.warn(s"[getUsernameByPlayerId] 获取用户名失败: playerId=$playerId, error=${error.getMessage}")
       s"Player $playerId" // 返回默认名称
+    }
+  }
+
+  // get 3 cards ID from LoadBattleDeckMessage API
+  private def getInitialCardList(playerId: String): IO[List[String]] = {
+    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
+    logger.info(s"Start Fetching username for player $playerId")
+    LoadBattleDeckMessage(playerId).send.map { battleDeck =>
+      battleDeck
+    }.handleErrorWith { error =>
+      logger.warn(s"Failed to get username for player $playerId: ${error.getMessage}")
+      IO.pure(List(s"!!!!!!!!!!!!!!!!!!!!!!! Error in getInitialCards of Player $playerId ")) // Fallback to default name
     }
   }
 
@@ -434,56 +450,96 @@ class BattleWebSocketManager(roomId: String) {
     }
   }
 
+  // decide effect chance based on rarity
+  private def ChooseEffect(rarity: String): Double = {
+    rarity match {
+      case "普通" => 0.05
+      case "稀有" => 0.15
+      case "传说" => 0.33
+      case _ => 0.1 // Default chance for unknown rarities
+    }
+  }
+
+  //Convert CardTemplate to BattleCard
+  private def ConvertCardTemplateToBattleCard(card: CardTemplate): CardState = {
+    // Assuming CardState has a constructor that takes the same parameters as CardTemplate
+    CardState(
+      cardId = card.cardID,
+      name = card.cardName,
+      `type` = card.description,
+      rarity = card.rarity,
+      effectChance = ChooseEffect(card.rarity)
+    )
+  }
+
   /**
    * Initialize a player in the game state (IO version)
    */
   private def initializePlayerInGameStateIO(playerId: String): IO[Unit] = {
-    getUsernameByPlayerId(playerId).map { username =>
-      val newPlayerState = PlayerState(
-        playerId = playerId,
-        username = username,
-        health = 6,
-        energy = 0,
-        rank = "Bronze",
-        cards = List(),
-        isReady = false,
-        isConnected = true
-      )
+    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
+    
+    (for {
+      username <- getUsernameByPlayerId(playerId)
+      initialCardList <- getInitialCardList(playerId)
+      _ <- IO(logger.info(s"初始化Cards: Player $username initialized with cards: $initialCardList"))
+      // Use card list to get initial cards by getCardTemplateByIDMessage API
+      card1 <- GetCardTemplateByIDMessage(initialCardList.head).send
+      card1_battle = ConvertCardTemplateToBattleCard(card1)
+      _ <- IO(logger.info(s"获取到第一张卡牌模板: $card1_battle"))
+      card2 <- GetCardTemplateByIDMessage(initialCardList(1)).send
+      card2_battle = ConvertCardTemplateToBattleCard(card2)
+      _ <- IO(logger.info(s"获取到第二张卡牌模板: $card2_battle"))
+      card3 <- GetCardTemplateByIDMessage(initialCardList(2)).send
+      card3_battle = ConvertCardTemplateToBattleCard(card3)
+      _ <- IO(logger.info(s"获取到第三张卡牌模板: $card3_battle"))
 
-      gameState match {
-        case Some(state) =>
-          // Add as player 2 if player 1 exists
-          if (state.player1.playerId.nonEmpty && state.player1.playerId != playerId && state.player2.playerId.isEmpty) {
-            val updatedState = state.copy(player2 = newPlayerState)
-            gameState = Some(updatedState)
-            logger.info(s"Player1 exists, Start Player $playerId initialized as player 2 in room $roomId")
-            // 重要：这里需要广播给所有玩家包括已连接的 Player1
-            broadcast(WebSocketMessage("game_state", updatedState.asJson))
-          }
+      _ <- IO {
+        val newPlayerState = PlayerState(
+          playerId = playerId,
+          username = username,
+          health = 6,
+          energy = 0,
+          rank = "Bronze",
+          cards = List(card1_battle, card2_battle, card3_battle), // 使用获取到的卡牌ID列表
+          isReady = false,
+          isConnected = true
+        )
 
-        case None =>
-          // Create new game state with this player as player 1
-          val newState = GameState(
-            roomId = roomId,
-            player1 = newPlayerState,
-            player2 = PlayerState(
-              playerId = "",
-              username = "Waiting for opponent...",
-              health = 6,
-              energy = 0,
-              rank = "",
-              cards = List(),
-              isConnected = false,  //other default values we don't want to set again
-            ),
-            currentRound = 1,
-            roundPhase = "waiting",
-            winner = None
-          )
-          gameState = Some(newState)
-          logger.info(s"Player $playerId initialized as player 1 in room $roomId")
-          broadcast(WebSocketMessage("game_state", newState.asJson))
+        gameState match {
+          case Some(state) =>
+            // Add as player 2 if player 1 exists
+            if (state.player1.playerId.nonEmpty && state.player1.playerId != playerId && state.player2.playerId.isEmpty) {
+              val updatedState = state.copy(player2 = newPlayerState)
+              gameState = Some(updatedState)
+              logger.info(s"Player1 exists, Start Player $playerId initialized as player 2 in room $roomId")
+              // 重要：这里需要广播给所有玩家包括已连接的 Player1
+              broadcast(WebSocketMessage("game_state", updatedState.asJson))
+            }
+
+          case None =>
+            // Create new game state with this player as player 1
+            val newState = GameState(
+              roomId = roomId,
+              player1 = newPlayerState,
+              player2 = PlayerState(
+                playerId = "",
+                username = "Waiting for opponent...",
+                health = 6,
+                energy = 0,
+                rank = "",
+                cards = List(),
+                isConnected = false,  //other default values we don't want to set again
+              ),
+              currentRound = 1,
+              roundPhase = "waiting",
+              winner = None
+            )
+            gameState = Some(newState)
+            logger.info(s"Player $playerId initialized as player 1 in room $roomId")
+            broadcast(WebSocketMessage("game_state", newState.asJson))
+        }
       }
-    }.handleErrorWith { error =>
+    } yield ()).handleErrorWith { error =>
       IO {
         logger.warn(s"Failed to initialize player $playerId: ${error.getMessage}")
         // Fallback to using playerId as username
