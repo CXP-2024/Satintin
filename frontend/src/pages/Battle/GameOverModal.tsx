@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { GameOverResult } from '../services/WebSocketService';
+import { GameOverResult } from '../../services/WebSocketService';
 import {getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 
 interface GameOverModalProps {

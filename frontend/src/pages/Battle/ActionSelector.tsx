@@ -1,6 +1,6 @@
 import React from 'react';
-import { useBattleStore } from '../store/battleStore';
-import { webSocketService } from '../services/WebSocketService';
+import { useBattleStore } from '../../store/battleStore';
+import { webSocketService } from '../../services/WebSocketService';
 import { SoundUtils } from 'utils/soundUtils';
 import './ActionSelector.css';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";

@@ -3,17 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import GameHomePage from '../pages/GameHomePage';
-import BattlePage from '../pages/BattlePage';
+import BattlePage from '../pages/Battle/BattlePage';
 import CardCollectionPage from '../pages/CardCollectionPage';
 import WishPage from '../pages/WishPage';
 import WishResultPage from '../pages/WishResultPage';
 import BattleRulesPage from '../pages/BattleRulesPage';
 import BattleTestPage from '../pages/BattleTestPage';
-import BattleRoom from '../pages/BattleRoom';
+import BattleRoom from '../pages/Battle/BattleRoom';
 import ShopPage from "../pages/ShopPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminRegisterPage from "../pages/AdminRegisterPage";
-import {useUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { autoLogoutManager } from '../utils/autoLogout';
 
 // 内部路由组件，用于监听路由变化
@@ -31,7 +31,7 @@ const RouterContent: React.FC = () => {
 		// 只在特定路由变化时执行logout
 		const handleRouteChange = async () => {
 			console.log('🛣️ [AppRouter] 路由变化:', location.pathname);
-			
+
 			// 注意：不要在这里自动logout，因为手动logout后会导航到/login
 			// 这会导致重复logout和循环重定向
 			// 手动logout应该在各个页面的logout函数中处理
@@ -229,7 +229,7 @@ const RouterContent: React.FC = () => {
 							})()
 						) : (
 							(() => {
-								console.log('⛔ [AppRouter] 非管理员用户尝试访问管理页面，重定向到游戏页面',isAuthenticated,user.permissionLevel);
+								console.log('⛔ [AppRouter] 非管理员用户尝试访问管理页面，重定向到游戏页面', isAuthenticated, user.permissionLevel);
 								return <Navigate to="/game" replace />;
 							})()
 						)

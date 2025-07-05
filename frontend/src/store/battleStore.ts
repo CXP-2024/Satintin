@@ -1,6 +1,6 @@
 import create from 'zustand';
 import { GameState, PlayerState, BattleAction, RoundResult, GameOverResult } from '../services/WebSocketService';
-import { getUserInfo } from '../Plugins/CommonUtils/Store/UserInfoStore';
+import { getUserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore';
 
 interface BattleState {
 	// 房间状态

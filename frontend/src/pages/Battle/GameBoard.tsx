@@ -1,17 +1,17 @@
 import React from 'react';
-import { GameState, PlayerState } from '../services/WebSocketService';
+import { GameState, PlayerState } from '../../services/WebSocketService';
 import './GameBoard.css';
 
 // 导入卡牌图片
-import nailongImg from '../assets/images/nailong.png';
-import gaiyaImg from '../assets/images/gaiya.png';
-import mygoImg from '../assets/images/mygo.png';
-import jiegeImg from '../assets/images/jiege.png';
-import paimengImg from '../assets/images/paimeng.png';
-import kunImg from '../assets/images/kun.png';
-import manImg from '../assets/images/man.png';
-import bingbingImg from '../assets/images/bingbing.png';
-import wlmImg from '../assets/images/wlm.png';
+import nailongImg from '../../assets/images/nailong.png';
+import gaiyaImg from '../../assets/images/gaiya.png';
+import mygoImg from '../../assets/images/mygo.png';
+import jiegeImg from '../../assets/images/jiege.png';
+import paimengImg from '../../assets/images/paimeng.png';
+import kunImg from '../../assets/images/kun.png';
+import manImg from '../../assets/images/man.png';
+import bingbingImg from '../../assets/images/bingbing.png';
+import wlmImg from '../../assets/images/wlm.png';
 
 interface GameBoardProps {
 	gameState: GameState;
