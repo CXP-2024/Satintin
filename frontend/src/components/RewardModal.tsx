@@ -80,7 +80,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
 					icon: '🎁',
 					title: rewardTitle || '每日奖励',
 					description: rewardDescription || '恭喜您获得每日登录奖励！',
-					bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5a67d8 100%)'
+					bgGradient: 'linear-gradient(135deg, #2c3e50 0%,rgb(63, 78, 93) 50%,rgb(33, 56, 78) 100%)'
 				};
 			case 'achievement':
 				return {
@@ -101,7 +101,7 @@ const RewardModal: React.FC<RewardModalProps> = ({
 					icon: '🎁',
 					title: '奖励',
 					description: '恭喜您获得奖励！',
-					bgGradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5a67d8 100%)'
+					bgGradient: 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #5a67d8 100%)'
 				};
 		}
 	};

@@ -1,7 +1,8 @@
 package Impl
 
 import Common.API.API
-import APIs.CardService.{GetDrawHistoryMessage, DrawHistoryEntry}
+import APIs.CardService.GetDrawHistoryMessage
+import Objects.CardService.DrawHistoryEntry
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter

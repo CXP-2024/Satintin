@@ -19,7 +19,7 @@
 }
 
 .user-profile-modal {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #5a67d8 100%);
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #5a67d8 100%);
 	border-radius: 20px;
 	width: 90%;
 	max-width: 1000px;
@@ -132,7 +132,7 @@
 .avatar-circle {
 	width: 80px;
 	height: 80px;
-	background: linear-gradient(135deg, #667eea, #764ba2);
+	background: linear-gradient(135deg, #2c3e50, #34495e);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
@@ -479,7 +479,7 @@
 .friend-avatar {
 	width: 50px;
 	height: 50px;
-	background: linear-gradient(135deg, #667eea, #764ba2);
+	background: linear-gradient(135deg, #2c3e50, #34495e);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;

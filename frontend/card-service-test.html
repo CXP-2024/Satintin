@@ -17,16 +17,16 @@
   </style>
 </head>
 <body>  <div class="box">
-    <h2>Card Service 全能测试器</h2>
-    <p><strong>使用说明：</strong></p>
+    <h2>Card Service 全能测试器</h2>    <p><strong>使用说明：</strong></p>
     <ul>
-      <li><strong>DrawCardMessage</strong>：需要 userToken + drawCount</li>
+      <li><strong>DrawCardMessage</strong>：需要 userToken + drawCount + poolType</li>
       <li><strong>GetPlayerCardsMessage</strong>：需要 userToken</li>
       <li><strong>UpgradeCardMessage</strong>：需要 userToken + cardID</li>
       <li><strong>ConfigureBattleDeckMessage</strong>：需要 userToken + cardIDs</li>
       <li><strong>CreateCardTemplateMessage</strong>：需要 userToken + 卡牌详情</li>
       <li><strong>GetAllCardTemplatesMessage</strong>：无需 userToken</li>
       <li><strong>GetCardTemplateByIDMessage</strong>：无需 userToken，仅需 cardID</li>
+      <li class="highlight"><strong>新返回结构</strong>：DrawCardMessage 现在返回 {cardList: [CardEntry], isNewCard: boolean}</li>
     </ul>
 
     <!-- 1. 给 Base URL 框加上 value 属性，避免用户忘填，导致 fetch("/api/…") 调到静态服务器 -->
@@ -45,10 +45,15 @@
         <option value="GetCardTemplateByIDMessage">GetCardTemplateByIDMessage</option>
       </select>
     </label>
-    <label>userToken：<input id="token" type="text" placeholder="有效或无效的 token"></label>
-    <div id="drawCountBox">
+    <label>userToken：<input id="token" type="text" placeholder="有效或无效的 token"></label>    <div id="drawCountBox">
       <label>drawCount：<input id="drawCount" type="number" min="1" max="10" value="1"></label>
-    </div>    <div id="cardIdBox" class="hidden">
+      <label>poolType：
+        <select id="poolType">
+          <option value="standard">standard (常驻)</option>
+          <option value="featured">featured (限定)</option>
+        </select>
+      </label>
+    </div><div id="cardIdBox" class="hidden">
       <label>cardID：<input id="cardId" type="text" placeholder="要升级的卡牌ID"></label>
     </div>    <div id="templateCardIdBox" class="hidden">
       <label>cardID：<input id="templateCardId" type="text" placeholder="输入卡牌ID，例如：card-001"></label>
@@ -93,11 +98,10 @@
       const token = document.getElementById('token').value.trim();
 
       // payload.type 直接用 api，因为它已经带上了 “Message”
-      let payload = { type: api, userToken: token };
-
-      if (api === 'DrawCardMessage') {
+      let payload = { type: api, userToken: token };      if (api === 'DrawCardMessage') {
         payload.drawCount = parseInt(document.getElementById('drawCount').value, 10);
-      }      if (api === 'UpgradeCardMessage') {
+        payload.poolType = document.getElementById('poolType').value;
+      }if (api === 'UpgradeCardMessage') {
         payload.cardID = document.getElementById('cardId').value.trim();
       }        if (api === 'GetCardTemplateByIDMessage') {
         payload.cardID = document.getElementById('templateCardId').value.trim();
