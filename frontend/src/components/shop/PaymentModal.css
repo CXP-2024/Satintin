@@ -1,0 +1,208 @@
+/* 支付弹窗样式 */
+.payment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.payment-modal {
+    background: white;
+    border-radius: 16px;
+    max-width: 450px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+.payment-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+}
+
+.payment-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.payment-modal-content {
+    padding: 30px 20px;
+}
+
+.payment-info {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.payment-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: #e74c3c;
+    margin: 0 0 8px 0;
+}
+
+.payment-crystals {
+    font-size: 18px;
+    color: #8e44ad;
+    margin: 0;
+    font-weight: 500;
+}
+
+.qr-code-container {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.qr-code-image {
+    width: 200px;
+    height: 200px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.qr-code-tip {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.payment-complete-btn,
+.payment-cancel-btn {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payment-complete-btn {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.payment-complete-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #229954, #27ae60);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.payment-complete-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.payment-cancel-btn {
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
+}
+
+.payment-cancel-btn:hover:not(:disabled) {
+    background: #d5dbdb;
+    transform: translateY(-1px);
+}
+
+.payment-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .payment-modal {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .payment-modal-content {
+        padding: 20px 15px;
+    }
+    
+    .qr-code-image {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .payment-actions {
+        flex-direction: column;
+    }
+    
+    .payment-complete-btn,
+    .payment-cancel-btn {
+        width: 100%;
+    }
+}
