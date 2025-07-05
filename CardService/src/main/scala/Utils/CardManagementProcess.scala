@@ -15,7 +15,7 @@ import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Utils.CardManagementProcess.fetchUserCardInventory
 import Objects.UserService.MessageEntry
-import Objects.CardService.{CardEntry, DrawCardInfo, DrawResult}
+import Objects.CardService.{CardEntry, DrawResult}
 import Objects.UserService.BlackEntry
 import Objects.UserService.FriendEntry
 import APIs.AssetService.QueryAssetStatusMessage
@@ -29,25 +29,10 @@ import APIs.UserService.LogUserOperationMessage // Add missing import for the lo
 import APIs.AssetService.DeductAssetMessage
 import APIs.AssetService.UpdateCardDrawCountMessage
 import APIs.AssetService.QueryCardDrawCountMessage
+import Objects.CardService.CardTemplate
 
 case object CardManagementProcess {
   private val logger = LoggerFactory.getLogger(getClass)
-  // metadata for front-end CARDS: name, rarity, skill description
-  case class CardTemplate(cardID: String, cardName: String, rarity: String, description: String, cardType: String = "both")
-  
-  // Legacy hardcoded templates (kept for backward compatibility)
-  private val cardTemplates = List(
-    CardTemplate("legacy-dragon-nai", "Dragon Nai", "传说", "反弹"),
-    CardTemplate("legacy-gaia", "盖亚", "传说", "穿透"),
-    CardTemplate("legacy-go", "Go", "传说", "发育"),
-    CardTemplate("legacy-jie", "杰哥", "传说", "穿透"),
-    CardTemplate("legacy-paimon", "Paimon", "稀有", "反弹"),
-    CardTemplate("legacy-kun", "坤", "稀有", "穿透"),
-    CardTemplate("legacy-man", "man", "稀有", "发育"),
-    CardTemplate("legacy-ice", "冰", "普通", "反弹"),
-    CardTemplate("legacy-wlm", "wlm", "普通", "发育")
-  )
-  private val templatesByRarity: Map[String, List[CardTemplate]] = cardTemplates.groupBy(_.rarity)
 
   //process plan code 预留标志位，不要删除
   def upgradeCard(userToken: String, userID: String, cardID: String)(using PlanContext): IO[String] = {
@@ -137,7 +122,7 @@ case object CardManagementProcess {
            } else {
              IO(logger.info(s"userID ${userID} 通过验证"))
            }      // Step 2: Prepare and log SQL query for fetching user card inventory with template details
-      _ <- IO(logger.info(s"准备查询用户卡牌信息并关联模板表，userID=${userID}"))
+      _ <- IO(logger.info(s"准备查询用户卡牌信息并关联模板表，userID=${userID}"))      
       sqlQuery <- IO {
         s"""
         SELECT 
@@ -145,6 +130,7 @@ case object CardManagementProcess {
           uc.card_id, 
           uc.rarity_level, 
           uc.card_level,
+          uc.acquisition_time,
           ct.card_name,
           ct.description,
           ct.type as card_type
@@ -160,7 +146,7 @@ case object CardManagementProcess {
         sqlQuery,
         List(SqlParameter("String", userID))
       )
-      _ <- IO(logger.info(s"查询数据库返回了 ${queryResults.size} 条记录"))      // Step 4: Map database results to CardEntry objects with template details
+      _ <- IO(logger.info(s"查询数据库返回了 ${queryResults.size} 条记录"))      // Step 4: Map database results to CardEntry objects with template details        
       cardEntries <- IO {
         queryResults.map { json =>
           // 按后端 send 出来的 camelCase 字段名来取
@@ -168,10 +154,11 @@ case object CardManagementProcess {
           val cardID      = decodeField[String](json, "cardID")
           val rarityLevel = decodeField[String](json, "rarityLevel")
           val cardLevel   = decodeField[Int](json, "cardLevel")
+          val acquisitionTime = DateTime.now
           val cardName    = decodeField[String](json, "cardName")
           val description = decodeField[String](json, "description")
           val cardType    = decodeField[String](json, "cardType")
-          CardEntry(userCardID, cardID, rarityLevel, cardLevel, cardName, description, cardType)
+          CardEntry(userCardID, cardID, rarityLevel, cardLevel, cardName, description, cardType, acquisitionTime)
         }
       }
       _ <- IO(logger.info(s"成功将查询结果转换为 CardEntry 对象列表，共 ${cardEntries.size} 条记录"))
@@ -214,13 +201,14 @@ case object CardManagementProcess {
       _ <- IO(logger.info(s"从数据库获取卡牌模板，卡池类型=${poolType}"))
       cardTemplatesFromDB <- fetchCardTemplatesFromDB(poolType)
       templatesByRarityFromDB = cardTemplatesFromDB.groupBy(_.rarity)
-      _ <- IO(logger.info(s"从数据库获取到 ${cardTemplatesFromDB.size} 个卡牌模板"))      // Step 4: Generate card draw results with pity system
-      _ <- IO(logger.info(s"开始生成符合保底机制的抽卡结果，drawCount=${drawCount}"))
+      _ <- IO(logger.info(s"从数据库获取到 ${cardTemplatesFromDB.size} 个卡牌模板"))
+
+      // Step 4: 生成抽卡结果
       (generatedInfos, finalDrawCount, hasGotLegendary) <- IO {
         var currentPityCount = currentDrawCount
-        var gotLegendary = false
-        var tenDrawNormalCount = 0  // 十连抽中普通卡的计数
-        
+        var gotLegendary     = false
+        var tenDrawNormalCnt = 0
+
         val results = (1 to drawCount).toList.map { drawIndex =>
           currentPityCount += 1
           
@@ -247,7 +235,7 @@ case object CardManagementProcess {
           var finalRareRate = adjustedRareRate
           
           // 十连抽保底机制：如果是十连抽且前9抽都是普通卡，第10抽必须出稀有以上
-          if (drawCount == 10 && drawIndex == 10 && tenDrawNormalCount == 9) {
+          if (drawCount == 10 && drawIndex == 10 && tenDrawNormalCnt == 9) {
             // 第10抽且前9抽都是普通卡，将普通卡概率全部分给稀有卡
             finalRareRate = adjustedRareRate + normalRate
             normalRate = 0.0
@@ -267,34 +255,37 @@ case object CardManagementProcess {
           } else {
             // 统计十连抽中的普通卡数量
             if (drawCount == 10) {
-              tenDrawNormalCount += 1
+              tenDrawNormalCnt += 1
             }
             "普通"
           }
-          
           val pool = templatesByRarityFromDB.getOrElse(rarityName, Nil)
           if (pool.isEmpty) {
             throw new IllegalStateException(s"数据库中没有找到稀有度为 ${rarityName} 的卡牌模板")
-          }
-          val template = pool(scala.util.Random.nextInt(pool.size))
-          val creationTime = DateTime.now.getMillis
-          DrawCardInfo(
+          }          
+          val template = pool(scala.util.Random.nextInt(pool.size))         
+          val creationTime = DateTime.now
+          val userCardID = UUID.randomUUID().toString
+          CardEntry(
+            userCardID = userCardID,
             cardID = template.cardID,
+            rarityLevel = template.rarity,
+            cardLevel = 1,
             cardName = template.cardName,
-            rarity = template.rarity,
             description = template.description,
+            cardType = template.cardType,
             creationTime = creationTime
           )
         }
         
         // 记录十连抽保底结果
         if (drawCount == 10) {
-          println(s"十连抽完成，普通卡数量：${tenDrawNormalCount}/10")
+          println(s"十连抽完成，普通卡数量：${tenDrawNormalCnt}/10")
         }
         
         (results, currentPityCount, gotLegendary)
-      }
-      _ <- IO(logger.info(s"生成的抽卡结果: ${generatedInfos.map(info => s"[cardID=${info.cardID}, rarity=${info.rarity}]").mkString(", ")}"))
+      }      
+      _ <- IO(logger.info(s"生成的抽卡结果: ${generatedInfos.map(info => s"[cardID=${info.cardID}, rarity=${info.rarityLevel}]").mkString(", ")}"))
       _ <- IO(logger.info(s"保底计算结果: 最终累计抽卡次数=${finalDrawCount}, 是否出金=${hasGotLegendary}"))
       
       // Step 5: Check for new cards
@@ -303,24 +294,23 @@ case object CardManagementProcess {
 
       // Step 6: Deduct stones from the user's account
       stonesToDeduct = drawCount * STONE_COST_PER_DRAW
-      _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))
-
-      // Step 7: Log the draw results in CardDrawLogTable
+      _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))      // Step 7: Log the draw results in CardDrawLogTable
       _ <- IO(logger.info(s"记录本次抽卡信息到CardDrawLogTable"))
-      currentTime <- IO.pure(DateTime.now.getMillis)
+      drawLogID <- IO.pure(UUID.randomUUID().toString) // Generate draw ID at draw time
+      currentTime <- IO.pure(DateTime.now)
       drawLogQuery <- IO(s"""
         INSERT INTO ${schemaName}.card_draw_log_table (draw_id, user_id, card_list, draw_time, total_stone_consumed, pool_type)
         VALUES (?, ?, ?, ?, ?, ?)
-      """)
+      """)          
       drawLogParams <- IO(List(
-        SqlParameter("String", UUID.randomUUID().toString),
+        SqlParameter("String", drawLogID), // Use the generated draw ID
         SqlParameter("String", userID),
         SqlParameter("String", generatedInfos.map(_.cardID).asJson.noSpaces),
-        SqlParameter("DateTime", currentTime.toString),
+        SqlParameter("DateTime", encodeDateTime(currentTime).asJson.noSpaces),
         SqlParameter("Int", stonesToDeduct.toString),
         SqlParameter("String", poolType)
       ))
-      _ <- writeDB(drawLogQuery, drawLogParams)      // Step 7.5: Deduct stones from user's account
+      _ <- writeDB(drawLogQuery, drawLogParams)// Step 7.5: Deduct stones from user's account
       _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))
       _ <- DeductAssetMessage(userToken, stonesToDeduct).send
       _ <- IO(logger.info(s"成功扣减原石，数量=${stonesToDeduct}"))
@@ -328,20 +318,18 @@ case object CardManagementProcess {
       // Step 7.6: Update card draw count with pity system consideration
       _ <- IO(logger.info(s"更新用户抽卡次数，考虑保底重置机制"))
       _ <- UpdateCardDrawCountMessage(userToken, poolType, finalDrawCount).send
-      _ <- IO(logger.info(s"抽卡次数更新完成，最终抽卡次数=${finalDrawCount}"))
-
-      // Step 8: Update user's card library with new cards
+      _ <- IO(logger.info(s"抽卡次数更新完成，最终抽卡次数=${finalDrawCount}"))      // Step 8: Update user's card library with new cards
       _ <- IO(logger.info(s"更新用户[userID=${userID}]的卡牌库，为每张抽到的卡牌添加记录"))
-      // 每次抽卡都要插入新记录，不管用户是否已经拥有相同的cardID
+      // 每次抽卡都要插入新记录，不管用户是否已经拥有相同的cardID      
       cardsToAdd <- IO {
         generatedInfos.map { info =>
           ParameterList(List(
-            SqlParameter("String", UUID.randomUUID().toString),
+            SqlParameter("String", info.userCardID),
             SqlParameter("String", userID),
             SqlParameter("String", info.cardID),
-            SqlParameter("String", info.rarity),
-            SqlParameter("Int", "1"),  // Initial level is 1
-            SqlParameter("DateTime", info.creationTime.toString)
+            SqlParameter("String", info.rarityLevel),
+            SqlParameter("Int", info.cardLevel.toString),
+            SqlParameter("DateTime", encodeDateTime(info.creationTime).asJson.noSpaces)
           ))
         }
       }

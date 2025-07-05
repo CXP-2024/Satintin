@@ -3,7 +3,7 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
 	padding: 20px;
 }
 
@@ -35,7 +35,7 @@
 }
 
 .register-header h1 {
-	color: #667eea;
+	color: #2c3e50;
 	font-size: 2.5rem;
 	margin: 0 0 10px 0;
 	font-weight: bold;
@@ -76,7 +76,7 @@
 }
 
 .form-group input:focus {
-	border-color: #667eea;
+	border-color: #2c3e50;
 	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -110,7 +110,7 @@
 }
 
 .register-btn {
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
 	color: white;
 	border: none;
 	padding: 15px;
@@ -147,7 +147,7 @@
 }
 
 .register-footer a {
-	color: #667eea;
+	color: #2c3e50;
 	text-decoration: none;
 	font-weight: 500;
 }

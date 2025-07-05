@@ -17,6 +17,7 @@ import scala.util.Try
 
 import org.joda.time.DateTime
 import java.util.UUID
+import Objects.CardService.DrawHistoryEntry
 
 /**
  * GetDrawHistoryMessage
@@ -24,18 +25,6 @@ import java.util.UUID
  * @param userToken: String (用户的身份令牌，用于验证用户的合法性。)
  * @return drawHistory: List[DrawHistoryEntry] (用户的抽卡历史记录列表)
  */
-
-case class DrawHistoryEntry(
-  drawId: String,
-  cardId: String,
-  cardName: String,
-  cardDescription: String,
-  rarity: String,
-  cardType: String,
-  drawTime: DateTime,
-  poolType: String
-)
-
 case class GetDrawHistoryMessage(
   userToken: String
 ) extends API[List[DrawHistoryEntry]](CardServiceCode)
@@ -43,10 +32,6 @@ case class GetDrawHistoryMessage(
 case object GetDrawHistoryMessage{
     
   import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
-  // DrawHistoryEntry 的 Circe 编解码器
-  implicit val drawHistoryEntryEncoder: Encoder[DrawHistoryEntry] = deriveEncoder
-  implicit val drawHistoryEntryDecoder: Decoder[DrawHistoryEntry] = deriveDecoder
 
   // Circe 默认的 Encoder 和 Decoder
   private val circeEncoder: Encoder[GetDrawHistoryMessage] = deriveEncoder

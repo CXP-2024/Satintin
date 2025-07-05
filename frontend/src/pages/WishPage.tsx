@@ -180,21 +180,50 @@ const WishPage: React.FC = () => {
 		if (!user || user.stoneAmount < currentBanner.singleCost) {
 			alert('原石不足！');
 			return;
-		}		try {
-			// 调用后端抽卡API
+		}
+
+		try {
+			// 调用后端抽卡API - 修改为双回调模式
 			const drawResult = await new Promise((resolve, reject) => {
 				new DrawCardMessage(
 					userID, 
 					1, // 抽卡数量
 					selectedBanner // 传入卡池类型
-				).send((response: any) => {
-					if (response.error) {
-						reject(new Error(response.error));
-					} else {
+				).send(
+					(response: any) => {
+						console.log('抽卡成功响应:', response);
 						resolve(response);
+					},
+					(error: any) => {
+						console.error('抽卡失败:', error);
+						reject(error);
 					}
-				});			});
-					// 抽卡成功后立即更新当前卡池的抽卡次数（单抽+1）
+				);
+			});
+
+			console.log('Stored drawResult:', JSON.stringify(drawResult));
+			
+			// 解析响应数据 - 关键修改在这里
+			let parsedResult: any;
+			if (typeof drawResult === 'string') {
+				try {
+					parsedResult = JSON.parse(drawResult);
+				} catch (e) {
+					console.error('解析抽卡结果失败:', e);
+					parsedResult = { cardList: [], isNewCard: false };
+				}
+			} else {
+				parsedResult = drawResult;
+			}
+			
+			// 检查返回的数据结构
+			const cardList = parsedResult.cardList || [];
+			const isNewCard = parsedResult.isNewCard || false;
+			
+			console.log('CardList:', cardList);
+			console.log('IsNewCard:', isNewCard);
+
+			// 抽卡成功后立即更新当前卡池的抽卡次数（单抽+1）
 			setCardDrawCounts(prev => ({
 				...prev,
 				[selectedBanner]: prev[selectedBanner] + 1
@@ -207,12 +236,16 @@ const WishPage: React.FC = () => {
 			await loadDrawHistory();
 			await fetchCardDrawCount(selectedBanner);
 			
-			// 先跳转到结果页面，然后可以通过其他方式传递数据
-			localStorage.setItem('drawResult', JSON.stringify({
-				drawResult,
+			// 传递新的抽卡结果数据结构
+			const resultData = {
+				cardList: cardList,
+				isNewCard: isNewCard,
 				type: 'single',
 				banner: selectedBanner
-			}));
+			};
+			
+			console.log('Setting localStorage with:', resultData);
+			localStorage.setItem('drawResult', JSON.stringify(resultData));
 			
 			navigateQuick('/wish-result');
 		} catch (error) {
@@ -228,20 +261,47 @@ const WishPage: React.FC = () => {
 		if (!user || user.stoneAmount < currentBanner.tenCost) {
 			alert('原石不足！');
 			return;
-		}		try {
-			// 调用后端抽卡API
-			const drawResult = await new Promise((resolve, reject) => {				new DrawCardMessage(
+		}
+
+		try {
+			// 调用后端抽卡API - 修改为双回调模式
+			const drawResult = await new Promise((resolve, reject) => {
+				new DrawCardMessage(
 					userID, 
 					10, // 抽卡数量
 					selectedBanner // 传入卡池类型
-				).send((response: any) => {
-					if (response.error) {
-						reject(new Error(response.error));
-					} else {
+				).send(
+					(response: any) => {
+						console.log('十连抽卡成功响应:', response);
 						resolve(response);
+					},
+					(error: any) => {
+						console.error('十连抽卡失败:', error);
+						reject(error);
 					}
-				});
-			});					// 抽卡成功后立即更新当前卡池的抽卡次数（十连+10）
+				);
+			});
+
+			console.log('Ten draw result:', JSON.stringify(drawResult));
+			
+			// 解析响应数据 - 关键修改在这里
+			let parsedResult: any;
+			if (typeof drawResult === 'string') {
+				try {
+					parsedResult = JSON.parse(drawResult);
+				} catch (e) {
+					console.error('解析十连抽卡结果失败:', e);
+					parsedResult = { cardList: [], isNewCard: false };
+				}
+			} else {
+				parsedResult = drawResult;
+			}
+			
+			// 检查返回的数据结构
+			const cardList = parsedResult.cardList || [];
+			const isNewCard = parsedResult.isNewCard || false;
+			
+			// 抽卡成功后立即更新当前卡池的抽卡次数（十连+10）
 			setCardDrawCounts(prev => ({
 				...prev,
 				[selectedBanner]: prev[selectedBanner] + 10
@@ -254,12 +314,15 @@ const WishPage: React.FC = () => {
 			await loadDrawHistory();
 			await fetchCardDrawCount(selectedBanner);
 
-			// 先跳转到结果页面，然后可以通过其他方式传递数据
-			localStorage.setItem('drawResult', JSON.stringify({
-				drawResult,
+			// 传递新的抽卡结果数据结构
+			const resultData = {
+				cardList: cardList,
+				isNewCard: isNewCard,
 				type: 'ten',
 				banner: selectedBanner
-			}));
+			};
+			
+			localStorage.setItem('drawResult', JSON.stringify(resultData));
 			
 			navigateQuick('/wish-result');
 		} catch (error) {

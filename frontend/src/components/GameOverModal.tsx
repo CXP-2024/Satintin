@@ -14,7 +14,7 @@ interface GameOverModalProps {
 const StyledDialog = styled(Dialog)(({ theme }) => ({
 	'& .MuiDialog-paper': {
 		borderRadius: 16,
-		background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+		background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)',
 		color: 'white',
 		minWidth: '400px',
 		boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
@@ -100,7 +100,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 			PaperProps={{
 				style: {
 					backgroundImage: isWinner ?
-						'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' :
+						'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)' :
 						'linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)'
 				}
 			}}

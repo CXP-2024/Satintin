@@ -1,6 +1,7 @@
 package Impl
 
-import APIs.CardService.{GetCardTemplateByIDMessage, CardTemplate}
+import APIs.CardService.GetCardTemplateByIDMessage
+import Objects.CardService.CardTemplate
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter

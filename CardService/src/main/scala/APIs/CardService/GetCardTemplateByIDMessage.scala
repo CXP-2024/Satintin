@@ -12,6 +12,7 @@ import Common.Serialize.JacksonSerializeUtils
 import scala.util.Try
 import org.joda.time.DateTime
 import java.util.UUID
+import Objects.CardService.CardTemplate
 
 /**
  * GetCardTemplateByIDMessage

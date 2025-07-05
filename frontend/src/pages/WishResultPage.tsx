@@ -81,30 +81,19 @@ const WishResultPage: React.FC = () => {
 			}
 		}
 	}, []);
-
 	// Read draw results from backend storage
 	useEffect(() => {
 		const stored = localStorage.getItem('drawResult');
 		console.log('Stored drawResult:', stored); // 调试日志
 
 		if (stored) {
-			const { drawResult, type, banner } = JSON.parse(stored);
-			console.log('Parsed drawResult:', drawResult); // 调试日志
+			const { cardList, isNewCard, type, banner } = JSON.parse(stored);
+			console.log('Parsed result:', { cardList, isNewCard, type, banner }); // 调试日志
 
 			setWishType(type || 'single');
 			setBannerType(banner || 'featured');
 
-			// drawResult 是字符串，需要再次解析
-			let parsedDrawResult;
-			if (typeof drawResult === 'string') {
-				parsedDrawResult = JSON.parse(drawResult);
-			} else {
-				parsedDrawResult = drawResult;
-			}
-			
-			console.log('Final parsed drawResult:', parsedDrawResult); // 调试日志
-
-			// Map backend DrawCardInfo to WishResult
+			// Map backend CardEntry to WishResult
 			const rarityMap: Record<string, number> = { '传说': 5, '稀有': 4, '普通': 3 };
 			const imageMap: Record<string, string> = {
 				'Dragon Nai': nailongImage,
@@ -116,10 +105,12 @@ const WishResultPage: React.FC = () => {
 				'man': manImage,
 				'冰': bingbingImage,
 				'wlm': wlmImage,
-			};			const mapped = (parsedDrawResult.cardList || []).map((card: any, index: number) => ({
+			};
+
+			const mapped = (cardList || []).map((card: any, index: number) => ({
 				id: `${card.cardID}-${index}`, // 使用 cardID + index 确保唯一性
 				name: card.cardName,
-				rarity: rarityMap[card.rarity] || 3,
+				rarity: rarityMap[card.rarityLevel] || 3, // 使用 rarityLevel 而不是 rarity
 				image: imageMap[card.cardName] || '',
 				type: 'character' as const
 			}));

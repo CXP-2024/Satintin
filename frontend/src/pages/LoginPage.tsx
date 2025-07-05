@@ -225,6 +225,7 @@ const LoginPage: React.FC = () => {
                             
                             const userId = Info.userID;
                             const userToken = Info.userToken;
+                            console.log('userId:', userId);
                     
                             
                             // 验证字段是否存在
@@ -257,7 +258,7 @@ const LoginPage: React.FC = () => {
                                     setUserInfo(userInfoParse);
 
                                     // 获取原石数量
-                                    new QueryAssetStatusMessage(userToken).send(
+                                    new QueryAssetStatusMessage(userId).send(
                                         (stoneJSON) => {
                                             // 简化原石数量解析
                                             let stoneAmount;
