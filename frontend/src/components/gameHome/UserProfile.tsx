@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './UserProfile.css';
-import primogemIcon from '../assets/images/primogem-icon.png';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import primogemIcon from '../../assets/images/primogem-icon.png';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {useUserInfo, getUserToken, setUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
