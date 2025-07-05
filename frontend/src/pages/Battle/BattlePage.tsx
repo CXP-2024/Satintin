@@ -35,7 +35,7 @@ const BattlePage: React.FC = () => {
 		setMatchingMode(mode);
 
 		// 模拟匹配过程
-		const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
+		//const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
 
 		// 模拟匹配成功后跳转到对战房间
 		setTimeout(() => {

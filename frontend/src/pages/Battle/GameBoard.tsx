@@ -1,6 +1,6 @@
 import React from 'react';
-import { GameState, PlayerState } from '../services/WebSocketService';
-import { getCardImage } from '../utils/cardImageMap';
+import { GameState, PlayerState } from '../../services/WebSocketService';
+import { getCardImage } from 'utils/cardImageMap';
 import './GameBoard.css';
 
 interface GameBoardProps {

@@ -14,7 +14,6 @@ import {
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {LoginUserMessage} from "Plugins/UserService/APIs/LoginUserMessage";
 import {GetUserInfoMessage} from "Plugins/UserService/APIs/GetUserInfoMessage";
-import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {QueryAssetStatusMessage} from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 import {LoginAdminMessage} from "Plugins/AdminService/APIs/LoginAdminMessage";
 

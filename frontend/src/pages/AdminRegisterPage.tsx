@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import { RegisterFormData } from '../types/User';
 import './AdminRegisterPage.css';
-import CryptoJS from 'crypto-js';
-import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
-import {setUserToken} from "Plugins/CommonUtils/Store/UserInfoStore";
-import {sendMessage} from "Plugins/CommonUtils/Send/SendMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateAdminMessage} from "Plugins/AdminService/APIs/CreateAdminMessage";
 
@@ -28,11 +23,6 @@ const AdminRegisterPage: React.FC = () => {
     const [error, setError] = useState<string>('');
     const [success, setSuccess] = useState<string>(''); // 添加成功消息状态
     const [loading, setLoading] = useState<boolean>(false);
-
-    // 密码哈希函数
-    const hashPassword = (password: string): string => {
-        return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
-    };
 
     // 更安全的加盐哈希函数
     const hashPasswordWithSalt = (password: string): string => {
