@@ -103,12 +103,12 @@ object Routes:
 
     val websocketRoute = HttpRoutes.of[IO] {
       // Battle WebSocket endpoint
-      case GET -> Root / "battle" / roomId :? TokenQueryParamMatcher(token) =>
+      case GET -> Root / "battle" / roomId :? IDQueryParamMatcher(userID) :? NameQueryParamMatcher(userName) =>
         val logger = LoggerFactory.getLogger(getClass)
-        logger.info(s"WebSocket connection request for room: $roomId with token: $token")
+        logger.info(s"WebSocket connection request for room: $roomId with userName: $userName and userID: $userID")
 
         // Validate token and get user ID
-        validateToken(token).flatMap {
+        validateToken(userID).flatMap {
           case Some(userId) =>
             logger.info(s"Token validated for user: $userId")
 
@@ -121,7 +121,7 @@ object Routes:
               _ <- IO(logger.info(s"Created queue for user $userId"))
 
               // Register connection with room manager
-              _ <- manager.addConnection(userId, queue)
+              _ <- manager.addConnection(userId, userName, queue)
               _ <- IO(logger.info(s"Added connection for user $userId"))
 
               // Build WebSocket
@@ -147,8 +147,8 @@ object Routes:
             } yield response
 
           case None =>
-            logger.warn(s"Invalid token: $token")
-            BadRequest("Invalid token")
+            logger.warn(s"Invalid userID: $userID")
+            BadRequest("Invalid userID")
         }
     }
 
@@ -157,12 +157,12 @@ object Routes:
   }
 
   // Extract token from query parameters
-  object TokenQueryParamMatcher extends QueryParamDecoderMatcher[String]("token")
+  object IDQueryParamMatcher extends QueryParamDecoderMatcher[String]("userid")
+  object NameQueryParamMatcher extends QueryParamDecoderMatcher[String]("name")
 
   // Validate token and return user ID if valid
   private def validateToken(token: String): IO[Option[String]] = {
     // In a real implementation, this would validate the token with UserService
-    // For now, since the user token is just the user ID, we can simulate validation. Also, later we'll get username from UserService, which will validate the token format
     IO.pure(Some(token))
   }
 

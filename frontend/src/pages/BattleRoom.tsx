@@ -54,8 +54,8 @@ const BattleRoom: React.FC = () => {
 	// 初始化WebSocket连接
 	useEffect(() => {
 		const initializeConnection = async () => {
-			const token = getUserInfo().userID;
-			if (!user || !token) {
+			const userID = getUserInfo().userID;
+			if (!user || !userID) {
 				console.error('❌ [BattleRoom] 用户未登录');
 				navigate('/login');
 				return;
@@ -70,7 +70,7 @@ const BattleRoom: React.FC = () => {
 				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
 
 				// 连接WebSocket
-				await webSocketService.connect(battleRoomId, getUserInfo().userID);
+				await webSocketService.connect(battleRoomId, user.userID, user.userName);
 				setConnectionStatus(true);
 				setIsConnecting(false);
 				setRoomStatus('waiting');
