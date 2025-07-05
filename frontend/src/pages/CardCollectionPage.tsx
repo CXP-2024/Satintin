@@ -10,42 +10,8 @@ import { ConfigureBattleDeckMessage } from 'Plugins/CardService/APIs/ConfigureBa
 import { LoadBattleDeckMessage } from 'Plugins/CardService/APIs/LoadBattleDeckMessage';
 import { useUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
 import { CardEntry } from 'Plugins/CardService/Objects/CardEntry';
-
-// 导入卡牌图片
-import nailongImg from '../assets/images/nailong.png';
-import gaiyaImg from '../assets/images/gaiya.png';
-import mygoImg from '../assets/images/mygo.png';
-import jiegeImg from '../assets/images/jiege.png';
-import paimengImg from '../assets/images/paimeng.png';
-import kunImg from '../assets/images/kun.png';
-import manImg from '../assets/images/man.png';
-import bingbingImg from '../assets/images/bingbing.png';
-import wlmImg from '../assets/images/wlm.png';
+import { CARD_IMAGE_MAP } from '../utils/cardImageMap';
 import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
-
-// 卡牌图片映射
-const CARD_IMAGES: Record<string, any> = {
-	// 旧格式（兼容性）
-	'nailong': nailongImg,
-	'gaiya': gaiyaImg,
-	'mygo': mygoImg,
-	'jiege': jiegeImg,
-	'paimeng': paimengImg,
-	'kun': kunImg,
-	'man': manImg,
-	'bingbing': bingbingImg,
-	'wlm': wlmImg,
-	// 新格式（匹配后端模板ID）
-	'template-ice': bingbingImg, // 冰 -> bingbing
-	'template-wlm': wlmImg,      // wlm -> wlm
-	'template-man': manImg,      // man -> man  
-	'template-kun': kunImg,      // 坤 -> kun
-	'template-paimon': paimengImg, // Paimon -> paimeng
-	'template-dragon-nai': nailongImg, // Dragon Nai -> nailong
-	'template-gaia': gaiyaImg,   // 盖亚 -> gaiya
-	'template-go': mygoImg,      // Go -> mygo
-	'template-jie': jiegeImg,    // 杰哥 -> jiege
-};
 
 // 扩展的卡牌数据接口，兼容前端展示需求
 interface ExtendedCardEntry {
@@ -76,19 +42,19 @@ interface CardTemplate {
 // 具体卡牌数据（基于cards.md）- 保留作为图片映射参考
 const CARDS_DATA = [
 	// 传说卡牌 (5星)
-	{ id: 'nailong', name: 'Dragon Nai', type: '反弹', rarity: '传说', image: nailongImg, owned: true },
-	{ id: 'gaiya', name: '盖亚', type: '穿透', rarity: '传说', image: gaiyaImg, owned: false },
-	{ id: 'mygo', name: 'Go', type: '发育', rarity: '传说', image: mygoImg, owned: false },
-	{ id: 'jiege', name: '杰哥', type: '穿透', rarity: '传说', image: jiegeImg, owned: true },
+	{ id: 'template-dragon-nai', name: 'Dragon Nai', type: '反弹', rarity: '传说', image: CARD_IMAGE_MAP['template-dragon-nai'], owned: true },
+	{ id: 'template-gaia', name: '盖亚', type: '穿透', rarity: '传说', image: CARD_IMAGE_MAP['template-gaia'], owned: false },
+	{ id: 'template-go', name: 'Go', type: '发育', rarity: '传说', image: CARD_IMAGE_MAP['template-go'], owned: false },
+	{ id: 'template-jie', name: '杰哥', type: '穿透', rarity: '传说', image: CARD_IMAGE_MAP['template-jie'], owned: true },
 
 	// 稀有卡牌 (4星)
-	{ id: 'paimeng', name: 'Paimon', type: '反弹', rarity: '稀有', image: paimengImg, owned: true },
-	{ id: 'kun', name: '坤', type: '穿透', rarity: '稀有', image: kunImg, owned: true },
-	{ id: 'man', name: 'man', type: '发育', rarity: '稀有', image: manImg, owned: false },
+	{ id: 'template-paimon', name: 'Paimon', type: '反弹', rarity: '稀有', image: CARD_IMAGE_MAP['template-paimon'], owned: true },
+	{ id: 'template-kun', name: '坤', type: '穿透', rarity: '稀有', image: CARD_IMAGE_MAP['template-kun'], owned: true },
+	{ id: 'template-man', name: 'man', type: '发育', rarity: '稀有', image: CARD_IMAGE_MAP['template-man'], owned: false },
 
 	// 普通卡牌 (3星)
-	{ id: 'bingbing', name: '冰', type: '反弹', rarity: '普通', image: bingbingImg, owned: true },
-	{ id: 'wlm', name: 'wlm', type: '发育', rarity: '普通', image: wlmImg, owned: true },
+	{ id: 'template-ice', name: '冰', type: '反弹', rarity: '普通', image: CARD_IMAGE_MAP['template-ice'], owned: true },
+	{ id: 'template-wlm', name: 'wlm', type: '发育', rarity: '普通', image: CARD_IMAGE_MAP['template-wlm'], owned: true },
 	// 穿透普通卡牌暂缺，用占位符
 	{ id: 'placeholder', name: '？？？', type: '穿透', rarity: '普通', image: null, owned: false },
 ];
@@ -171,7 +137,7 @@ const CardCollectionPage: React.FC = () => {
 				cardName: card.cardName,
 				description: card.description,
 				cardType: card.description, // 使用 description 作为 cardType
-				image: CARD_IMAGES[card.cardID] || null,
+				image: CARD_IMAGE_MAP[card.cardID] || null,
 				owned: true,
 				name: card.cardName,
 				type: card.description, // 使用 description 作为 type
@@ -621,10 +587,9 @@ const CardCollectionPage: React.FC = () => {
 																}
 															} : undefined}
 															style={{ cursor: isOwned ? 'pointer' : 'not-allowed' }}
-														>
-															<div className="card-image">
-																{CARD_IMAGES[template.cardID] ? (
-																	<img src={CARD_IMAGES[template.cardID]} alt={template.cardName} />
+														>															<div className="card-image">
+																{CARD_IMAGE_MAP[template.cardID] ? (
+																	<img src={CARD_IMAGE_MAP[template.cardID]} alt={template.cardName} />
 																) : (
 																	<div className="placeholder-image">？</div>
 																)}

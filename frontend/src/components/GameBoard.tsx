@@ -1,17 +1,7 @@
 import React from 'react';
 import { GameState, PlayerState } from '../services/WebSocketService';
+import { getCardImage } from '../utils/cardImageMap';
 import './GameBoard.css';
-
-// 导入卡牌图片
-import nailongImg from '../assets/images/nailong.png';
-import gaiyaImg from '../assets/images/gaiya.png';
-import mygoImg from '../assets/images/mygo.png';
-import jiegeImg from '../assets/images/jiege.png';
-import paimengImg from '../assets/images/paimeng.png';
-import kunImg from '../assets/images/kun.png';
-import manImg from '../assets/images/man.png';
-import bingbingImg from '../assets/images/bingbing.png';
-import wlmImg from '../assets/images/wlm.png';
 
 interface GameBoardProps {
 	gameState: GameState;
@@ -43,28 +33,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 		};
 		return effectMap[card.type as keyof typeof effectMap] || '';
 	};
-
 	// 获取效果概率显示
 	const getCardChanceText = (card: any) => {
 		const percentage = Math.round(card.effectChance * 100);
 		return `${percentage}%`;
-	};
-
-	// 获取卡牌图片
-	const getCardImage = (cardId: string) => {
-		const imageMap: { [key: string]: string } = {
-            // 新格式（匹配后端模板ID）
-            'template-ice': bingbingImg, // 冰 -> bingbing
-            'template-wlm': wlmImg,      // wlm -> wlm
-            'template-man': manImg,      // man -> man
-            'template-kun': kunImg,      // 坤 -> kun
-            'template-paimon': paimengImg, // Paimon -> paimeng
-            'template-dragon-nai': nailongImg, // Dragon Nai -> nailong
-            'template-gaia': gaiyaImg,   // 盖亚 -> gaiya
-            'template-go': mygoImg,      // Go -> mygo
-            'template-jie': jiegeImg,    // 杰哥 -> jiege
-		};
-		return imageMap[cardId] || null;
 	};
 
 	return (
