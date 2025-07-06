@@ -56,3 +56,35 @@ tin： 攻击3[普通]，防御1，消耗1能量
 -双方血量相同，则平局
 4. 若有人扣血，则双方能量清零
 5. 进入下一回合
+
+我先在要按照readme文件中的说法实现前端中Action的完善制作，
+推倒先前所有的只有饼防撒三类，现在我需要将其升级为复杂版本：
+1）更新行动选择器首先展现左右两大板块，左边为简单被动行动：cake, pouch, BasicShield, BasicDefense四个； 右边为主动行动："Sa", "Tin", "NanMan", "DaShan", "WanJian", "Nuclear"这六种；然后下方为“特殊防”被动行动：ObjectDefense与ActionDefense两种；并在右下角提供一个确认提交按钮
+2）前端给后端发送的数据类型必须是BattleAction类型
+3）前端需要在传递给后端之前先验证输入行动组合的合法性：
+简单被动行动只能选择一个，选择后其它行动选项卡均变成灰色的不可选择状态
+同理，选择了其它主动类或特殊防类型，简单被动行动将不可选择；
+最后，当选中ObjectDefense时，必须再选一张主动行动（也只能选择一张）以表示防哪种行动；当选中ActionDefense的时候，主动行动选择的数量必须要大于等于二才可以提交
+
+interface ActionJson {
+  either PassiveActionJson | ActiveActionJson;
+}
+
+// 被动行动的JSON格式
+interface PassiveActionJson {
+  actionCategory: "passive";
+  objectName: string;  // 基础对象名称，如 "Cake", "BasicShield", "BasicDefense", "Pouch", "ObjectDefense", "ActionDefense"
+  
+  // 以下字段仅用于ClassDefense和ActionDefense
+  defenseType?: "ObjectDefense" | "actionDefense";
+  targetObject?: string;    // 用于ObjectDefense, "Sa", "Tin", "NanMan", "DaShan", "WanJian", "Nuclear"
+  targetAction?: string;   // 用于ActionDefense, string 为 List[AttackObjectName]
+}
+
+// 主动行动的JSON格式
+interface ActiveActionJson {
+  actionCategory: "active";
+  actions: string[];  // 如 ["Sa", "Tin", "Sa"], 为 List[AttackObjectName]
+}
+
+AttackObjectName: string;  // 攻击对象名称，如 "Sa", "Tin", "NanMan", "DaShan", "WanJian", "Nuclear"

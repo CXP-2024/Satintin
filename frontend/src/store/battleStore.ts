@@ -1,5 +1,14 @@
 import create from 'zustand';
-import { GameState, PlayerState, RoundResult, GameOverResult } from '../services/WebSocketService';
+import {
+	GameState,
+	PlayerState,
+	RoundResult,
+	GameOverResult,
+	PassiveAction,
+	ActiveAction,
+	AttackObjectName,
+	BasicObjectName
+} from '../services/WebSocketService';
 import { getUserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore';
 
 interface BattleState {
@@ -14,7 +23,9 @@ interface BattleState {
 	opponent: PlayerState | null;
 
 	// 游戏流程
-	selectedAction: 'cake' | 'defense' | 'spray' | null;
+	selectedAction: PassiveAction | ActiveAction | null;
+	selectedActiveActions: AttackObjectName[]; // 存储选中的主动行动
+	selectedObjectDefenseTarget: AttackObjectName | null; // ObjectDefense的目标
 	isActionSubmitted: boolean;
 	roundHistory: RoundResult[];
 
@@ -35,7 +46,11 @@ interface BattleState {
 	setGameState: (gameState: GameState) => void;
 	setConnectionStatus: (connected: boolean, error?: string) => void;
 	setPlayers: (currentPlayer: PlayerState, opponent: PlayerState) => void;
-	selectAction: (action: 'cake' | 'defense' | 'spray') => void;
+	selectPassiveAction: (objectName: BasicObjectName) => void;
+	selectActiveAction: (attackName: AttackObjectName) => void;
+	removeActiveAction: (attackName: AttackObjectName) => void;
+	selectObjectDefenseTarget: (target: AttackObjectName) => void;
+	clearSelection: () => void;
 	submitAction: () => void;
 	addRoundResult: (result: RoundResult) => void;
 	showRoundResultModal: (result: RoundResult) => void;
@@ -60,6 +75,8 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 	opponent: null,
 
 	selectedAction: null,
+	selectedActiveActions: [],
+	selectedObjectDefenseTarget: null,
 	isActionSubmitted: false,
 	roundHistory: [],
 
@@ -143,19 +160,172 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 		set({ currentPlayer, opponent });
 	},
 
-	selectAction: (action: 'cake' | 'defense' | 'spray') => {
-		console.log('📝 [BattleStore] 选择行动:', action);
-		set({ selectedAction: action });
+	selectPassiveAction: (objectName: BasicObjectName) => {
+		console.log('📝 [BattleStore] 选择被动行动:', objectName);
+
+		// 清除之前的选择
+		set({
+			selectedAction: null,
+			selectedActiveActions: [],
+			selectedObjectDefenseTarget: null
+		});
+
+		// 根据被动行动类型设置相应的action
+		const passiveAction: PassiveAction = {
+			actionCategory: 'passive',
+			objectName: objectName
+		};
+
+		// 如果是特殊防御类型，需要设置defenseType
+		if (objectName === 'ObjectDefense') {
+			passiveAction.defenseType = 'ObjectDefense';
+		} else if (objectName === 'ActionDefense') {
+			passiveAction.defenseType = 'ActionDefense';
+		}
+
+		set({ selectedAction: passiveAction });
+	},
+
+	selectActiveAction: (attackName: AttackObjectName) => {
+		console.log('📝 [BattleStore] 选择主动行动:', attackName);
+		const { selectedAction, selectedActiveActions } = get();
+
+		// 如果当前已选择被动行动
+		if (selectedAction?.actionCategory === 'passive') {
+			const passiveAction = selectedAction as PassiveAction;
+
+			// ObjectDefense只能选择一个目标
+			if (passiveAction.defenseType === 'ObjectDefense') {
+				set({ selectedObjectDefenseTarget: attackName });
+				return;
+			}
+
+			// ActionDefense可以选择多个，包括相同的行动
+			if (passiveAction.defenseType === 'ActionDefense') {
+				const newActions = [...selectedActiveActions, attackName];
+				set({ selectedActiveActions: newActions });
+				return;
+			}
+		}
+
+		// 普通主动行动选择，可以重复选择相同行动
+		// 清除被动行动选择
+		set({ selectedAction: null });
+
+		const newActions = [...selectedActiveActions, attackName];
+
+		set({
+			selectedActiveActions: newActions,
+			selectedAction: {
+				actionCategory: 'active',
+				actions: newActions
+			} as ActiveAction
+		});
+	},
+
+	removeActiveAction: (attackName: AttackObjectName) => {
+		console.log('📝 [BattleStore] 移除主动行动:', attackName);
+		const { selectedAction, selectedActiveActions } = get();
+
+		// 移除一个指定的行动（只移除第一个匹配的）
+		const actionIndex = selectedActiveActions.findIndex(action => action === attackName);
+		if (actionIndex === -1) return;
+
+		const newActions = [...selectedActiveActions];
+		newActions.splice(actionIndex, 1);
+
+		// 如果是在ActionDefense中移除
+		if (selectedAction?.actionCategory === 'passive') {
+			set({ selectedActiveActions: newActions });
+			return;
+		}
+
+		// 普通主动行动中移除
+		if (newActions.length === 0) {
+			set({
+				selectedActiveActions: newActions,
+				selectedAction: null
+			});
+		} else {
+			set({
+				selectedActiveActions: newActions,
+				selectedAction: {
+					actionCategory: 'active',
+					actions: newActions
+				} as ActiveAction
+			});
+		}
+	},
+
+	selectObjectDefenseTarget: (target: AttackObjectName) => {
+		console.log('📝 [BattleStore] 选择ObjectDefense目标:', target);
+		set({ selectedObjectDefenseTarget: target });
+	},
+
+	clearSelection: () => {
+		console.log('📝 [BattleStore] 清除选择');
+		set({
+			selectedAction: null,
+			selectedActiveActions: [],
+			selectedObjectDefenseTarget: null
+		});
 	},
 
 	submitAction: () => {
-		const { selectedAction, currentPlayer } = get();
+		const { selectedAction, selectedActiveActions, selectedObjectDefenseTarget, currentPlayer } = get();
+
 		if (!selectedAction || !currentPlayer) {
 			console.error('❌ [BattleStore] 无法提交行动：缺少选择或玩家信息');
 			return;
 		}
 
-		console.log('📝 [BattleStore] 提交行动:', selectedAction);
+		let finalAction: PassiveAction | ActiveAction;
+
+		// 验证并构建最终行动
+		if (selectedAction.actionCategory === 'passive') {
+			const passiveAction = selectedAction as PassiveAction;
+
+			// ObjectDefense必须选择目标
+			if (passiveAction.defenseType === 'ObjectDefense' && !selectedObjectDefenseTarget) {
+				console.error('❌ [BattleStore] ObjectDefense必须选择防御目标');
+				return;
+			}
+
+			// ActionDefense必须选择至少2个行动
+			if (passiveAction.defenseType === 'ActionDefense' && selectedActiveActions.length < 2) {
+				console.error('❌ [BattleStore] ActionDefense必须选择至少2个行动');
+				return;
+			}
+
+			// 构建最终的被动行动
+			finalAction = {
+				...passiveAction
+			};
+
+			if (passiveAction.defenseType === 'ObjectDefense' && selectedObjectDefenseTarget) {
+				finalAction.targetObject = selectedObjectDefenseTarget;
+			}
+
+			if (passiveAction.defenseType === 'ActionDefense' && selectedActiveActions.length >= 2) {
+				finalAction.targetAction = selectedActiveActions;
+			}
+
+			console.log('📝 [BattleStore] 提交被动行动:', finalAction);
+		} else {
+			// 主动行动验证
+			const activeAction = selectedAction as ActiveAction;
+			if (activeAction.actions.length === 0) {
+				console.error('❌ [BattleStore] 主动行动不能为空');
+				return;
+			}
+
+			finalAction = activeAction;
+			console.log('📝 [BattleStore] 提交主动行动:', finalAction);
+		}
+
+		// 更新selectedAction为最终版本
+		set({ selectedAction: finalAction });
+
 		// 先设置退出状态，触发退出动画
 		set({ actionSelectorExiting: true });
 		// 延迟隐藏，等待动画完成
@@ -176,6 +346,8 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 				roundHistory: [...state.roundHistory, result],
 				isActionSubmitted: false,
 				selectedAction: null,
+				selectedActiveActions: [],
+				selectedObjectDefenseTarget: null,
 				actionSelectorTemporarilyHidden: true  // 回合结束后暂时隐藏选择器
 			}));
 		}, 1000);
@@ -283,6 +455,8 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 			currentPlayer: null,
 			opponent: null,
 			selectedAction: null,
+			selectedActiveActions: [],
+			selectedObjectDefenseTarget: null,
 			isActionSubmitted: false,
 			roundHistory: [],
 			showActionSelector: false,

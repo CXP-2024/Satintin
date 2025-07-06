@@ -1,7 +1,29 @@
 import { ServiceConfig } from 'Globals/ServiceConfig'
 
+// 攻击对象类型
+export type AttackObjectName = 'Sa' | 'Tin' | 'NanMan' | 'DaShan' | 'WanJian' | 'Nuclear';
+
+// 基础对象类型
+export type BasicObjectName = 'Cake' | 'Pouch' | 'BasicShield' | 'BasicDefense' | 'ObjectDefense' | 'ActionDefense';
+
+// 被动行动接口
+export interface PassiveAction {
+	actionCategory: 'passive';
+	objectName: BasicObjectName;
+	defenseType?: 'ObjectDefense' | 'ActionDefense';
+	targetObject?: AttackObjectName; // 用于ObjectDefense
+	targetAction?: AttackObjectName[]; // 用于ActionDefense
+}
+
+// 主动行动接口
+export interface ActiveAction {
+	actionCategory: 'active';
+	actions: AttackObjectName[];
+}
+
+// 战斗行动接口
 export interface BattleAction {
-	type: 'cake' | 'defense' | 'spray'; // 饼、防、撒
+	type: PassiveAction | ActiveAction;
 	playerId: string;
 	timestamp: number;
 }
@@ -95,7 +117,7 @@ export class WebSocketService {
 	connect(roomId: string, userID: string, userName: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.roomId = roomId;
-            const battleServiceUrl = ServiceConfig.getBattleServiceAddress()
+			const battleServiceUrl = ServiceConfig.getBattleServiceAddress()
 			const wsUrl = `ws://${battleServiceUrl}/battle/${roomId}?userid=${userID}&name=${userName}`;
 
 			console.log('🔌 [WebSocket] 连接到对战房间:', wsUrl);

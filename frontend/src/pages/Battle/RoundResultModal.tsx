@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { RoundResult } from '../../services/WebSocketService';
+import {
+	ActiveAction,
+	AttackObjectName,
+	BasicObjectName,
+	PassiveAction,
+	RoundResult
+} from '../../services/WebSocketService';
 import { useBattleStore } from '../../store/battleStore';
 import { SoundUtils } from 'utils/soundUtils';
 import './RoundResultModal.css';
@@ -16,14 +22,9 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 	const [showEffects, setShowEffects] = useState(false);
 
 	// 获取行动显示信息
-	const getActionDisplay = (action: string) => {
+	const getActionDisplay = (action: PassiveAction | ActiveAction) => {
 		switch (action) {
-			case 'cake':
-				return { icon: '🍰', text: '饼', color: '#f39c12' };
-			case 'defense':
-				return { icon: '🛡️', text: '防', color: '#3498db' };
-			case 'spray':
-				return { icon: '💧', text: '撒', color: '#e74c3c' };
+			// will be processed later
 			default:
 				return { icon: '❓', text: '未知', color: '#95a5a6' };
 		}
@@ -81,13 +82,13 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 			return { type: 'tie', message: '平局！' };
 		}
 
-		// 饼 vs 撒：撒获胜
-		if ((currentAction === 'cake' && opponentAction === 'spray') ||
+		// 饼 vs 撒：撒获胜，暂时不予判断message
+		/*if ((currentAction === 'cake' && opponentAction === 'spray') ||
 			(currentAction === 'spray' && opponentAction === 'cake')) {
 			return currentAction === 'spray'
 				? { type: 'win', message: '你的撒击中了对手的饼！' }
 				: { type: 'lose', message: '对手的撒击中了你的饼！' };
-		}
+		}*/
 
 		// 其他情况为平局
 		return { type: 'tie', message: '平局！' };
