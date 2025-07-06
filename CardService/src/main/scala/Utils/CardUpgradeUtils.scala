@@ -13,7 +13,7 @@ import cats.effect.IO
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import APIs.AssetService.{QueryAssetStatusMessage, DeductAssetMessage}
-import APIs.UserService.{GetUserInfoMessage, LogUserOperationMessage}
+import APIs.UserService.{ValidateUserTokenMessage, LogUserOperationMessage}
 import Utils.CardInventoryUtils.fetchUserCardInventory
 
 case object CardUpgradeUtils {
@@ -26,15 +26,16 @@ case object CardUpgradeUtils {
    * @param cardID 卡牌ID
    * @return 升级结果消息
    */
-  def upgradeCard(userToken: String, userID: String, cardID: String)(using PlanContext): IO[String] = {
+  def upgradeCard(userToken: String, userID: String, cardID: String)(using PlanContext): IO[String] = {    
     for {
-      // Step 1.1: Verify userID exists
-      _ <- IO(logger.info(s"调用 UserService 验证用户 ID: ${userID}"))
-      _ <- GetUserInfoMessage(userToken, userID)
-            .send
-            .handleErrorWith(_ =>
-              IO.raiseError(new IllegalStateException(s"用户 ID ${userID} 不存在或 Token 非法"))
-            )
+      // Step 1.1: Verify userToken and check if returned userID matches the provided userID
+      _ <- IO(logger.info(s"调用 UserService 验证用户 Token 并检查用户ID: ${userID}"))
+      tokenUserID <- ValidateUserTokenMessage(userToken).send
+      _ <- if (tokenUserID != userID) {
+             IO.raiseError(new IllegalStateException(s"Token验证失败：Token对应的用户ID ${tokenUserID} 与提供的用户ID ${userID} 不匹配"))
+           } else {
+             IO(logger.info(s"Token验证成功，用户ID匹配: ${userID}"))
+           }
 
       // Step 1.2: Verify cardID belongs to the user
       _ <- IO(logger.info(s"验证卡片ID: ${cardID}是否属于用户 ${userID}"))

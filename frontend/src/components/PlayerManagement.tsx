@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import { SoundUtils } from 'utils/soundUtils';
 import TransactionRecords from './TransactionRecords';
-import { UserAllInfo } from '../Plugins/AdminService/Objects/UserAllInfo';
+import { User } from '../Plugins/UserService/Objects/User';
 
 // 更新接口定义以使用真实数据
 interface PlayerManagementProps {
   searchTerm: string;
-  userAllInfoList: UserAllInfo[];
+  userList: User[];
   loading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -16,13 +16,13 @@ interface PlayerManagementProps {
 
 const PlayerManagement: React.FC<PlayerManagementProps> = ({ 
   searchTerm, 
-  userAllInfoList,
+  userList,
   loading,
   error,
   onRefresh,
   onUserUpdated
 }) => {
-  const [selectedPlayer, setSelectedPlayer] = useState<UserAllInfo | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [isTransactionModalClosing, setIsTransactionModalClosing] = useState(false);
 
@@ -34,8 +34,7 @@ const PlayerManagement: React.FC<PlayerManagementProps> = ({
   const playClickSound = () => {
     SoundUtils.playClickSound(0.5);
   };
-
-  const handleViewTransactions = (player: UserAllInfo) => {
+  const handleViewTransactions = (player: User) => {
     playClickSound();
     setSelectedPlayer(player);
     setIsTransactionModalClosing(false);
@@ -51,9 +50,11 @@ const PlayerManagement: React.FC<PlayerManagementProps> = ({
   };
 
   // 过滤玩家列表 - 使用真实数据
-  const filteredPlayers = userAllInfoList.filter(player =>
-    player.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    player.userID.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPlayers = userList.filter(player =>
+    player.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    player.userID.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    player.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    player.phoneNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 计算总页数
@@ -115,11 +116,12 @@ const PlayerManagement: React.FC<PlayerManagementProps> = ({
     <div className="players-section">
       <h2>玩家列表</h2>
       <div className="admin-data-table">
-        <table>
-          <thead>
+        <table>          <thead>
             <tr>
               <th>用户ID</th>
               <th>用户名</th>
+              <th>邮箱</th>
+              <th>电话</th>
               <th>封禁状态</th>
               <th>原石数量</th>
               <th>在线状态</th>
@@ -130,7 +132,9 @@ const PlayerManagement: React.FC<PlayerManagementProps> = ({
             {currentPlayers.map(player => (
               <tr key={player.userID}>
                 <td>{player.userID.substring(0, 8)}...</td>
-                <td>{player.username}</td>
+                <td>{player.userName}</td>
+                <td>{player.email}</td>
+                <td>{player.phoneNumber}</td>
                 <td>
                   {player.banDays > 0 ? (
                     <span className="admin-status-badge admin-status-banned">
@@ -168,7 +172,7 @@ const PlayerManagement: React.FC<PlayerManagementProps> = ({
             {/* 如果当前页不足10条数据，添加空行保持表格高度一致 */}
             {currentPlayers.length < itemsPerPage && Array(itemsPerPage - currentPlayers.length).fill(0).map((_, index) => (
               <tr key={`empty-${index}`} style={{ height: '60px' }}>
-                <td colSpan={6}></td>
+                <td colSpan={8}></td>
               </tr>
             ))}
           </tbody>

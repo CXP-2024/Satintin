@@ -9,8 +9,9 @@ import PlayerManagement from '../components/PlayerManagement';
 import ReportHandling from '../components/ReportHandling';
 import { ViewAllReportsMessage } from 'Plugins/AdminService/APIs/ViewAllReportsMessage';
 import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
-import { ViewUserAllInfoMessage } from 'Plugins/AdminService/APIs/ViewUserAllInfoMessage';
-import { UserAllInfo } from 'Plugins/AdminService/Objects/UserAllInfo';
+import { GetAllUserIDsMessage } from 'Plugins/UserService/APIs/GetAllUserIDsMessage';
+import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
+import { User } from 'Plugins/UserService/Objects/User';
 
 const AdminDashboardPage: React.FC = () => {
   const user = useUserInfo();
@@ -22,9 +23,8 @@ const AdminDashboardPage: React.FC = () => {
   const [reports, setReports] = useState<CheatingReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportsError, setReportsError] = useState<string | null>(null);
-
   // 新增：用户信息管理状态
-  const [userAllInfoList, setUserAllInfoList] = useState<UserAllInfo[]>([]);
+  const [userList, setUserList] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
 
@@ -32,7 +32,6 @@ const AdminDashboardPage: React.FC = () => {
   useEffect(() => {
     SoundUtils.setClickSoundSource(clickSound);
   }, []);
-
   // 加载用户完整信息
   const loadUserAllInfo = () => {
     if (!user || user.permissionLevel < 1) return;
@@ -48,49 +47,107 @@ const AdminDashboardPage: React.FC = () => {
       return;
     }
 
-    console.log('👥 [AdminDashboard] 开始加载用户完整信息，使用token:', adminToken);
+    console.log('👥 [AdminDashboard] 开始加载用户完整信息');
     
-    new ViewUserAllInfoMessage(adminToken, "").send(
+    // 第一步：获取所有用户ID
+    new GetAllUserIDsMessage().send(
       (response: string) => {
         try {
-          console.log('👥 [AdminDashboard] 用户信息原始响应:', response);
+          console.log('👥 [AdminDashboard] 获取用户ID响应:', response);
           
-          // 解析响应数据
-          let userData = JSON.parse(response);
-          console.log('👥 [AdminDashboard] 用户信息解析结果:', userData);
-          
-          // 如果是字符串，再解析一次
-          if (typeof userData === 'string') {
-            userData = JSON.parse(userData);
-            console.log('👥 [AdminDashboard] 用户信息二次解析结果:', userData);
+          let userIDs: string[] = [];
+          try {
+            // 尝试解析响应
+            const parsed = JSON.parse(response);
+            if (typeof parsed === 'string') {
+              userIDs = JSON.parse(parsed);
+            } else {
+              userIDs = parsed;
+            }
+          } catch (e) {
+            console.error('❌ [AdminDashboard] 解析用户ID失败:', e);
+            throw new Error('解析用户ID失败');
           }
           
-          if (!Array.isArray(userData)) {
-            throw new Error(`期望数组，但得到: ${typeof userData}`);
+          if (!Array.isArray(userIDs)) {
+            throw new Error('返回的用户ID不是数组格式');
           }
           
-          const userObjects = userData.map((data: any) => 
-            new UserAllInfo(
-              data.userID,
-              data.username,
-              data.banDays,
-              data.isOnline,
-              data.stoneAmount
-            )
-          );
+          console.log('👥 [AdminDashboard] 获取到用户ID列表:', userIDs);
           
-          console.log('👥 [AdminDashboard] 成功创建用户信息对象:', userObjects);
-          setUserAllInfoList(userObjects);
-          setUsersLoading(false);
+          // 第二步：为每个用户ID获取详细信息
+          const userPromises = userIDs.map((userID: string) => {
+            return new Promise<User>((resolve, reject) => {
+              new GetUserInfoMessage(userID).send(
+                (userResponse: string) => {
+                  try {
+                    console.log(`👤 [AdminDashboard] 获取用户${userID}信息:`, userResponse);
+                    
+                    let userData: any = userResponse;
+                    if (typeof userResponse === 'string') {
+                      userData = JSON.parse(userResponse);
+                      if (typeof userData === 'string') {
+                        userData = JSON.parse(userData);
+                      }
+                    }
+                    
+                    // 创建User对象
+                    const userObj = new User(
+                      userData.userID,
+                      userData.userName,
+                      userData.passwordHash,
+                      userData.email,
+                      userData.phoneNumber,
+                      userData.registerTime,
+                      userData.permissionLevel,
+                      userData.banDays,
+                      userData.isOnline,
+                      userData.matchStatus,
+                      userData.stoneAmount,
+                      userData.cardDrawCount,
+                      userData.rank,
+                      userData.rankPosition,
+                      userData.friendList,
+                      userData.blackList,
+                      userData.messageBox
+                    );
+                    
+                    resolve(userObj);
+                  } catch (error) {
+                    console.error(`❌ [AdminDashboard] 解析用户${userID}信息失败:`, error);
+                    reject(error);
+                  }
+                },
+                (error: any) => {
+                  console.error(`❌ [AdminDashboard] 获取用户${userID}信息失败:`, error);
+                  reject(error);
+                }
+              );
+            });
+          });
+          
+          // 等待所有用户信息加载完成
+          Promise.all(userPromises)
+            .then((users: User[]) => {
+              console.log('👥 [AdminDashboard] 成功加载所有用户信息:', users);
+              setUserList(users);
+              setUsersLoading(false);
+            })
+            .catch((error) => {
+              console.error('❌ [AdminDashboard] 加载用户信息失败:', error);
+              setUsersError('加载用户详细信息失败');
+              setUsersLoading(false);
+            });
+          
         } catch (error) {
-          console.error('❌ [AdminDashboard] 解析用户信息失败:', error);
-          setUsersError('解析用户信息失败');
+          console.error('❌ [AdminDashboard] 处理用户ID响应失败:', error);
+          setUsersError('处理用户ID响应失败');
           setUsersLoading(false);
         }
       },
       (error: any) => {
-        console.error('❌ [AdminDashboard] 获取用户信息失败:', error);
-        setUsersError('获取用户信息失败');
+        console.error('❌ [AdminDashboard] 获取用户ID失败:', error);
+        setUsersError('获取用户ID失败');
         setUsersLoading(false);
       }
     );
@@ -237,9 +294,8 @@ const AdminDashboardPage: React.FC = () => {
 
   // 计算待处理举报数量
   const pendingReportsCount = reports.filter(report => !report.isResolved).length;
-  
-  // 计算在线用户数量
-  const onlineUsersCount = userAllInfoList.filter(user => user.isOnline).length;
+    // 计算在线用户数量
+  const onlineUsersCount = userList.filter(user => user.isOnline).length;
 
   return (
     <PageTransition className="admin-dashboard">
@@ -254,9 +310,8 @@ const AdminDashboardPage: React.FC = () => {
                 <span className="error-indicator">
                   错误: {reportsError || usersError}
                 </span>
-              )}
-              <span className="stats-indicator">
-                在线用户: {onlineUsersCount} | 总用户: {userAllInfoList.length}
+              )}              <span className="stats-indicator">
+                在线用户: {onlineUsersCount} | 总用户: {userList.length}
               </span>
             </div>
           </div>
@@ -274,14 +329,13 @@ const AdminDashboardPage: React.FC = () => {
         {/* 主内容区域 */}
         <main className="admin-main">
           {/* 标签页导航 */}
-          <div className="admin-tabs">
-            <button
+          <div className="admin-tabs">            <button
               className={`admin-tab-btn ${activeTab === 'players' ? 'active' : ''}`}
               onClick={() => handleTabChange('players')}
             >
               玩家管理
-              {userAllInfoList.length > 0 && (
-                <span className="admin-count-badge">{userAllInfoList.length}</span>
+              {userList.length > 0 && (
+                <span className="admin-count-badge">{userList.length}</span>
               )}
             </button>
             <button
@@ -335,11 +389,10 @@ const AdminDashboardPage: React.FC = () => {
 
           {/* 内容区域 */}
           <div className="admin-content">
-            {/* 玩家管理 */}
-            {activeTab === 'players' && (
+            {/* 玩家管理 */}            {activeTab === 'players' && (
               <PlayerManagement 
                 searchTerm={searchTerm}
-                userAllInfoList={userAllInfoList}
+                userList={userList}
                 loading={usersLoading}
                 error={usersError}
                 onRefresh={refreshUsers}

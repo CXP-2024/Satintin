@@ -22,9 +22,6 @@ import Impl.UnbanUserMessagePlanner
 import Impl.ViewSystemStatsMessagePlanner
 import Impl.CreateReportUserMessagePlanner
 import Impl.ViewAllReportsMessagePlanner
-import Impl.ViewUserAllInfoMessagePlanner
-import Impl.RewardAssetByIDMessagePlanner  // 添加新的导入
-import Impl.QueryAssetStatusByIDMessagePlanner  // 也添加查询API的导入
 import APIs.AdminService.CreateReportMessage
 import Common.API.TraceID
 import org.joda.time.DateTime
@@ -91,29 +88,6 @@ object Routes:
         IO(
           decode[ViewAllReportsMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewAllReportsMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-
-      case "ViewUserAllInfoMessage" =>
-        IO(
-          decode[ViewUserAllInfoMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ViewUserAllInfoMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-
-      // 添加新的RewardAssetByIDMessage路由
-      case "RewardAssetByIDMessage" =>
-        IO(
-          decode[RewardAssetByIDMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for RewardAssetByIDMessage[${err.getMessage}]")
-            case Right(value) => value.fullPlan.map(_.asJson.toString)
-        ).flatten
-
-      // 添加新的QueryAssetStatusByIDMessage路由
-      case "QueryAssetStatusByIDMessage" =>
-        IO(
-          decode[QueryAssetStatusByIDMessagePlanner](str) match
-            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for QueryAssetStatusByIDMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 

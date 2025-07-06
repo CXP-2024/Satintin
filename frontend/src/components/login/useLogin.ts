@@ -213,7 +213,7 @@ export const useLogin = () => {
                             setUserToken(userToken);
 
                             // 获取用户信息
-                            new GetUserInfoMessage(userToken, userId).send(
+                            new GetUserInfoMessage(userId).send(
                                 async (userInfo) => {
                                     console.log('User info:', userInfo);
                                     

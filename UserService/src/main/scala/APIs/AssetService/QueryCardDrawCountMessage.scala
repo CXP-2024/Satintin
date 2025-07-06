@@ -17,45 +17,49 @@ import scala.util.Try
 import org.joda.time.DateTime
 import java.util.UUID
 
+
 /**
- * QueryAssetStatusByIDMessage
- * desc: 管理员根据用户ID查询用户当前的原石数量
- * @param adminToken: String (管理员身份认证令牌，用于验证管理员权限)
- * @param userID: String (要查询的用户ID)
- * @return stoneAmount: Int (用户当前的原石数量)
+ * QueryCardDrawCountMessage
+ * desc: 查询用户在指定卡池的当前抽卡次数
+ * @param userToken: String (用户的身份令牌，用于验证用户身份)
+ * @param poolType: String (卡池类型，"standard"为标准池，"featured"为限定池)
+ * @return drawCount: Int (用户在指定卡池的当前抽卡次数)
  */
-case class QueryAssetStatusByIDMessage(
-  adminToken: String,
-  userID: String
+
+case class QueryCardDrawCountMessage(
+  userToken: String,
+  poolType: String
 ) extends API[Int](AssetServiceCode)
 
-case object QueryAssetStatusByIDMessage{
+case object QueryCardDrawCountMessage{
+
     
   import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
   // Circe 默认的 Encoder 和 Decoder
-  private val circeEncoder: Encoder[QueryAssetStatusByIDMessage] = deriveEncoder
-  private val circeDecoder: Decoder[QueryAssetStatusByIDMessage] = deriveDecoder
+  private val circeEncoder: Encoder[QueryCardDrawCountMessage] = deriveEncoder
+  private val circeDecoder: Decoder[QueryCardDrawCountMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[QueryAssetStatusByIDMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[QueryCardDrawCountMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[QueryAssetStatusByIDMessage] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[QueryAssetStatusByIDMessage]() {})) } 
+  private val jacksonDecoder: Decoder[QueryCardDrawCountMessage] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[QueryCardDrawCountMessage]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given queryAssetStatusByIDMessageEncoder: Encoder[QueryAssetStatusByIDMessage] = Encoder.instance { config =>
+  given queryCardDrawCountMessageEncoder: Encoder[QueryCardDrawCountMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given queryAssetStatusByIDMessageDecoder: Decoder[QueryAssetStatusByIDMessage] = Decoder.instance { cursor =>
+  given queryCardDrawCountMessageDecoder: Decoder[QueryCardDrawCountMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
   //process class code 预留标志位，不要删除
+
 }

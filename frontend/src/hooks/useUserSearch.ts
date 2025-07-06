@@ -31,13 +31,14 @@ export const useUserSearch = () => {
                     (err: any) => reject(err)
                 );
             });
-            
-            const targetUserId = typeof userIdResponse === 'string' ? userIdResponse : userIdResponse.userID;
+              const targetUserId = typeof userIdResponse === 'string' ? 
+                userIdResponse.replace(/['"]/g, '') : // 移除可能的引号
+                (userIdResponse.userID || '').replace(/['"]/g, ''); // 移除可能的引号
             console.log('🔍 [useUserSearch] 查询到用户ID:', targetUserId);
             
             // Step 2: 根据用户ID获取用户详细信息
             const userInfoResponse: any = await new Promise((resolve, reject) => {
-                new GetUserInfoMessage(userToken, targetUserId).send(
+                new GetUserInfoMessage(targetUserId).send(
                     (res: any) => resolve(res),
                     (err: any) => reject(err)
                 );
@@ -45,11 +46,10 @@ export const useUserSearch = () => {
             
             const userInfo = typeof userInfoResponse === 'string' ? JSON.parse(userInfoResponse) : userInfoResponse;
             console.log('🔍 [useUserSearch] 获取到用户信息:', userInfo);
-            
-            // Step 3: 获取用户的原石数量
+              // Step 3: 获取用户的原石数量
             try {
                 const assetStatusResponse: any = await new Promise((resolve, reject) => {
-                    new QueryAssetStatusMessage(userID || '').send(
+                    new QueryAssetStatusMessage(targetUserId).send(
                         (res: any) => resolve(res),
                         (err: any) => reject(err)
                     );
