@@ -49,7 +49,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 			// Use GetUserInfoMessage but with optimized error handling
 			// Note: This is a step-by-step approach - future optimization could use ViewUserBasicInfoMessage
 			const response = await new Promise<string>((resolve, reject) => {
-				new GetUserInfoMessage(getUserToken(), userID).send(
+				new GetUserInfoMessage(userID).send(
 					(info) => {
 						console.log('Lightweight user check success:', userID);
 						resolve(info);
@@ -127,7 +127,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 		// Since we pre-validate users, we can directly fetch their info
 		try {
 			const response = await new Promise<string>((resolve, reject) => {
-				new GetUserInfoMessage(getUserToken(), friendID).send(
+				new GetUserInfoMessage(friendID).send(
 					(info) => {
 						console.log('GetUserInfoMessage success for validated user:', friendID);
 						resolve(info);
@@ -353,7 +353,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 		
 		try {
 			await new Promise<string>((resolve, reject) => {
-				new GetUserInfoMessage(userToken, userID).send(
+				new GetUserInfoMessage(userID).send(
 					(info) => resolve(info),
 					(error) => reject(error)
 				);

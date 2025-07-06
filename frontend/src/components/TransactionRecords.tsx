@@ -100,7 +100,7 @@ const TransactionRecords: React.FC<TransactionRecordsProps> = ({ player, onClose
     <div className={`modal-overlay ${isClosing ? 'closing' : ''}`}>
       <div className="admin-modal-container transaction-modal">
         <div className="admin-modal-header">
-          <h3>{player.username} 的交易记录</h3>
+          <h3>{player.userName} 的交易记录</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         <div className="admin-modal-content">
@@ -116,8 +116,7 @@ const TransactionRecords: React.FC<TransactionRecordsProps> = ({ player, onClose
                 <p>{error}</p>
               </div>
             </div>
-          ) : transactions.length > 0 ? (
-            <div className="admin-data-table">
+          ) : transactions.length > 0 ? (            <div className="admin-transaction-table">
               <table>
                 <thead>
                   <tr>

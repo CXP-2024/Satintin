@@ -65,7 +65,7 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({
                                     <div className="user-stats">
                                         <div className="search-stat-item">
                                             <span className="search-stat-label">段位:</span>
-                                            <span className="search-stat-value">{searchedUser.rank || 'N/A'}</span>
+                                            <span className="search-stat-value">{searchedUser.rank || 'Bronze'}</span>
                                         </div>
                                         <div className="search-stat-item">
                                             <span className="search-stat-label">原石:</span>

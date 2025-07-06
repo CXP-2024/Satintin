@@ -1,10 +1,8 @@
 package Impl
 
-
 import Common.API.{PlanContext, Planner}
 import Objects.AdminService.ActionType
-import Objects.UserService.User
-import APIs.UserService.GetUserInfoMessage
+import APIs.UserService.ValidateUserTokenMessage
 import Utils.PlayerActionProcess.submitPlayerAction
 import cats.effect.IO
 import org.slf4j.LoggerFactory
@@ -17,23 +15,6 @@ import Common.DBAPI.*
 import Common.Object.SqlParameter
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import Common.ServiceUtils.schemaName
-import Objects.UserService.MessageEntry
-import Objects.UserService.BlackEntry
-import Objects.UserService.FriendEntry
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.UserService.FriendEntry
-import Common.DBAPI._
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
 case class SubmitPlayerActionMessagePlanner(
     userToken: String,
@@ -47,51 +28,40 @@ case class SubmitPlayerActionMessagePlanner(
 
   /**
    * 主Plan方法
-   */
-  override def plan(using planContext: PlanContext): IO[String] = {
+   */  override def plan(using planContext: PlanContext): IO[String] = {
     for {
-      // Step 1: 验证用户Token
+      // Step 1: 验证用户Token并获取用户ID
       _ <- IO(logger.info(s"验证用户Token是否合法, userToken=${userToken}"))
-      user <- validateUserToken(userToken)
+      playerID <- validateUserToken(userToken)
+      _ <- IO(logger.info(s"Token验证成功，获取到用户ID: ${playerID}"))
 
-      // Step 2: 获取playerID
-      _ <- IO(logger.info(s"解析用户ID为playerID，用户名为：${user.userID}"))
-      playerID <- IO(extractPlayerID(user))
-
-      // Step 3: 提交玩家行动
+      // Step 2: 提交玩家行动
       _ <- IO(logger.info(
         s"开始记录玩家行为：playerID=${playerID}, roomID=${roomID}, actionType=${actionType}, targetID=${targetID}"
       ))
       result <- submitPlayerActionAction(playerID, roomID, actionType, targetID)
 
     } yield {
-      // Step 4: 返回处理结果
+      // Step 3: 返回处理结果
       logger.info(result)
       result
     }
   }
-
   /**
-   * 验证用户Token是否合法，返回用户信息
+   * 验证用户Token并获取用户ID
    */
-  private def validateUserToken(userToken: String)(using PlanContext): IO[User] = {
-    logger.info("调用 GetUserInfoMessage 接口验证用户Token")
-    // Use userToken as userID, consistent with other services like AssetService and CardService
-    GetUserInfoMessage(userToken, userToken).send.flatMap { user =>
-      if (user == null) IO.raiseError(new SecurityException(s"用户Token无效或者未通过认证: userToken=${userToken}"))
-      else IO {
-        logger.info("用户认证成功！")
-        user
+  private def validateUserToken(userToken: String)(using PlanContext): IO[String] = {
+    logger.info("调用 ValidateUserTokenMessage 接口验证用户Token并获取用户ID")
+    ValidateUserTokenMessage(userToken).send.flatMap { userID =>
+      if (userID == null || userID.isEmpty) {
+        IO.raiseError(new SecurityException(s"用户Token无效或者未通过认证: userToken=${userToken}"))
+      } else {
+        IO {
+          logger.info(s"用户Token认证成功，获取到用户ID: ${userID}")
+          userID
+        }
       }
     }
-  }
-
-  /**
-   * 从用户信息提取PlayerID
-   */
-  private def extractPlayerID(user: User): String = {
-    logger.info(s"从用户信息中提取playerID，userID=${user.userID}")
-    user.userID
   }
 
   /**

@@ -13,7 +13,6 @@ import io.circe.parser.*
 import com.fasterxml.jackson.core.`type`.TypeReference
 import Common.Serialize.JacksonSerializeUtils
 import scala.util.Try
-import Impl.CreateCardTemplateMessagePlanner
 
 /**
  * CreateCardTemplateMessage
