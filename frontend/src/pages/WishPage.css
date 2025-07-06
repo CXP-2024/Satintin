@@ -92,7 +92,7 @@
 
 /* 祈愿池选择器 */
 .banner-selector {
-	margin-bottom: 0px;
+	margin-bottom: 30px; /* 增加底部间距 */
 }
 
 .banner-selector h3 {
@@ -207,7 +207,7 @@
 	border-radius: 30px;
 	padding: 30px;
 	padding-top: 20px;
-	margin-top: -100px;
+	margin-top: -70px; /* 减少负边距，避免卡牌被削去 */
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	position: relative;
 	overflow: hidden;
@@ -1066,82 +1066,203 @@
 	}
 }
 
-@media (max-width: 768px) {
+/* 处理1024px到1200px之间的标题重叠问题 */
+@media (max-width: 1200px) and (min-width: 1025px) {
+	.wish-page .page-header h1 {
+		position: static;
+		transform: none;
+		margin: 0;
+		text-align: center;
+	}
+	
 	.page-header {
-		padding: 15px 20px;
-		flex-direction: column;
-		gap: 15px;
-	}
-
-	.wish-main {
-		padding: 20px 15px;
-	}
-
-	.banner-tabs {
 		flex-direction: column;
 		align-items: center;
 		gap: 15px;
 	}
-
-	.banner-tab {
-		min-width: 250px;
+	
+	.back-btn {
+		position: absolute;
+		top: 15px;
+		left: 20px;
 	}
-
-	.featured-character-large {
-		width: 200px;
-		height: 280px;
+	
+	.header-right {
+		margin-top: 10px;
 	}
-
-	.character-name {
-		font-size: 2rem;
+	
+	.character-showcase {
+		margin-top: 0px; /* 进一步减少负边距 */
 	}
+}
 
-	.banner-stats {
-		grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+	.page-header {
+		flex-direction: column;
+		align-items: center;
+		padding: 15px 20px;
 		gap: 15px;
 	}
 
-	.wish-buttons {
+	.wish-page .page-header h1 {
+		position: static;
+		transform: none;
+		margin: 0;
+		order: 1; /* 标题在最上方 */
+	}
+
+	.back-btn {
+		position: absolute;
+		top: 15px;
+		left: 20px;
+		order: 0;
+	}
+
+	.header-right {
+		order: 2; /* 右侧控件在标题下方 */
+		margin-top: 10px;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.wish-main {
+		margin-top: 20px; /* 增加顶部间距，避免与header重合 */
+	}
+
+	.banner-selector {
+		margin-bottom: 40px; /* 增加底部间距，避免与下方内容重合 */
+	}
+	.wish-content {
 		grid-template-columns: 1fr;
-		gap: 15px;
+		gap: 30px;
+		min-height: auto;
 	}
-
-	.wish-btn {
-		min-height: 80px;
-	}
-
-	.btn-icon {
-		font-size: 2rem;
+	
+	.character-showcase {
+		margin-top: 0; /* 小屏幕时移除负边距，避免卡牌被削去 */
 	}
 }
 
 @media (max-width: 768px) {
-	.header-right {
-		flex-direction: column;
+	.page-header {
+		padding: 10px 15px;
 		gap: 10px;
 	}
 
-	.history-btn {
+	.back-btn {
+		top: 10px;
+		left: 15px;
+		padding: 8px 16px;
 		font-size: 12px;
-		padding: 10px 15px;
 	}
 
-	.history-modal {
-		width: 95%;
-		max-height: 90vh;
+	.wish-page .page-header h1 {
+		font-size: 1.8rem;
+		margin: 5px 0;
 	}
 
-	.history-content {
-		grid-template-columns: 1fr;
-		gap: 20px;
-		padding: 20px;
+	.header-right {
+		gap: 8px;
+		margin-top: 15px;
 	}
 
-	.history-header {
-		padding: 20px;
+	.user-currency-header {
+		padding: 8px 16px;
+		font-size: 0.9rem;
 	}
 
-	.history-header h2 {
+	.currency-icon {
+		width: 20px;
+		height: 20px;
+	}
+
+	.wish-main {
+		padding: 15px 10px;
+		margin-top: 15px;
+	}
+
+	.banner-selector {
+		margin-bottom: 35px;
+	}
+
+	.banner-selector h3 {
+		font-size: 1.3rem;
+		margin-bottom: 20px;
+	}
+	.wish-content {
+		gap: 25px;
+		padding: 0 5px;
+	}
+	
+	.character-showcase {
+		margin-top: 20px; /* 窄屏幕时移除负边距，避免卡牌被削去 */
+	}
+}
+
+@media (max-width: 480px) {
+	.page-header {
+		padding: 8px 10px;
+		gap: 8px;
+	}
+
+	.back-btn {
+		top: 8px;
+		left: 10px;
+		padding: 6px 12px;
+		font-size: 11px;
+	}
+
+	.wish-page .page-header h1 {
 		font-size: 1.5rem;
+	}
+
+	.header-right {
+		gap: 6px;
+		flex-direction: column;
+	}
+
+	.user-currency-header {
+		padding: 6px 12px;
+		font-size: 0.8rem;
+	}
+
+	.currency-icon {
+		width: 18px;
+		height: 18px;
+	}
+
+	.history-btn,
+	.wishpage-charge-btn,
+	.rules-btn {
+		font-size: 11px;
+		padding: 6px 12px;
+	}
+
+	.wish-main {
+		padding: 10px 8px;
+		margin-top: 10px;
+	}
+
+	.banner-selector {
+		margin-bottom: 30px;
+	}
+
+	.banner-selector h3 {
+		font-size: 1.2rem;
+		margin-bottom: 15px;
+	}
+
+	.banner-tab {
+		min-width: 180px;
+		font-size: 0.85rem;
+		padding: 12px 20px;
+	}
+	.wish-content {
+		gap: 20px;
+		padding: 0 2px;
+	}
+	
+	.character-showcase {
+		margin-top: 0; /* 极窄屏幕时移除负边距，避免卡牌被削去 */
 	}
 }
