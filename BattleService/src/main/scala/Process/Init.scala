@@ -1,4 +1,3 @@
-
 package Process
 
 import Common.API.{API, PlanContext, TraceID}
@@ -91,7 +90,67 @@ object Init {
         """,
         List()
       )
+      /** 被动对象表，记录游戏中所有被动对象的信息
+       * object_id: 对象的唯一ID
+       * object_name: 对象名称
+       * object_type: 对象类型
+       * base_class: 基础属性类别
+       * energy_gain: 能量获取量
+       * damage_multiplier: 伤害倍率
+       * target_class: 目标属性类别
+       * target_action: 目标行为
+       * description: 对象描述
+       * created_time: 创建时间
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "$schemaName"."passive_objects_table" (
+            object_id VARCHAR NOT NULL PRIMARY KEY,
+            object_name VARCHAR NOT NULL UNIQUE,
+            object_type VARCHAR NOT NULL,
+            base_class VARCHAR NOT NULL,
+            energy_gain INT DEFAULT 0,
+            damage_multiplier DECIMAL(3,2) DEFAULT 1.0,
+            target_class VARCHAR DEFAULT NULL,
+            target_action VARCHAR DEFAULT NULL,
+            description TEXT,
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+        List()
+      )
+      /** 主动对象表，记录游戏中所有主动对象的信息
+       * object_id: 对象的唯一ID
+       * object_name: 对象名称
+       * base_class: 基础属性类别
+       * attack_type: 攻击类型
+       * damage: 伤害值
+       * defense: 防御值
+       * energy_cost: 能量消耗
+       * description: 对象描述
+       * created_time: 创建时间
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "$schemaName"."active_objects_table" (
+            object_id VARCHAR NOT NULL PRIMARY KEY,
+            object_name VARCHAR NOT NULL UNIQUE,
+            base_class VARCHAR NOT NULL,
+            attack_type VARCHAR NOT NULL,
+            damage INT NOT NULL,
+            defense INT DEFAULT 0,
+            energy_cost INT NOT NULL,
+            description TEXT,
+            created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """,
+        List()
+      )
 
+      // 初始化游戏数据
+      _ <- IO.println("初始化游戏数据...")
+      _ <- InitGameData.initGameData
+      
       // Start the battle room ticker for periodic updates
       _ <- IO.println("Starting BattleRoomTicker...")
       _ <- BattleRoomTicker.start.start.void

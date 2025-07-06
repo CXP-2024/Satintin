@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
@@ -24,7 +26,9 @@ const AdminDashboardPage: React.FC = () => {
   const [reportsError, setReportsError] = useState<string | null>(null);
 
   // 新增：用户信息管理状态
-  const [userAllInfoList, setUserAllInfoList] = useState<UserAllInfo[]>([]);
+  const [userAllInfoList, setUserAllInfoList] = useState<Us
+  
+  erAllInfo[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
 
