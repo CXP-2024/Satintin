@@ -43,7 +43,6 @@ case object GetAssetTransactionMessage{
   private val jacksonEncoder: Encoder[GetAssetTransactionMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
-
   private val jacksonDecoder: Decoder[GetAssetTransactionMessage] = Decoder.instance { cursor =>
     try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[GetAssetTransactionMessage]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }

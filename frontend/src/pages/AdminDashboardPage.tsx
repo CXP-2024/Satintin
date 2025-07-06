@@ -53,22 +53,8 @@ const AdminDashboardPage: React.FC = () => {
     new ViewUserAllInfoMessage(adminToken, "").send(
       (response: string) => {
         try {
-          console.log('👥 [AdminDashboard] 用户信息原始响应:', response);
-          
-          // 解析响应数据
           let userData = JSON.parse(response);
-          console.log('👥 [AdminDashboard] 用户信息解析结果:', userData);
-          
-          // 如果是字符串，再解析一次
-          if (typeof userData === 'string') {
-            userData = JSON.parse(userData);
-            console.log('👥 [AdminDashboard] 用户信息二次解析结果:', userData);
-          }
-          
-          if (!Array.isArray(userData)) {
-            throw new Error(`期望数组，但得到: ${typeof userData}`);
-          }
-          
+          userData = JSON.parse(userData);
           const userObjects = userData.map((data: any) => 
             new UserAllInfo(
               data.userID,
@@ -78,8 +64,6 @@ const AdminDashboardPage: React.FC = () => {
               data.stoneAmount
             )
           );
-          
-          console.log('👥 [AdminDashboard] 成功创建用户信息对象:', userObjects);
           setUserAllInfoList(userObjects);
           setUsersLoading(false);
         } catch (error) {
