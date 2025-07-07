@@ -2,13 +2,14 @@ import React from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { GameOverResult } from '../../services/WebSocketService';
-import {getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 interface GameOverModalProps {
 	open: boolean;
 	gameOverResult: GameOverResult | null;
 	onClose: () => void;
 	onRestart?: () => void;
+	onViewLastRound?: () => void; // 新增：查看上一轮结果的回调
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -69,7 +70,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 	open,
 	gameOverResult,
 	onClose,
-	onRestart
+	onRestart,
+	onViewLastRound
 }) => {
 	if (!gameOverResult) return null;
 
@@ -182,6 +184,15 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 				)}
 
 				<Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
+					{onViewLastRound && (
+						<ActionButton
+							className="secondary"
+							onClick={onViewLastRound}
+							variant="outlined"
+						>
+							📊 查看上一轮结果
+						</ActionButton>
+					)}
 					{onRestart && (
 						<ActionButton
 							className="primary"

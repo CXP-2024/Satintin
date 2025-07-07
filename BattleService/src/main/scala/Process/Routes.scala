@@ -1,4 +1,3 @@
-
 package Process
 
 import APIs.UserService.GetUserInfoMessage
@@ -170,20 +169,20 @@ object Routes:
   private def handleWebSocketMessage(roomId: String, userId: String, message: String): IO[Unit] = {
     val logger = LoggerFactory.getLogger(getClass)
 
-    // Parse message
+    // 解析WebSocket消息
     decode[WebSocketMessage](message) match {
       case Right(wsMessage) =>
         logger.info(s"Parsed WebSocket message: ${wsMessage.`type`}")
 
         wsMessage.`type` match {
           case "player_action" =>
-            // Handle player action
+            // 处理玩家行动，直接传递原始JSON
             wsMessage.data match {
               case Some(dataJson) =>
                 for {
                   _ <- IO(logger.info(s"Processing player action from user $userId"))
-                  action <- IO.fromEither(decode[BattleAction](dataJson.noSpaces))
-                  _ <- processPlayerAction(roomId, userId, action)
+                  // 不再尝试解析为BattleAction，直接传递JSON字符串
+                  _ <- processPlayerAction(roomId, userId, dataJson.noSpaces)
                 } yield ()
               case None =>
                 IO(logger.error(s"player_action message missing data field"))
@@ -206,15 +205,18 @@ object Routes:
   }
 
   // Process player action
-  private def processPlayerAction(roomId: String, userId: String, action: BattleAction): IO[Unit] = {
+  private def processPlayerAction(roomId: String, userId: String, actionJson: String): IO[Unit] = {
     val logger = LoggerFactory.getLogger(getClass)
-    logger.info(s"Processing action: $action for user $userId in room $roomId")
+    logger.info(s"Processing action JSON for user $userId in room $roomId")
+    
+    // 创建PlanContext
+    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
 
     battleRooms.get(roomId) match {
       case Some(manager) =>
-        // Record the action
-        manager.recordPlayerAction(userId, action) >>
-        // Check if both players have submitted actions
+        // 使用parseAndRecordPlayerAction处理JSON字符串
+        manager.parseAndRecordPlayerAction(userId, actionJson) >>
+        // 检查是否所有玩家都已提交动作
         manager.checkAndProcessActions
 
       case None =>

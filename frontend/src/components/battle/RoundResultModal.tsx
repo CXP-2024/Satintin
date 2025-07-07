@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { RoundResult } from '../../services/WebSocketService';
+import {
+	ActiveAction,
+	PassiveAction,
+	RoundResult
+} from '../../services/WebSocketService';
 import { useBattleStore } from '../../store/battleStore';
 import { SoundUtils } from 'utils/soundUtils';
 import './RoundResultModal.css';
@@ -8,22 +12,18 @@ interface RoundResultModalProps {
 	result: RoundResult;
 	onClose: () => void;
 	onHideTemporarily?: () => void; // 新增：暂时隐藏回调
+	isGameOver?: boolean; // 新增：标记游戏是否已结束
 }
 
-const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily }) => {
+const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily, isGameOver }) => {
 	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
 
 	// 获取行动显示信息
-	const getActionDisplay = (action: string) => {
+	const getActionDisplay = (action: PassiveAction | ActiveAction) => {
 		switch (action) {
-			case 'cake':
-				return { icon: '🍰', text: '饼', color: '#f39c12' };
-			case 'defense':
-				return { icon: '🛡️', text: '防', color: '#3498db' };
-			case 'spray':
-				return { icon: '💧', text: '撒', color: '#e74c3c' };
+			// will be processed later
 			default:
 				return { icon: '❓', text: '未知', color: '#95a5a6' };
 		}
@@ -81,13 +81,13 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 			return { type: 'tie', message: '平局！' };
 		}
 
-		// 饼 vs 撒：撒获胜
-		if ((currentAction === 'cake' && opponentAction === 'spray') ||
+		// 饼 vs 撒：撒获胜，暂时不予判断message
+		/*if ((currentAction === 'cake' && opponentAction === 'spray') ||
 			(currentAction === 'spray' && opponentAction === 'cake')) {
 			return currentAction === 'spray'
 				? { type: 'win', message: '你的撒击中了对手的饼！' }
 				: { type: 'lose', message: '对手的撒击中了你的饼！' };
-		}
+		}*/
 
 		// 其他情况为平局
 		return { type: 'tie', message: '平局！' };
@@ -258,7 +258,7 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 							onClick={handleClose}
 							disabled={animationPhase !== 'results'}
 						>
-							{animationPhase === 'results' ? '继续游戏' : '结算中...'}
+							{animationPhase === 'results' ? (isGameOver ? '退出战斗' : '继续游戏') : '结算中...'}
 						</button>
 					</div>
 				</div>

@@ -4,10 +4,10 @@ import { useBattleStore } from '../../store/battleStore';
 import { webSocketService } from '../../services/WebSocketService';
 import { webSocketHandles } from '../../services/WebsocketHandles';
 import PageTransition from '../../components/PageTransition';
-import GameBoard from './GameBoard';
-import ActionSelector from './ActionSelector';
-import RoundResultModal from './RoundResultModal';
-import { GameOverModal } from './GameOverModal';
+import GameBoard from '../../components/battle/GameBoard';
+import ActionSelector from '../../components/battle/ActionSelector';
+import RoundResultModal from '../../components/battle/RoundResultModal';
+import { GameOverModal } from '../../components/battle/GameOverModal';
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -17,8 +17,8 @@ const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
 	const user = useUserInfo();
 	const {
-		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, currentGameOverResult,
-		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, showActionSelectorAgain, resetBattle
+		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
+		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, showActionSelectorAgain, resetBattle
 	} = useBattleStore();
 
 	const [isConnecting, setIsConnecting] = useState(true);
@@ -45,7 +45,6 @@ const BattleRoom: React.FC = () => {
 				setRoomStatus('waiting');
 				// 设置事件监听器
 				console.log('🔌 [BattleRoom] 设置事件监听器');
-				webSocketHandles.updateBattleStore();
 				webSocketHandles.setupWebSocketListeners(setRoomStatus);
 				console.log('🎮 [BattleRoom] 事件监听器已设置');
 			} catch (error) {
@@ -88,6 +87,20 @@ const BattleRoom: React.FC = () => {
 	const handleShowLastRoundResult = () => {
 		SoundUtils.playClickSound(0.5);
 		showLastRoundResult();
+	};
+
+	// 查看上一回合结果（从游戏结束面板）
+	const handleViewLastRoundFromGameOver = () => {
+		SoundUtils.playClickSound(0.5);
+		hideGameOverTemporarily(); // 暂时隐藏游戏结束面板
+		showLastRoundResult(); // 显示上一回合结果
+	};
+
+	// 从结果页面返回游戏结束面板
+	const handleReturnToGameOver = () => {
+		SoundUtils.playClickSound(0.5);
+		hideRoundResultModal(); // 隐藏结果面板
+		showGameOverAgain(); // 重新显示游戏结束面板
 	};
 
 	// 渲染连接状态
@@ -252,8 +265,9 @@ const BattleRoom: React.FC = () => {
 				{showRoundResult && currentRoundResult && (
 					<RoundResultModal
 						result={currentRoundResult}
-						onClose={hideRoundResultModal}
-						onHideTemporarily={hideRoundResultTemporarily}
+						onClose={gameOverTemporarilyHidden ? handleReturnToGameOver : hideRoundResultModal}
+						onHideTemporarily={gameOverTemporarilyHidden ? undefined : hideRoundResultTemporarily}
+						isGameOver={gameOverTemporarilyHidden}
 					/>
 				)}
 
@@ -266,6 +280,7 @@ const BattleRoom: React.FC = () => {
 							hideGameOverModal();
 							handleLeaveRoom();
 						}}
+						onViewLastRound={lastRoundResult ? handleViewLastRoundFromGameOver : undefined}
 					/>
 				)}
 			</div>

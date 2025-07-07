@@ -1,5 +1,5 @@
 import React from 'react';
-import { GameState, PlayerState } from '../../services/WebSocketService';
+import {ActiveAction, GameState, PassiveAction, PlayerState} from '../../services/WebSocketService';
 import { getCardImage } from 'utils/cardImageMap';
 import './GameBoard.css';
 
@@ -11,14 +11,9 @@ interface GameBoardProps {
 
 const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponent }) => {
 	// 获取行动的显示文本和图标
-	const getActionDisplay = (action?: string) => {
+	const getActionDisplay = (action?: PassiveAction | ActiveAction) => {
 		switch (action) {
-			case 'cake':
-				return { icon: '🍰', text: '饼', color: '#f39c12' };
-			case 'defense':
-				return { icon: '🛡️', text: '防', color: '#3498db' };
-			case 'spray':
-				return { icon: '💧', text: '撒', color: '#e74c3c' };
+			// will be processed later
 			default:
 				return { icon: '❓', text: '等待', color: '#95a5a6' };
 		}
