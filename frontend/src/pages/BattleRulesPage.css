@@ -352,6 +352,23 @@
 }
 
 /* 响应式设计 */
+@media (max-width: 1200px) {
+	.rules-header {
+		flex-direction: column;
+		align-items: center;
+		gap: 15px;
+		text-align: center;
+	}
+	
+	.back-btn {
+		align-self: flex-start;
+	}
+	
+	.rules-title {
+		font-size: 2.2rem;
+	}
+}
+
 @media (max-width: 768px) {
 	.rules-container {
 		padding: 15px;

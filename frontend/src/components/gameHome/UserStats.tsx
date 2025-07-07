@@ -14,7 +14,7 @@ const UserStats: React.FC<UserStatsProps> = ({ user, cardCount }) => {
                     <div className="stat-icon">🏆</div>
                     <div className="stat-content">
                         <span className="stat-label">当前段位</span>
-                        <span className="stat-value">{user?.rank}</span>
+                        <span className="stat-value">{user?.rank || "Bronze"}</span>
                     </div>
                 </div>
                 <div className="stat-card currency">

@@ -3,6 +3,7 @@ import primogemIcon from '../assets/images/primogem-icon.png';
 import { GetAssetTransactionMessage } from '../Plugins/AssetService/APIs/GetAssetTransactionMessage';
 import { AssetTransaction } from '../Plugins/AssetService/Objects/AssetTransaction';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { SoundUtils } from 'utils/soundUtils';
 
 interface TransactionRecordsProps {
   player: any;
@@ -15,6 +16,14 @@ const TransactionRecords: React.FC<TransactionRecordsProps> = ({ player, onClose
   const [transactions, setTransactions] = useState<AssetTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(6); // 每页显示6条交易记录
+
+  // 播放按钮点击音效
+  const playClickSound = () => {
+    SoundUtils.playClickSound(0.5);
+  };
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -50,19 +59,43 @@ const TransactionRecords: React.FC<TransactionRecordsProps> = ({ player, onClose
           console.error('解析交易记录响应失败:', parseError);
           setError('解析交易记录数据失败');
           return;
-        }
-        // 设置交易记录（不需要额外过滤，因为API已经返回了指定用户的记录）
+        }        // 设置交易记录（不需要额外过滤，因为API已经返回了指定用户的记录）
         setTransactions(transactionData);
+        
+        // 重置分页到第一页
+        setCurrentPage(1);
       } catch (err) {
         console.error('获取交易记录失败:', err);
         setError('获取交易记录失败，请重试');
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchTransactions();
+    };    fetchTransactions();
   }, [player.userID, user?.userID]);
+
+  // 计算总页数
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+
+  // 确保当前页码在有效范围内
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    } else if (currentPage < 1) {
+      setCurrentPage(1);
+    }
+  }, [currentPage, totalPages]);
+
+  // 获取当前页的数据
+  const currentTransactions = transactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // 处理页码变化
+  const handlePageChange = (pageNumber: number) => {
+    playClickSound();
+    setCurrentPage(pageNumber);
+  };
 
   // 格式化日期
   const formatDate = (timestamp: number) => {
@@ -115,39 +148,76 @@ const TransactionRecords: React.FC<TransactionRecordsProps> = ({ player, onClose
                 <span className="error-icon">❌</span>
                 <p>{error}</p>
               </div>
-            </div>
-          ) : transactions.length > 0 ? (            <div className="admin-transaction-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>交易ID</th>
-                    <th>类型</th>
-                    <th>金额</th>
-                    <th>原因</th>
-                    <th>时间</th>
-                  </tr>
-                </thead>
-                <tbody>                  {transactions.map(transaction => (
-                    <tr key={transaction.transactionID}>
-                      <td title={transaction.transactionID}>{transaction.transactionID.substring(0, 8)}...</td>
-                      <td>
-                        <span className={`transaction-type ${transaction.transactionType.toLowerCase()}`}>
-                          {getTransactionTypeText(transaction.transactionType)}
-                        </span>
-                      </td>
-                      <td className={transaction.changeAmount > 0 ? 'amount-positive' : 'amount-negative'}>
-                        <div className="stone-amount">
-                          <img src={primogemIcon} alt="原石" className="primogem-icon-small" />
-                          {transaction.changeAmount > 0 ? '+' : ''}{transaction.changeAmount}
-                        </div>
-                      </td>
-                      <td>{transaction.changeReason}</td>
-                      <td>{formatDate(transaction.timestamp)}</td>
+            </div>          ) : transactions.length > 0 ? (
+            <>
+              <div className="admin-transaction-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>交易ID</th>
+                      <th>类型</th>
+                      <th>金额</th>
+                      <th>原因</th>
+                      <th>时间</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {currentTransactions.map(transaction => (
+                      <tr key={transaction.transactionID}>
+                        <td title={transaction.transactionID}>{transaction.transactionID.substring(0, 8)}...</td>
+                        <td>
+                          <span className={`transaction-type ${transaction.transactionType.toLowerCase()}`}>
+                            {getTransactionTypeText(transaction.transactionType)}
+                          </span>
+                        </td>
+                        <td className={transaction.changeAmount > 0 ? 'amount-positive' : 'amount-negative'}>
+                          <div className="stone-amount">
+                            <img src={primogemIcon} alt="原石" className="primogem-icon-small" />
+                            {transaction.changeAmount > 0 ? '+' : ''}{transaction.changeAmount}
+                          </div>
+                        </td>
+                        <td>{transaction.changeReason}</td>
+                        <td>{formatDate(transaction.timestamp)}</td>
+                      </tr>
+                    ))}                    {/* 如果当前页不足6条数据，添加空行保持表格高度一致 */}
+                    {currentTransactions.length < itemsPerPage && Array(itemsPerPage - currentTransactions.length).fill(0).map((_, index) => (
+                      <tr key={`empty-${index}`} style={{ height: '50px' }}>
+                        <td colSpan={5}></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* 分页控件 */}
+              <div className="pagination">
+                <button 
+                  className="pagination-btn" 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  上一页
+                </button>
+
+                {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    className={`pagination-btn ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+                <button 
+                  className="pagination-btn" 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  下一页
+                </button>
+              </div>
+            </>
           ) : (
             <div className="no-transactions">
               <p>该玩家暂无交易记录</p>
