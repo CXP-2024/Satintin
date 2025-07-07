@@ -169,24 +169,23 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
   private def parseActiveAction(json: Json)(using PlanContext): IO[ActiveAction] = {
     for {
       // 解析主动行动的攻击对象名称列表
-      actionNames <- IO.fromEither(json.hcursor.downField("actions").as[List[String]].left.map(err => new Exception(s"解析actions失败: ${err.message}")))
+      actionNames <- IO.fromEither(json.hcursor.downField("actions").as[List[String]]
+        .left.map(err => new Exception(s"解析actions失败: ${err.message}")))
       
       // 验证列表非空
       _ <- if (actionNames.isEmpty) IO.raiseError(new Exception("主动行动列表不能为空")) else IO.unit
       
-      // 为每个攻击对象创建后端对象
-      objectResults <- ActiveObjectManager.createActiveObjectsFromDB(actionNames)
+      // 计算每个对象名称的出现次数（保留叠加次数）
+      // 例如: ["Sa", "Sa", "Tin"] => {"Sa" -> 2, "Tin" -> 1}
+      attackObjectsMap = actionNames.groupBy(identity).map { case (name, occurrences) => 
+        name -> occurrences.size 
+      }
       
-      // 检查是否有错误
-      errors = objectResults.collect { case Left(error) => error }
-      _ <- if (errors.nonEmpty) IO.raiseError(new Exception(s"创建攻击对象时出错: ${errors.head}")) else IO.unit
+      // 使用ActiveObjectManager.createActiveAction创建主动行动
+      activeActionResult <- ActiveObjectManager.createActiveAction(attackObjectsMap)
       
-      // 构建攻击对象映射，每个对象出现一次，所以数量为1
-      objects = objectResults.collect { case Right(obj) => obj }
-      objectMap = objects.map(obj => obj -> 1).toMap
-      
-      // 创建主动行动
-      activeAction <- ActiveObjectManager.createActiveAction(objectMap.map { case (k, v) => k.objectName -> v }).flatMap {
+      // 处理返回结果
+      activeAction <- activeActionResult match {
         case Right(action) => IO.pure(action)
         case Left(error) => IO.raiseError(new Exception(s"创建主动行动失败: $error"))
       }

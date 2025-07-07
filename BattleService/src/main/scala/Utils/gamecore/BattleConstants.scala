@@ -16,9 +16,9 @@ object BattleConstants {
     baseClass match {
       case BaseClass.Sa => 1
       case BaseClass.Tin => 1
-      case BaseClass.Penetration => 2
-      case BaseClass.AntiAir => 2
-      case BaseClass.Nuclear => 3
+      case BaseClass.Penetration => 1
+      case BaseClass.AntiAir => 1
+      case BaseClass.Nuclear => 1
       case BaseClass.Cake => 0
       case BaseClass.Shield => 0
       case BaseClass.Defense => 0

@@ -194,8 +194,8 @@ object ActiveAction {
     require(attackObjects.nonEmpty, "行动必须包含至少一个攻击对象")
     require(attackObjects.values.forall(_ > 0), "所有叠加次数必须大于0")
     
-    val classCount = attackObjects.keys.map(_.baseClass).size
-    if (classCount == 1) {
+    val attackObjectCount = attackObjects.keys.size
+    if (attackObjectCount == 1) {
       SingleAction(attackObjects)
     } else {
       CompositeAction(attackObjects)
