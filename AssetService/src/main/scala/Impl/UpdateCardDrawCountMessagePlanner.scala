@@ -1,6 +1,6 @@
 package Impl
 
-import Utils.AssetTransactionProcess
+import Utils.CardDrawCountService
 import Common.API.{PlanContext, Planner}
 import cats.effect.IO
 import org.slf4j.LoggerFactory
@@ -29,11 +29,9 @@ case class UpdateCardDrawCountMessagePlanner(
       _ <- IO(logger.info("[Step 2] 验证用户Token"))
       // validation to be completed
       userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      _ <- IO(logger.info(s"[Step 2] 用户验证成功，userID=${userID}"))
-
-      // Step 3: 设置抽卡次数
+      _ <- IO(logger.info(s"[Step 2] 用户验证成功，userID=${userID}"))      // Step 3: 设置抽卡次数
       _ <- IO(logger.info(s"[Step 3] 开始设置用户${poolType}池抽卡次数: userID=${userID}, drawCount=${drawCount}"))
-      result <- AssetTransactionProcess.updateCardDrawCount(userID, poolType, drawCount)
+      result <- CardDrawCountService.updateCardDrawCount(userID, poolType, drawCount)
       _ <- IO(logger.info(s"[Step 3] ${poolType}池抽卡次数设置完成: ${result}"))
 
     } yield result

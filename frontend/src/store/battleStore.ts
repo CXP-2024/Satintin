@@ -1,6 +1,6 @@
 import create from 'zustand';
-import { GameState, PlayerState, BattleAction, RoundResult, GameOverResult } from '../services/WebSocketService';
-import { getUserInfo } from '../Plugins/CommonUtils/Store/UserInfoStore';
+import { GameState, PlayerState, RoundResult, GameOverResult } from '../services/WebSocketService';
+import { getUserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore';
 
 interface BattleState {
 	// 房间状态
@@ -82,7 +82,7 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 
 	setGameState: (gameState: GameState) => {
 		console.log('📝 [BattleStore] 更新游戏状态:', gameState);
-		const { currentPlayer, opponent } = get();
+		const { currentPlayer } = get();
 		const currentUser = getUserInfo();
 
 		// 确定当前玩家和对手 - 基于用户ID

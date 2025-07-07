@@ -1,5 +1,5 @@
-import { LogoutUserMessage } from '../Plugins/UserService/APIs/LogoutUserMessage';
-import { getUserToken, clearUserInfo, initUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
+import { LogoutUserMessage } from 'Plugins/UserService/APIs/LogoutUserMessage';
+import { getUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
 
 class AutoLogoutManager {
   private currentUserToken: string | null = null;

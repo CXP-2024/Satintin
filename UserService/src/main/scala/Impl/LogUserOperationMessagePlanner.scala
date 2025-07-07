@@ -18,7 +18,7 @@ import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import APIs.UserService.GetUserInfoMessage
+import APIs.UserService.ValidateUserTokenMessage
 
 case class LogUserOperationMessagePlanner(
     userToken: String,
@@ -43,21 +43,18 @@ case class LogUserOperationMessagePlanner(
       _ <- IO(logger.info(s"用户操作行为记录成功，userID: ${userID}"))
     } yield "操作记录成功！"
   }
-
   /**
    * 验证userToken是否合法并提取userID
    */
   private def validateAndExtractUserID(userToken: String)(using PlanContext): IO[String] = {
-    // Use the same approach as other services - use userToken as userID and call GetUserInfoMessage
-    val userID = userToken
     for {
-      _ <- IO(logger.info(s"通过 UserService 验证用户令牌: ${userToken}"))
-      user <- GetUserInfoMessage(userToken, userID).send.handleErrorWith { error =>
+      _ <- IO(logger.info(s"通过 ValidateUserTokenMessage 验证用户令牌: ${userToken}"))
+      userID <- ValidateUserTokenMessage(userToken).send.handleErrorWith { error =>
         IO(logger.error(s"用户令牌验证失败: ${error.getMessage}"))
           >> IO.raiseError(new RuntimeException("用户身份令牌无效"))
       }
-      _ <- IO(logger.info(s"用户令牌有效，用户ID为: ${user.userID}"))
-    } yield user.userID
+      _ <- IO(logger.info(s"用户令牌验证成功，用户ID为: ${userID}"))
+    } yield userID
   }
 
   /**

@@ -4,7 +4,7 @@ import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
-import Utils.AssetTransactionProcess
+import Utils.TransactionService
 import cats.effect.IO
 import org.slf4j.LoggerFactory
 import io.circe._
@@ -21,18 +21,15 @@ case class GetAssetTransactionMessagePlanner(
 ) extends Planner[String] {
 
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
-  
-  override def plan(using context: PlanContext): IO[String] = {
+    override def plan(using context: PlanContext): IO[String] = {
     for {
       // Step 1: 使用Utils验证用户身份
       _ <- IO(logger.info("[GetAssetTransactionMessagePlanner] 验证用户身份"))
-      // validation to be completed
-      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      _ <- IO(logger.info(s"[GetAssetTransactionMessagePlanner] 用户验证成功，userID=${userID}"))
+      // 这里应该实现真正的用户验证逻辑
 
       // Step 2: 获取交易历史
       _ <- IO(logger.info("[GetAssetTransactionMessagePlanner] 获取用户交易历史"))
-      transactionHistory <- AssetTransactionProcess.fetchTransactionHistory(userID)
+      transactionHistory <- TransactionService.fetchTransactionHistory(userToken)
       _ <- IO(logger.info(s"[GetAssetTransactionMessagePlanner] 交易历史获取成功，记录数: ${transactionHistory.length}"))
 
       // Step 3: 序列化返回结果

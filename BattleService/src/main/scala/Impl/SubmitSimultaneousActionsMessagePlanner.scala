@@ -2,8 +2,7 @@ package Impl
 
 import Common.API.{PlanContext, Planner}
 import Objects.AdminService.ActionType
-import Objects.UserService.User
-import APIs.UserService.GetUserInfoMessage
+import APIs.UserService.ValidateUserTokenMessage
 import Utils.PlayerActionProcess.processSimultaneousActions
 import cats.effect.IO
 import org.slf4j.LoggerFactory
@@ -32,19 +31,28 @@ case class SubmitSimultaneousActionsMessagePlanner(
 
   /**
    * 主Plan方法
-   */
-  override def plan(using PlanContext): IO[String] = {
+   */  override def plan(using PlanContext): IO[String] = {
     logger.info(s"开始处理同时提交的玩家行为：roomID=${roomID}")
     logger.info(s"Player1: token=${player1Token}, action=${player1ActionType}, target=${player1TargetID}")
     logger.info(s"Player2: token=${player2Token}, action=${player2ActionType}, target=${player2TargetID}")
     
     for {
-      // Step 1: 验证两个玩家的token
-      player1Info <- GetUserInfoMessage(player1Token, player1Token).send
-      player2Info <- GetUserInfoMessage(player2Token, player2Token).send
+      // Step 1: 验证两个玩家的token并获取用户ID
+      player1ID <- ValidateUserTokenMessage(player1Token).send.flatMap { userID =>
+        if (userID == null || userID.isEmpty) {
+          IO.raiseError(new SecurityException(s"Player1 Token无效: ${player1Token}"))
+        } else {
+          IO.pure(userID)
+        }
+      }
       
-      player1ID <- IO(player1Info.userID)
-      player2ID <- IO(player2Info.userID)
+      player2ID <- ValidateUserTokenMessage(player2Token).send.flatMap { userID =>
+        if (userID == null || userID.isEmpty) {
+          IO.raiseError(new SecurityException(s"Player2 Token无效: ${player2Token}"))
+        } else {
+          IO.pure(userID)
+        }
+      }
       
       _ <- IO(logger.info(s"Player validation successful: player1ID=${player1ID}, player2ID=${player2ID}"))
       

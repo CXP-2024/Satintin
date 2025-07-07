@@ -285,21 +285,67 @@
 .admin-data-table table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 1200px; /* 设置最小宽度以适应8列 */
 }
 
 .admin-data-table th {
   background-color: #f5f5f5;
-  padding: 12px 15px;
+  padding: 12px 8px; /* 减少水平padding */
   text-align: center;
   font-weight: bold;
   color: #333;
   border-bottom: 2px solid #ddd;
+  font-size: 14px; /* 稍微减小字体大小 */
 }
 
 .admin-data-table td {
-  padding: 12px 15px;
+  padding: 12px 8px; /* 减少水平padding */
   border-bottom: 1px solid #eee;
   text-align: center;
+  font-size: 13px; /* 稍微减小字体大小 */
+}
+
+/* 特定列的宽度控制 */
+.admin-data-table th:nth-child(1), /* 用户ID */
+.admin-data-table td:nth-child(1) {
+  width: 80px;
+  font-family: monospace; /* 等宽字体 */
+}
+
+.admin-data-table th:nth-child(2), /* 用户名 */
+.admin-data-table td:nth-child(2) {
+  width: 90px;
+}
+
+.admin-data-table th:nth-child(3), /* 邮箱 */
+.admin-data-table td:nth-child(3) {
+  width: 160px;
+  word-break: break-all; /* 允许邮箱换行 */
+}
+
+.admin-data-table th:nth-child(4), /* 电话 */
+.admin-data-table td:nth-child(4) {
+  width: 120px;
+}
+
+.admin-data-table th:nth-child(5), /* 封禁状态 */
+.admin-data-table td:nth-child(5) {
+  width: 100px;
+}
+
+.admin-data-table th:nth-child(6), /* 原石数量 */
+.admin-data-table td:nth-child(6) {
+  width: 120px;
+}
+
+.admin-data-table th:nth-child(7), /* 在线状态 */
+.admin-data-table td:nth-child(7) {
+  width: 80px;
+}
+
+.admin-data-table th:nth-child(8), /* 操作 */
+.admin-data-table td:nth-child(8) {
+  width: 100px;
 }
 
 .admin-data-table tr:hover {
@@ -480,8 +526,8 @@
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: none; /* 取消最大高度限制 */
+  overflow-y: visible; /* 取消竖向滚动 */
   transform: translateY(0);
   animation: zoomIn 0.3s ease-out;
   position: relative;
@@ -836,4 +882,239 @@
   font-style: italic;
   color: #555;
   text-align: center;
+}
+
+/* 交易记录模态框 */
+.transaction-modal {
+  max-width: 1000px;
+  width: 95%;
+}
+
+.transaction-type {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.transaction-type.reward {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.transaction-type.purchase {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.transaction-type.charge {
+  background-color: #cce5ff;
+  color: #004085;
+  border: 1px solid #b8daff;
+}
+
+.stone-amount {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.amount-positive {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.amount-negative {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.primogem-icon-small {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #8e44ad;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.error-message {
+  text-align: center;
+  color: #e74c3c;
+}
+
+.error-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-style: italic;
+}
+
+.no-transactions p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* 交易记录表格样式 */
+.admin-transaction-table {
+  width: 100%;
+  overflow-x: visible; /* 取消横向滚动 */
+}
+
+.admin-transaction-table table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* 固定表格布局 */
+}
+
+.admin-transaction-table th {
+  background-color: #f5f5f5;
+  padding: 12px 15px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+  font-size: 14px;
+}
+
+.admin-transaction-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  font-size: 13px;
+}
+
+.admin-transaction-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* 交易记录表格特定列的宽度控制 */
+.admin-transaction-table th:nth-child(1), /* 交易ID */
+.admin-transaction-table td:nth-child(1) {
+  width: 15%;
+  font-family: monospace;
+}
+
+.admin-transaction-table th:nth-child(2), /* 类型 */
+.admin-transaction-table td:nth-child(2) {
+  width: 15%;
+}
+
+.admin-transaction-table th:nth-child(3), /* 金额 */
+.admin-transaction-table td:nth-child(3) {
+  width: 20%;
+}
+
+.admin-transaction-table th:nth-child(4), /* 原因 */
+.admin-transaction-table td:nth-child(4) {
+  width: 30%;
+  text-align: left; /* 原因列左对齐 */
+  word-wrap: break-word;
+}
+
+.admin-transaction-table th:nth-child(5), /* 时间 */
+.admin-transaction-table td:nth-child(5) {
+  width: 20%;
+}
+
+/* 交易类型标签样式 */
+.transaction-type {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.transaction-type.reward {
+  background-color: #2ecc71;
+}
+
+.transaction-type.purchase,
+.transaction-type.consume {
+  background-color: #e74c3c;
+}
+
+.transaction-type.charge,
+.transaction-type.recharge,
+.transaction-type.income {
+  background-color: #3498db;
+}
+
+.transaction-type.expense {
+  background-color: #f39c12;
+}
+
+/* 金额显示样式 */
+.amount-positive {
+  color: #2ecc71;
+  font-weight: bold;
+}
+
+.amount-negative {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.stone-amount {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.primogem-icon-small {
+  width: 16px;
+  height: 16px;
+}
+
+/* 无交易记录提示 */
+.no-transactions {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+  font-size: 16px;
+}
+
+.no-transactions p {
+  margin: 0;
 }

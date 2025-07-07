@@ -1,6 +1,6 @@
 package Impl
 
-import Utils.CardManagementProcess.loadUserBattleDeck
+import Utils.CardBattleDeckUtils.loadUserBattleDeck
 import Common.API.{PlanContext, Planner}
 import cats.effect.IO
 import org.slf4j.LoggerFactory

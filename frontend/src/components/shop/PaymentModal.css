@@ -1,0 +1,255 @@
+/* 支付弹窗样式 */
+.payment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.payment-modal {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
+    border-radius: 20px;
+    max-width: 450px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideIn 0.3s ease-out;
+}
+
+.payment-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px 20px 0 0;
+}
+
+.payment-modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(45deg, #ecf0f1, #bdc3c7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.payment-modal-content {
+    padding: 30px;
+    color: white;
+}
+
+.payment-info {
+    text-align: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payment-amount {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ffd700;
+    margin: 0 0 10px 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.payment-crystals {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+    font-weight: 500;
+}
+
+.qr-code-container {
+    text-align: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.qr-code-image {
+    width: 200px;
+    height: 200px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: white;
+    padding: 10px;
+}
+
+.qr-code-tip {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 15px;
+}
+
+.payment-complete-btn,
+.payment-cancel-btn {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.payment-complete-btn {
+    background: rgba(149, 165, 166, 0.8);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-complete-btn::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, #95a5a6, #bdc3c7, #95a5a6);
+    background-size: 200% 100%;
+    border-radius: 14px;
+    z-index: -1;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+.payment-complete-btn:hover:not(:disabled) {
+    background: rgba(189, 195, 199, 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(149, 165, 166, 0.4);
+}
+
+.payment-complete-btn:disabled {
+    background: rgba(127, 140, 141, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.payment-cancel-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.payment-cancel-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 255, 255, 0.2);
+}
+
+.payment-cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes gradientShift {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .payment-modal {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .payment-modal-content {
+        padding: 20px 15px;
+    }
+    
+    .qr-code-image {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .payment-actions {
+        flex-direction: column;
+    }
+    
+    .payment-complete-btn,
+    .payment-cancel-btn {
+        width: 100%;
+    }
+}

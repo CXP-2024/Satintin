@@ -1,6 +1,5 @@
 package Impl
 
-
 import Objects.UserService.MessageEntry
 import Objects.UserService.User
 import Objects.UserService.BlackEntry
@@ -16,26 +15,10 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
 import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.UserService.FriendEntry
-import Objects.UserService.{BlackEntry, FriendEntry, MessageEntry, User}
-import cats.implicits.*
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 import Utils.JsonDecodingUtils.{decodeListField, decodeMessageField}
-import Utils.UserTokenValidator
 
 case class GetUserInfoMessagePlanner(
-    userToken: String,
     userID: String,
     override val planContext: PlanContext
 ) extends Planner[User] {
@@ -44,42 +27,72 @@ case class GetUserInfoMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[User] = {
     for {
-      // Step 1: 验证usertoken并获取真实的userID
-      _ <- IO(logger.info(s"[Step 1] 开始验证usertoken: ${userToken}"))
-      actualUserID <- verifyAccessPermission()
-      _ <- IO(logger.info(s"[Step 1] usertoken验证成功，实际userID: ${actualUserID}"))
+      // Step 1: 验证userID是否存在
+      _ <- IO(logger.info(s"[Step 1] 开始验证userID是否存在: ${userID}"))
+      _ <- verifyUserExists(userID)
+      _ <- IO(logger.info(s"[Step 1] userID验证成功，用户存在: ${userID}"))
 
-      // Step 2: 使用真实的userID获取用户信息（忽略传入的userID参数）
-      _ <- IO(logger.info(s"[Step 2] 开始从UserTable查找用户的基本信息 for userID: ${actualUserID}"))
-      userInfo <- fetchUserInfo(actualUserID)
+      // Step 2: 获取用户基本信息
+      _ <- IO(logger.info(s"[Step 2] 开始从UserTable查找用户的基本信息 for userID: ${userID}"))
+      userInfo <- fetchUserInfo(userID)
 
-      // Step 3: 使用真实的userID获取资产信息
-      _ <- IO(logger.info(s"[Step 3] 开始从UserAssetTable查询用户的资产状态 for userID: ${actualUserID}"))
-      userAssets <- fetchUserAssets(actualUserID)
+      // Step 3: 调用AssetService获取资产信息
+      _ <- IO(logger.info(s"[Step 3] 开始调用AssetService获取用户的资产状态 for userID: ${userID}"))
+      stoneAmount <- fetchStoneAmount(userID)
+      
+      // Step 4: 调用CardService获取抽卡次数
+      _ <- IO(logger.info(s"[Step 4] 开始调用CardService获取用户的抽卡次数 for userID: ${userID}"))
+      drawCount <- fetchDrawCount(userID)
 
-      // Step 4: 使用真实的userID获取社交信息
-      _ <- IO(logger.info(s"[Step 4] 开始从UserSocialTable查询用户的社交信息 for userID: ${actualUserID}"))
-      userSocial <- fetchUserSocial(actualUserID)
+      // Step 5: 获取社交信息
+      _ <- IO(logger.info(s"[Step 5] 开始从UserSocialTable查询用户的社交信息 for userID: ${userID}"))
+      userSocial <- fetchUserSocial(userID)
 
-      // Step 5: 整合信息
-      _ <- IO(logger.info(s"[Step 5] 整合信息生成User对象"))
-      user <- IO(combineUserInfo(userInfo, userAssets, userSocial))
+      // Step 6: 整合信息
+      _ <- IO(logger.info(s"[Step 6] 整合信息生成User对象"))
+      user <- IO(combineUserInfo(userInfo, stoneAmount, drawCount, userSocial))
     } yield user
   }
-
-  private def verifyAccessPermission()(using PlanContext): IO[String] = {
-    // 使用UserTokenValidator验证usertoken并获取真实的userID
-    UserTokenValidator.getUserIDFromToken(userToken)
+  private def verifyUserExists(userID: String)(using PlanContext): IO[Unit] = {
+    val sql =
+      s"""
+         |SELECT user_id FROM ${schemaName}.user_table WHERE user_id = ?;
+      """.stripMargin
+    readDBJsonOptional(sql, List(SqlParameter("String", userID))).flatMap { jsonOpt =>
+      jsonOpt match {
+        case Some(_) => IO.unit
+        case None => IO.raiseError(new RuntimeException(s"用户不存在: ${userID}"))
+      }
+    }
   }
 
-  private def fetchUserInfo(actualUserID: String)(using PlanContext): IO[(String, String, String, String, String, DateTime, Int, Int, Boolean, String)] = {
+  private def fetchStoneAmount(userID: String)(using PlanContext): IO[Int] = {
+    // 调用 AssetService 的 QueryAssetStatusMessage
+    import APIs.AssetService.QueryAssetStatusMessage
+    for {
+      _ <- IO(logger.info(s"[fetchStoneAmount] 调用QueryAssetStatusMessage获取用户资产，userID: ${userID}"))
+      stoneAmount <- QueryAssetStatusMessage(userID).send
+      _ <- IO(logger.info(s"[fetchStoneAmount] 获取到用户资产数量: ${stoneAmount}"))
+    } yield stoneAmount
+  }
+
+  private def fetchDrawCount(userID: String)(using PlanContext): IO[Int] = {
+    // 调用 CardService 的 QueryCardDrawCountMessage
+    import APIs.AssetService.QueryCardDrawCountMessage
+    for {
+      _ <- IO(logger.info(s"[fetchDrawCount] 调用QueryCardDrawCountMessage获取抽卡次数，userID: ${userID}"))
+      drawCount <- QueryCardDrawCountMessage(userID, "standard").send
+      _ <- IO(logger.info(s"[fetchDrawCount] 获取到用户抽卡次数: ${drawCount}"))
+    } yield drawCount
+  }
+  private def fetchUserInfo(userID: String)(using PlanContext): IO[(String, String, String, String, String, DateTime, Int, Int, Boolean, String)] = {
     val sql =
       s"""
          |SELECT user_id, username, password_hash, email, phone_number, register_time, permission_level, ban_days, is_online, COALESCE(match_status, '') as match_status
          |FROM ${schemaName}.user_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJson(sql, List(SqlParameter("String", actualUserID))).map { json =>
+    readDBJson(sql, List(SqlParameter("String", userID))).map { json =>
       (
         decodeField[String](json, "user_id"),
         decodeField[String](json, "username"),
@@ -94,7 +107,6 @@ case class GetUserInfoMessagePlanner(
       )
     }
   }
-
   private def fetchUserAssets(actualUserID: String)(using PlanContext): IO[(Int, Int, String, Int)] = {
     val sql =
       s"""
@@ -118,15 +130,14 @@ case class GetUserInfoMessagePlanner(
       }
     }
   }
-
-  private def fetchUserSocial(actualUserID: String)(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
+  private def fetchUserSocial(userID: String)(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
     val sql =
       s"""
          |SELECT friend_list, black_list, message_box
          |FROM ${schemaName}.user_social_table
          |WHERE user_id = ?;
       """.stripMargin
-    readDBJsonOptional(sql, List(SqlParameter("String", actualUserID))).map { jsonOpt =>
+    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
       jsonOpt match {
         case Some(json) =>
           val friendList = decodeListField(json, "friend_list").map(FriendEntry)
@@ -149,11 +160,11 @@ case class GetUserInfoMessagePlanner(
 
   private def combineUserInfo(
       userInfo: (String, String, String, String, String, DateTime, Int, Int, Boolean, String),
-      userAssets: (Int, Int, String, Int),
+      stoneAmount: Int,
+      drawCount: Int,
       userSocial: (List[FriendEntry], List[BlackEntry], List[MessageEntry])
   ): User = {
     val (userID, userName, passwordHash, email, phoneNumber, registerTime, permissionLevel, banDays, isOnline, matchStatus) = userInfo
-    val (stoneAmount, cardDrawCount, rank, rankPosition) = userAssets
     val (friendList, blackList, messageBox) = userSocial
 
     User(
@@ -168,9 +179,9 @@ case class GetUserInfoMessagePlanner(
       isOnline = isOnline,
       matchStatus = matchStatus,
       stoneAmount = stoneAmount,
-      cardDrawCount = cardDrawCount,
-      rank = rank,
-      rankPosition = rankPosition,
+      cardDrawCount = drawCount,
+      rank = "", // 设为空值
+      rankPosition = 0, // 设为空值
       friendList = friendList,
       blackList = blackList,
       messageBox = messageBox
