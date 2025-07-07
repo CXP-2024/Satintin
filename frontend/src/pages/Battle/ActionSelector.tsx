@@ -152,8 +152,8 @@ const ActionSelector: React.FC = () => {
 			// 如果已选择其他类型，禁用简单被动行动
 			return selectedAction?.actionCategory === 'active' ||
 				(selectedAction?.actionCategory === 'passive' &&
-					(selectedAction.defenseType === 'ObjectDefense' ||
-						selectedAction.defenseType === 'ActionDefense'));
+					(selectedAction.defenseType === 'object_defense' ||
+						selectedAction.defenseType === 'action_defense'));
 		}
 
 		if (actionType === 'active') {
@@ -185,12 +185,12 @@ const ActionSelector: React.FC = () => {
 			const passiveAction = selectedAction;
 
 			// ObjectDefense必须选择目标
-			if (passiveAction.defenseType === 'ObjectDefense') {
+			if (passiveAction.defenseType === 'object_defense') {
 				return selectedObjectDefenseTarget !== null;
 			}
 
 			// ActionDefense必须选择至少2个行动
-			if (passiveAction.defenseType === 'ActionDefense') {
+			if (passiveAction.defenseType === 'action_defense') {
 				return selectedActiveActions.length >= 2;
 			}
 
@@ -268,11 +268,11 @@ const ActionSelector: React.FC = () => {
 				...passiveAction
 			};
 
-			if (passiveAction.defenseType === 'ObjectDefense' && selectedObjectDefenseTarget) {
+			if (passiveAction.defenseType === 'object_defense' && selectedObjectDefenseTarget) {
 				finalAction.targetObject = selectedObjectDefenseTarget;
 			}
 
-			if (passiveAction.defenseType === 'ActionDefense' && selectedActiveActions.length >= 2) {
+			if (passiveAction.defenseType === 'action_defense' && selectedActiveActions.length >= 2) {
 				finalAction.targetAction = selectedActiveActions;
 			}
 		} else {
@@ -360,7 +360,7 @@ const ActionSelector: React.FC = () => {
 								const isSelected = actionCount > 0;
 								const isDisabled = isActionDisabled('active');
 								const isObjectDefenseTarget = selectedAction?.actionCategory === 'passive' &&
-									selectedAction.defenseType === 'ObjectDefense' &&
+									selectedAction.defenseType === 'object_defense' &&
 									selectedObjectDefenseTarget === action.type;
 
 								return (
@@ -368,7 +368,7 @@ const ActionSelector: React.FC = () => {
 										key={action.type}
 										className={`action-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''} ${isObjectDefenseTarget ? 'defense-target' : ''}`}
 										onClick={() => {
-											if (selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'ObjectDefense') {
+											if (selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'object_defense') {
 												handleSelectObjectDefenseTarget(action.type);
 											} else {
 												handleSelectActiveAction(action.type);
@@ -455,14 +455,14 @@ const ActionSelector: React.FC = () => {
 									passiveActions.find(a => a.type === selectedAction.objectName)?.name ||
 									specialDefenseActions.find(a => a.type === selectedAction.objectName)?.name
 								}</span>
-								{selectedAction.defenseType === 'ObjectDefense' && (
+								{selectedAction.defenseType === 'object_defense' && (
 									<span className="defense-info">
 										防御目标: {selectedObjectDefenseTarget ?
 											activeActions.find(a => a.type === selectedObjectDefenseTarget)?.name :
 											'请选择'}
 									</span>
 								)}
-								{selectedAction.defenseType === 'ActionDefense' && (
+								{selectedAction.defenseType === 'action_defense' && (
 									<span className="defense-info">
 										已选择行动: {selectedActiveActions.length > 0 ?
 											selectedActiveActions.map(action =>
@@ -487,9 +487,9 @@ const ActionSelector: React.FC = () => {
 
 				<div className="action-selector-footer">
 					<div className="action-hint">
-						{selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'ObjectDefense' && !selectedObjectDefenseTarget &&
+						{selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'object_defense' && !selectedObjectDefenseTarget &&
 							"请选择要防御的攻击类型"}
-						{selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'ActionDefense' && selectedActiveActions.length < 2 &&
+						{selectedAction?.actionCategory === 'passive' && selectedAction.defenseType === 'action_defense' && selectedActiveActions.length < 2 &&
 							"请选择至少2个行动进行防御"}
 						{!selectedAction && "请选择一个行动"}
 						{canSubmit() && "确认后无法更改，请仔细检查"}

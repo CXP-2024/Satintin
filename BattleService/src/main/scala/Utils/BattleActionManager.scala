@@ -107,7 +107,7 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
             // 使用PassiveObjectManager创建被动对象
             action <- PassiveObjectManager.createPassiveObjectSmart(
               objectName = objectName,
-              defenseType = Some("objectDefense"),
+              defenseType = Some("object_defense"),
               targetObject = targetObjectResult.toOption,
               targetAction = None
             ).flatMap {
@@ -116,7 +116,7 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
             }
           } yield action
             
-        case Some("ActionDefense") =>
+        case Some("action_defense") =>
           for {
             // 解析targetAction字段（对象名称列表）
             targetActionNames <- IO.fromEither(json.hcursor.downField("targetAction").as[Option[List[String]]]
@@ -144,7 +144,7 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
             // 创建ActionDefense
             action <- PassiveObjectManager.createPassiveObjectSmart(
               objectName = objectName,
-              defenseType = Some("actionDefense"),
+              defenseType = Some("action_defense"),
               targetObject = None,
               targetAction = targetAction
             ).flatMap {
