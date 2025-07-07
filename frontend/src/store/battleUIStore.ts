@@ -15,6 +15,7 @@ export interface BattleUIState {
 	currentRoundResult: RoundResult | null;
 	lastRoundResult: RoundResult | null; // 上一回合结果
 	showGameOver: boolean;
+	gameOverTemporarilyHidden: boolean; // 游戏结束面板是否被暂时隐藏
 	currentGameOverResult: GameOverResult | null;
 
 	// Actions
@@ -24,6 +25,8 @@ export interface BattleUIState {
 	showLastRoundResult: () => void; // 显示上一回合结果
 	showGameOverModal: (result: GameOverResult) => void;
 	hideGameOverModal: () => void;
+	hideGameOverTemporarily: () => void; // 暂时隐藏游戏结束面板
+	showGameOverAgain: () => void; // 重新显示游戏结束面板
 	hideActionSelectorTemporarily: () => void;
 	showActionSelectorAgain: () => void;
 	updateActionSelectorVisibility: () => void; // 更新行动选择器显示状态
@@ -41,6 +44,7 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 	currentRoundResult: null,
 	lastRoundResult: null,
 	showGameOver: false,
+	gameOverTemporarilyHidden: false,
 	currentGameOverResult: null,
 
 	// Actions
@@ -111,6 +115,22 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 		});
 	},
 
+	hideGameOverTemporarily: () => {
+		console.log('📝 [BattleUIStore] 暂时隐藏游戏结束面板');
+		set({
+			showGameOver: false,
+			gameOverTemporarilyHidden: true
+		});
+	},
+
+	showGameOverAgain: () => {
+		console.log('📝 [BattleUIStore] 重新显示游戏结束面板');
+		set({
+			showGameOver: true,
+			gameOverTemporarilyHidden: false
+		});
+	},
+
 	hideActionSelectorTemporarily: () => {
 		console.log('📝 [BattleUIStore] 暂时隐藏行动选择器');
 		// 先设置退出状态，触发退出动画
@@ -168,6 +188,7 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 			currentRoundResult: null,
 			lastRoundResult: null,
 			showGameOver: false,
+			gameOverTemporarilyHidden: false,
 			currentGameOverResult: null
 		});
 	}

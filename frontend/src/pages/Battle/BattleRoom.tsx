@@ -17,8 +17,8 @@ const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
 	const user = useUserInfo();
 	const {
-		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, currentGameOverResult,
-		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, showActionSelectorAgain, resetBattle
+		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
+		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, showActionSelectorAgain, resetBattle
 	} = useBattleStore();
 
 	const [isConnecting, setIsConnecting] = useState(true);
@@ -87,6 +87,20 @@ const BattleRoom: React.FC = () => {
 	const handleShowLastRoundResult = () => {
 		SoundUtils.playClickSound(0.5);
 		showLastRoundResult();
+	};
+
+	// 查看上一回合结果（从游戏结束面板）
+	const handleViewLastRoundFromGameOver = () => {
+		SoundUtils.playClickSound(0.5);
+		hideGameOverTemporarily(); // 暂时隐藏游戏结束面板
+		showLastRoundResult(); // 显示上一回合结果
+	};
+
+	// 从结果页面返回游戏结束面板
+	const handleReturnToGameOver = () => {
+		SoundUtils.playClickSound(0.5);
+		hideRoundResultModal(); // 隐藏结果面板
+		showGameOverAgain(); // 重新显示游戏结束面板
 	};
 
 	// 渲染连接状态
@@ -251,8 +265,9 @@ const BattleRoom: React.FC = () => {
 				{showRoundResult && currentRoundResult && (
 					<RoundResultModal
 						result={currentRoundResult}
-						onClose={hideRoundResultModal}
-						onHideTemporarily={hideRoundResultTemporarily}
+						onClose={gameOverTemporarilyHidden ? handleReturnToGameOver : hideRoundResultModal}
+						onHideTemporarily={gameOverTemporarilyHidden ? undefined : hideRoundResultTemporarily}
+						isGameOver={gameOverTemporarilyHidden}
 					/>
 				)}
 
@@ -265,6 +280,7 @@ const BattleRoom: React.FC = () => {
 							hideGameOverModal();
 							handleLeaveRoom();
 						}}
+						onViewLastRound={lastRoundResult ? handleViewLastRoundFromGameOver : undefined}
 					/>
 				)}
 			</div>

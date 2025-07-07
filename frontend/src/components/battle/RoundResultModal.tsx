@@ -12,9 +12,10 @@ interface RoundResultModalProps {
 	result: RoundResult;
 	onClose: () => void;
 	onHideTemporarily?: () => void; // 新增：暂时隐藏回调
+	isGameOver?: boolean; // 新增：标记游戏是否已结束
 }
 
-const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily }) => {
+const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily, isGameOver }) => {
 	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
@@ -257,7 +258,7 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 							onClick={handleClose}
 							disabled={animationPhase !== 'results'}
 						>
-							{animationPhase === 'results' ? '继续游戏' : '结算中...'}
+							{animationPhase === 'results' ? (isGameOver ? '退出战斗' : '继续游戏') : '结算中...'}
 						</button>
 					</div>
 				</div>
