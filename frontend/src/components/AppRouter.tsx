@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
@@ -14,7 +14,6 @@ import ShopPage from "../pages/ShopPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminRegisterPage from "../pages/AdminRegisterPage";
 import { useUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
-import { autoLogoutManager } from '../utils/autoLogout';
 
 // 内部路由组件，用于监听路由变化
 const RouterContent: React.FC = () => {

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
 	ActiveAction,
-	AttackObjectName,
-	BasicObjectName,
 	PassiveAction,
 	RoundResult
 } from '../../services/WebSocketService';

@@ -1,13 +1,11 @@
 import React from 'react';
-import { useBattleStore } from '../../store/battleStore';
-import { webSocketService, AttackObjectName, BasicObjectName, PassiveAction, ActiveAction } from '../../services/WebSocketService';
-import { SoundUtils } from 'utils/soundUtils';
 import './ActionSelector.css';
-import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { activeActions, passiveActions, specialDefenseActions } from 'utils/ActionConfig';
+import { useActionSelectorHandles } from './ActionSelectorHandles';
 
 const ActionSelector: React.FC = () => {
-	const user = useUserInfo();
 	const {
+		// 状态
 		currentPlayer,
 		gameState,
 		showActionSelector,
@@ -16,278 +14,24 @@ const ActionSelector: React.FC = () => {
 		selectedActiveActions,
 		selectedObjectDefenseTarget,
 		isActionSubmitted,
-		selectPassiveAction,
-		selectActiveAction,
-		removeActiveAction,
-		selectObjectDefenseTarget,
-		clearSelection,
-		submitAction,
-		hideActionSelectorTemporarily
-	} = useBattleStore();
+
+		// 处理函数
+		isActionDisabled,
+		getActionCount,
+		canSubmit,
+		handleSelectPassiveAction,
+		handleSelectActiveAction,
+		handleRemoveActiveAction,
+		handleSelectObjectDefenseTarget,
+		handleClearSelection,
+		handleTemporaryHide,
+		handleSubmitAction
+	} = useActionSelectorHandles();
 
 	// 如果组件不应该显示且没有在退出动画中，则不渲染
 	if (!showActionSelector && !actionSelectorExiting) {
 		return null;
 	}
-
-	// 简单被动行动配置
-	const passiveActions = [
-		{
-			type: 'Cake' as BasicObjectName,
-			icon: '🍰',
-			name: '饼',
-			description: '获得1能量',
-			color: '#f39c12',
-			requirements: '无消耗'
-		},
-		{
-			type: 'Pouch' as BasicObjectName,
-			icon: '💰',
-			name: '袋',
-			description: '不消耗能量，消耗所有能量',
-			color: '#8e44ad',
-			requirements: '消耗所有能量'
-		},
-		{
-			type: 'BasicShield' as BasicObjectName,
-			icon: '🛡️',
-			name: '基础盾',
-			description: '不消耗能量',
-			color: '#3498db',
-			requirements: '无消耗'
-		},
-		{
-			type: 'BasicDefense' as BasicObjectName,
-			icon: '🚧',
-			name: '基础防',
-			description: '消耗所有能量',
-			color: '#95a5a6',
-			requirements: '消耗所有能量'
-		}
-	];
-
-	// 主动行动配置
-	const activeActions = [
-		{
-			type: 'Sa' as AttackObjectName,
-			icon: '💧',
-			name: '撒',
-			description: '攻击1[普通]，防御5',
-			color: '#3498db',
-			requirements: '消耗1能量',
-			energyCost: 1
-		},
-		{
-			type: 'Tin' as AttackObjectName,
-			icon: '⚡',
-			name: 'Tin',
-			description: '攻击3[普通]，防御1',
-			color: '#f1c40f',
-			requirements: '消耗1能量',
-			energyCost: 1
-		},
-		{
-			type: 'NanMan' as AttackObjectName,
-			icon: '🏹',
-			name: '南蛮',
-			description: '攻击3[穿透]，防御5',
-			color: '#e74c3c',
-			requirements: '消耗3能量',
-			energyCost: 3
-		},
-		{
-			type: 'DaShan' as AttackObjectName,
-			icon: '⚔️',
-			name: '大闪',
-			description: '攻击4[穿透]，防御5',
-			color: '#c0392b',
-			requirements: '消耗4能量',
-			energyCost: 4
-		},
-		{
-			type: 'WanJian' as AttackObjectName,
-			icon: '🗡️',
-			name: '万剑',
-			description: '攻击2[防弹]，防御5',
-			color: '#8e44ad',
-			requirements: '消耗3能量',
-			energyCost: 3
-		},
-		{
-			type: 'Nuclear' as AttackObjectName,
-			icon: '☢️',
-			name: '核爆',
-			description: '攻击6[核爆]，防御6',
-			color: '#27ae60',
-			requirements: '消耗6能量',
-			energyCost: 6
-		}
-	];
-
-	// 特殊防御行动配置
-	const specialDefenseActions = [
-		{
-			type: 'object_defense' as BasicObjectName,
-			icon: '🎯',
-			name: '对象防御',
-			description: '防御指定的一种攻击类型',
-			color: '#16a085',
-			requirements: '需选择防御目标'
-		},
-		{
-			type: 'action_defense' as BasicObjectName,
-			icon: '🌀',
-			name: '行动防御',
-			description: '防御多种攻击组合',
-			color: '#2980b9',
-			requirements: '需选择≥2个行动'
-		}
-	];
-
-	// 检查行动是否被禁用
-	const isActionDisabled = (actionType: 'passive' | 'active' | 'special') => {
-		if (isActionSubmitted) return true;
-
-		if (actionType === 'passive') {
-			// 如果已选择其他类型，禁用简单被动行动
-			return selectedAction?.actionCategory === 'active' ||
-				(selectedAction?.actionCategory === 'passive' &&
-					(selectedAction.defenseType === 'object_defense' ||
-						selectedAction.defenseType === 'action_defense'));
-		}
-
-		if (actionType === 'active') {
-			// 如果已选择简单被动行动（非特殊防御），禁用主动行动
-			return selectedAction?.actionCategory === 'passive' &&
-				!selectedAction.defenseType;
-		}
-
-		if (actionType === 'special') {
-			// 如果已选择其他类型，禁用特殊防御
-			return selectedAction?.actionCategory === 'active' ||
-				(selectedAction?.actionCategory === 'passive' &&
-					!selectedAction.defenseType);
-		}
-
-		return false;
-	};
-
-	// 获取某个行动的选择次数
-	const getActionCount = (actionType: AttackObjectName) => {
-		return selectedActiveActions.filter(action => action === actionType).length;
-	};
-
-	// 检查是否可以提交
-	const canSubmit = () => {
-		if (!selectedAction || isActionSubmitted) return false;
-
-		if (selectedAction.actionCategory === 'passive') {
-			const passiveAction = selectedAction;
-
-			// object_defense必须选择目标
-			if (passiveAction.defenseType === 'object_defense') {
-				return selectedObjectDefenseTarget !== null;
-			}
-
-			// action_defense必须选择至少2个行动
-			if (passiveAction.defenseType === 'action_defense') {
-				return selectedActiveActions.length >= 2;
-			}
-
-			// 简单被动行动可以直接提交
-			return true;
-		}
-
-		// 主动行动必须有选择
-		return selectedActiveActions.length > 0;
-	};
-
-	// 选择被动行动
-	const handleSelectPassiveAction = (actionType: BasicObjectName) => {
-		if (isActionDisabled('passive') || isActionSubmitted) return;
-
-		SoundUtils.playClickSound(0.5);
-		selectPassiveAction(actionType);
-	};
-
-	// 选择主动行动
-	const handleSelectActiveAction = (actionType: AttackObjectName) => {
-		if (isActionSubmitted) return;
-
-		SoundUtils.playClickSound(0.5);
-		selectActiveAction(actionType);
-	};
-
-	// 移除主动行动
-	const handleRemoveActiveAction = (actionType: AttackObjectName) => {
-		if (isActionSubmitted) return;
-
-		SoundUtils.playClickSound(0.3);
-		removeActiveAction(actionType);
-	};
-
-	// 选择object_defense目标
-	const handleSelectObjectDefenseTarget = (target: AttackObjectName) => {
-		if (isActionSubmitted) return;
-
-		SoundUtils.playClickSound(0.5);
-		selectObjectDefenseTarget(target);
-	};
-
-	// 清除选择
-	const handleClearSelection = () => {
-		if (isActionSubmitted) return;
-
-		SoundUtils.playClickSound(0.3);
-		clearSelection();
-	};
-
-	// 暂时隐藏行动选择器
-	const handleTemporaryHide = () => {
-		SoundUtils.playClickSound(0.3);
-		hideActionSelectorTemporarily();
-	};
-
-	// 提交行动
-	const handleSubmitAction = () => {
-		if (!canSubmit() || !user) return;
-
-		SoundUtils.playClickSound(0.7);
-
-		// 使用当前组件内的 state
-		if (!selectedAction) return;
-
-		let finalAction: PassiveAction | ActiveAction;
-
-		// 构建最终行动（与 store 中的逻辑保持一致）
-		if (selectedAction.actionCategory === 'passive') {
-			const passiveAction = selectedAction as PassiveAction;
-
-			// 构建最终的被动行动
-			finalAction = {
-				...passiveAction
-			};
-
-			if (passiveAction.defenseType === 'object_defense' && selectedObjectDefenseTarget) {
-				finalAction.targetObject = selectedObjectDefenseTarget;
-			}
-
-			if (passiveAction.defenseType === 'action_defense' && selectedActiveActions.length >= 2) {
-				finalAction.targetAction = selectedActiveActions;
-			}
-		} else {
-			finalAction = selectedAction as ActiveAction;
-		}
-
-		// 发送最终行动到服务器
-		webSocketService.sendAction({
-			type: finalAction,
-			playerId: user.userID
-		});
-
-		// 更新本地状态
-		submitAction();
-	};
 
 	return (
 		<div className={`action-selector-overlay ${actionSelectorExiting ? 'exiting' : ''}`}>
