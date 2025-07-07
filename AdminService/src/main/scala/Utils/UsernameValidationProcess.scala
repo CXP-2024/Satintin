@@ -6,7 +6,8 @@ import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import cats.effect.IO
 import org.slf4j.LoggerFactory
-import Impl.QueryIDByUserNameMessagePlanner
+import APIs.UserService.QueryIDByUserNameMessage
+import io.circe.generic.auto.deriveEncoder
 
 case object UsernameValidationProcess {
   private val logger = LoggerFactory.getLogger(getClass)
@@ -54,13 +55,10 @@ case object UsernameValidationProcess {
     val parameters = List(SqlParameter("String", username))
     
     readDBJsonOptional(adminQuery, parameters).map(_.nonEmpty)
-  }
-  /**
+  }  /**
    * 检查用户表中是否已存在该用户名
    */
   private def checkUserNameExists(username: String)(using PlanContext): IO[Boolean] = {
-    val queryPlanner = QueryIDByUserNameMessagePlanner(username, summon[PlanContext])
-    
-    queryPlanner.plan.map(_ => true).handleError(_ => false)
+    QueryIDByUserNameMessage(username).send.map(_ => true).handleError(_ => false)
   }
 }

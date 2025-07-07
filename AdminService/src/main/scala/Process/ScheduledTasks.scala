@@ -6,11 +6,13 @@ import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import cats.effect.{IO, Resource}
 import cats.syntax.functor._
+import cats.implicits._
 import fs2.Stream
 import org.slf4j.LoggerFactory
 import java.util.UUID
 import scala.concurrent.duration._
 import APIs.UserService.{GetAllUserIDsMessage, GetUserInfoMessage, ModifyUserStatusMessage}
+import io.circe.generic.auto.deriveEncoder
 
 object ScheduledTasks {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
