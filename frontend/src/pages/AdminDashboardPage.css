@@ -526,8 +526,8 @@
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: none; /* 取消最大高度限制 */
+  overflow-y: visible; /* 取消竖向滚动 */
   transform: translateY(0);
   animation: zoomIn 0.3s ease-out;
   position: relative;
@@ -884,9 +884,9 @@
   text-align: center;
 }
 
-/* 交易记录相关样式 */
+/* 交易记录模态框 */
 .transaction-modal {
-  max-width: 800px;
+  max-width: 1000px;
   width: 95%;
 }
 
@@ -996,13 +996,13 @@
 /* 交易记录表格样式 */
 .admin-transaction-table {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible; /* 取消横向滚动 */
 }
 
 .admin-transaction-table table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px; /* 交易记录表格最小宽度 */
+  table-layout: fixed; /* 固定表格布局 */
 }
 
 .admin-transaction-table th {
@@ -1029,30 +1029,30 @@
 /* 交易记录表格特定列的宽度控制 */
 .admin-transaction-table th:nth-child(1), /* 交易ID */
 .admin-transaction-table td:nth-child(1) {
-  width: 120px;
+  width: 15%;
   font-family: monospace;
 }
 
 .admin-transaction-table th:nth-child(2), /* 类型 */
 .admin-transaction-table td:nth-child(2) {
-  width: 70px;
+  width: 15%;
 }
 
 .admin-transaction-table th:nth-child(3), /* 金额 */
 .admin-transaction-table td:nth-child(3) {
-  width: 120px;
+  width: 20%;
 }
 
 .admin-transaction-table th:nth-child(4), /* 原因 */
 .admin-transaction-table td:nth-child(4) {
-  width: 70px;
+  width: 30%;
   text-align: left; /* 原因列左对齐 */
   word-wrap: break-word;
 }
 
 .admin-transaction-table th:nth-child(5), /* 时间 */
 .admin-transaction-table td:nth-child(5) {
-  width: 130px;
+  width: 20%;
 }
 
 /* 交易类型标签样式 */

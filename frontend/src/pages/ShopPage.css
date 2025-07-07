@@ -1,7 +1,7 @@
 /* 商店页面样式 */
 .shop-page {
 	min-height: 100vh;
-	background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
 	color: white;
 	position: relative;
 	overflow-x: hidden;
@@ -14,9 +14,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-		radial-gradient(circle at 80% 20%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
-		radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+	background: radial-gradient(circle at 40% 40%, rgba(127, 140, 141, 0.2) 0%, transparent 50%);
 	pointer-events: none;
 }
 
@@ -231,7 +229,7 @@
 }
 
 .recharge-btn {
-	background: rgba(53, 153, 220, 0.8);
+	background: rgba(149, 165, 166, 0.8);
 	color: white;
 	border: none;
 	padding: 12px 30px;
@@ -252,7 +250,7 @@
 	left: -2px;
 	right: -2px;
 	bottom: -2px;
-	background: linear-gradient(90deg, #4facfe, #00f2fe, #4facfe);
+	background: linear-gradient(90deg, #95a5a6, #bdc3c7, #95a5a6);
 	background-size: 200% 100%;
 	border-radius: 27px;
 	z-index: -1;
@@ -260,14 +258,14 @@
 }
 
 .recharge-btn:hover {
-	background: rgba(88, 166, 222, 0.9);
+	background: rgba(189, 195, 199, 0.9);
 	transform: translateY(-2px);
-	box-shadow: 0 8px 15px rgba(79, 172, 254, 0.4);
+	box-shadow: 0 8px 15px rgba(149, 165, 166, 0.4);
 }
 
 .recharge-btn:hover::before {
 	animation-duration: 1.5s;
-	box-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+	box-shadow: 0 0 15px rgba(189, 195, 199, 0.6);
 }
 
 /* 购买须知区域 */
@@ -298,4 +296,111 @@
 	margin-bottom: 15px;
 	color: rgba(255, 255, 255, 0.8);
 	line-height: 1.5;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+	.page-header {
+		flex-direction: column;
+		gap: 20px;
+		padding: 20px;
+		text-align: center;
+	}
+	
+	.shop-page .page-header h1 {
+		position: static;
+		transform: none;
+		margin: 0;
+	}
+	
+	.user-currency-header {
+		order: 2;
+	}
+	
+	.back-btn {
+		order: -1;
+		align-self: flex-start;
+	}
+}
+
+@media (max-width: 768px) {
+	.shop-main {
+		padding: 20px;
+	}
+	
+	.shop-banner {
+		padding: 30px 20px;
+	}
+	
+	.banner-title {
+		font-size: 2rem;
+	}
+	
+	.banner-subtitle {
+		font-size: 1.1rem;
+	}
+	
+	.options-grid {
+		grid-template-columns: 1fr;
+		gap: 20px;
+	}
+	
+	.recharge-card {
+		padding: 25px;
+	}
+	
+	.crystal-amount .amount {
+		font-size: 2rem;
+	}
+	
+	.price-amount {
+		font-size: 1.5rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.page-header {
+		padding: 15px;
+	}
+	
+	.shop-page .page-header h1 {
+		font-size: 1.8rem;
+	}
+	
+	.shop-main {
+		padding: 15px;
+	}
+	
+	.shop-banner {
+		padding: 25px 15px;
+	}
+	
+	.banner-title {
+		font-size: 1.8rem;
+	}
+	
+	.banner-subtitle {
+		font-size: 1rem;
+	}
+	
+	.recharge-card {
+		padding: 20px;
+	}
+	
+	.crystal-image {
+		width: 60px;
+		height: 60px;
+	}
+	
+	.crystal-amount .amount {
+		font-size: 1.8rem;
+	}
+	
+	.crystal-amount .label {
+		font-size: 1rem;
+	}
+	
+	.price-amount {
+		font-size: 1.3rem;
+	}
 }

@@ -82,9 +82,9 @@
 }
 
 .tab-btn.active {
-	background: linear-gradient(45deg, #4facfe, #00f2fe);
+	background: linear-gradient(45deg, #2c3e50, #34495e);
 	transform: translateY(-2px);
-	box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+	box-shadow: 0 10px 20px rgba(44, 62, 80, 0.3);
 }
 
 .tab-btn:hover:not(.active) {
@@ -327,7 +327,7 @@ deck-section h2 {
 }
 
 .deck-btn.recommend {
-	background: linear-gradient(45deg, #27ae60, #2ecc71);
+	background: linear-gradient(45deg, #5a6c7d, #708090);
 }
 
 .deck-btn.clear {
@@ -820,11 +820,11 @@ deck-section h2 {
 }
 
 .deck-btn.confirm {
-	background: linear-gradient(45deg, #56ccf2, #2f80ed);
+	background: linear-gradient(45deg, #184769, #142d44);
 }
 
 .deck-btn.cancel {
-	background: linear-gradient(45deg, #f093fb, #f5576c);
+	background: linear-gradient(45deg, #8c9ba8, #a0a8b0);
 }
 
 .select-mode-tip {
