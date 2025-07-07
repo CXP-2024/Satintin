@@ -177,10 +177,10 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 		};
 
 		// 如果是特殊防御类型，需要设置defenseType
-		if (objectName === 'ObjectDefense') {
-			passiveAction.defenseType = 'ObjectDefense';
-		} else if (objectName === 'ActionDefense') {
-			passiveAction.defenseType = 'ActionDefense';
+		if (objectName === 'object_defense') {
+			passiveAction.defenseType = 'object_defense';
+		} else if (objectName === 'action_defense') {
+			passiveAction.defenseType = 'action_defense';
 		}
 
 		set({ selectedAction: passiveAction });
@@ -195,13 +195,13 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 			const passiveAction = selectedAction as PassiveAction;
 
 			// ObjectDefense只能选择一个目标
-			if (passiveAction.defenseType === 'ObjectDefense') {
+			if (passiveAction.defenseType === 'object_defense') {
 				set({ selectedObjectDefenseTarget: attackName });
 				return;
 			}
 
 			// ActionDefense可以选择多个，包括相同的行动
-			if (passiveAction.defenseType === 'ActionDefense') {
+			if (passiveAction.defenseType === 'action_defense') {
 				const newActions = [...selectedActiveActions, attackName];
 				set({ selectedActiveActions: newActions });
 				return;
@@ -286,13 +286,13 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 			const passiveAction = selectedAction as PassiveAction;
 
 			// ObjectDefense必须选择目标
-			if (passiveAction.defenseType === 'ObjectDefense' && !selectedObjectDefenseTarget) {
+			if (passiveAction.defenseType === 'object_defense' && !selectedObjectDefenseTarget) {
 				console.error('❌ [BattleStore] ObjectDefense必须选择防御目标');
 				return;
 			}
 
 			// ActionDefense必须选择至少2个行动
-			if (passiveAction.defenseType === 'ActionDefense' && selectedActiveActions.length < 2) {
+			if (passiveAction.defenseType === 'action_defense' && selectedActiveActions.length < 2) {
 				console.error('❌ [BattleStore] ActionDefense必须选择至少2个行动');
 				return;
 			}
@@ -302,11 +302,11 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 				...passiveAction
 			};
 
-			if (passiveAction.defenseType === 'ObjectDefense' && selectedObjectDefenseTarget) {
+			if (passiveAction.defenseType === 'object_defense' && selectedObjectDefenseTarget) {
 				finalAction.targetObject = selectedObjectDefenseTarget;
 			}
 
-			if (passiveAction.defenseType === 'ActionDefense' && selectedActiveActions.length >= 2) {
+			if (passiveAction.defenseType === 'action_defense' && selectedActiveActions.length >= 2) {
 				finalAction.targetAction = selectedActiveActions;
 			}
 

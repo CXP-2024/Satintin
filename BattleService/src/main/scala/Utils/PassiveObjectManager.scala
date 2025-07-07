@@ -35,10 +35,10 @@ object PassiveObjectManager {
     
     // 如果是防御类型，直接创建临时对象
     defenseType match {
-      case Some("objectDefense") =>
+      case Some("object_defense") =>
         IO.pure(createObjectDefenseTemporarily(objectName, targetObject))
       
-      case Some("actionDefense") =>
+      case Some("action_defense") =>
         IO.pure(createActionDefenseTemporarily(objectName, targetAction))
       
       case _ =>
@@ -183,28 +183,6 @@ object PassiveObjectManager {
     } yield passiveAction
   }
 
-  /**
-   * 解析攻击类型字符串
-   */
-  private def parseAttackTypes(attackTypesStr: String): Either[ObjectCreationError, Set[AttackType]] = {
-    if (attackTypesStr.isEmpty) {
-      Left(MissingRequiredFieldError("AttackTypeDefense", "targetAttackTypes"))
-    } else {
-      try {
-        val typeStrings = attackTypesStr.split(",").map(_.trim.toLowerCase)
-        val attackTypes = typeStrings.map {
-          case "normal" => AttackType.Normal
-          case "penetration" => AttackType.Penetration
-          case "antiair" => AttackType.AntiAir
-          case "nuclear" => AttackType.Nuclear
-          case other => return Left(InvalidObjectTypeError(other, "AttackType"))
-        }.toSet
-        Right(attackTypes)
-      } catch {
-        case e: Exception => Left(InvalidObjectTypeError(attackTypesStr, "AttackTypes"))
-      }
-    }
-  }
 
   /**
    * 类型安全的BaseClass构造器
@@ -237,4 +215,26 @@ object PassiveObjectManager {
   // 序列化器
   given passiveObjectRecordEncoder: Encoder[PassiveObjectRecord] = deriveEncoder
   given passiveObjectRecordDecoder: Decoder[PassiveObjectRecord] = deriveDecoder
+
+  private def parseAttackTypes(attackTypesStr: String): Either[ObjectCreationError, Set[AttackType]] = {
+    if (attackTypesStr.isEmpty) {
+      Left(MissingRequiredFieldError("AttackTypeDefense", "targetAttackTypes"))
+    } else {
+      try {
+        val typeStrings = attackTypesStr.split(",").map(_.trim.toLowerCase)
+        val attackTypes = typeStrings.map {
+          case "normal" => AttackType.Normal
+          case "penetration" => AttackType.Penetration
+          case "antiair" => AttackType.AntiAir
+          case "nuclear" => AttackType.Nuclear
+          case other => return Left(InvalidObjectTypeError(other, "AttackType"))
+        }
+        
+        // 修复：创建明确类型的新集合
+        Right(Set[AttackType]() ++ attackTypes)
+      } catch {
+        case e: Exception => Left(InvalidObjectTypeError(attackTypesStr, "AttackTypes"))
+      }
+    }
+  }
 }

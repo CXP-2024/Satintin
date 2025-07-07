@@ -4,13 +4,13 @@ import { ServiceConfig } from 'Globals/ServiceConfig'
 export type AttackObjectName = 'Sa' | 'Tin' | 'NanMan' | 'DaShan' | 'WanJian' | 'Nuclear';
 
 // 基础对象类型
-export type BasicObjectName = 'Cake' | 'Pouch' | 'BasicShield' | 'BasicDefense' | 'ObjectDefense' | 'ActionDefense';
+export type BasicObjectName = 'Cake' | 'Pouch' | 'BasicShield' | 'BasicDefense' | 'object_defense' | 'action_defense';
 
 // 被动行动接口
 export interface PassiveAction {
 	actionCategory: 'passive';
 	objectName: BasicObjectName;
-	defenseType?: 'ObjectDefense' | 'ActionDefense';
+	defenseType?: 'object_defense' | 'action_defense';
 	targetObject?: AttackObjectName; // 用于ObjectDefense
 	targetAction?: AttackObjectName[]; // 用于ActionDefense
 }

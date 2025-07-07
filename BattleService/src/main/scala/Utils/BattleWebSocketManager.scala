@@ -145,6 +145,24 @@ class BattleWebSocketManager(roomId: String) {
       }
     }
   }
+  
+  /**
+   * Parse and record a player action from frontend JSON
+   */
+  def parseAndRecordPlayerAction(playerId: String, jsonStr: String)(using PlanContext): IO[Unit] = {
+    for {
+      // 使用BattleActionManager解析前端动作
+      actionResult <- BattleActionManager.parseActionJson(jsonStr)
+      _ <- actionResult match {
+        case Right(action) => 
+          logger.info(s"Successfully parsed action for player $playerId in room $roomId")
+          recordPlayerAction(playerId, action)
+        case Left(error) => 
+          logger.error(s"Failed to parse action for player $playerId in room $roomId: ${error.getMessage}")
+          IO.raiseError(error)
+      }
+    } yield ()
+  }
 
   /**
    * Set a player as ready

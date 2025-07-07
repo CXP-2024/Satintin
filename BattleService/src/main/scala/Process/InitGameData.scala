@@ -24,21 +24,21 @@ object InitGameData {
   private def initActiveObjects(using PlanContext): IO[Unit] = {
     val activeObjects = List(
       // 撒类
-      ("sa", "sa", "normal", 1, 0, 1, "基础撒"),
+      ("Sa", "sa", "normal", 1, 0, 1, "基础撒"),
       
       // Tin类
-      ("tin", "tin", "normal", 1, 0, 1, "基础tin"),
+      ("Tin", "tin", "normal", 1, 0, 1, "基础tin"),
       
       // 穿透类
-      ("nan_man", "penetration", "penetration", 3, 0, 3, "基础穿透"),
-      ("da_shan", "penetration", "penetration", 4, 0, 4, "强力穿透"),
+      ("NanMan", "penetration", "penetration", 3, 0, 3, "基础穿透"),
+      ("DaShan", "penetration", "penetration", 4, 0, 4, "强力穿透"),
       
       // 防弹类
-      ("arrows", "antiair", "antiair", 2, 1, 2, "基础防弹"),
+      ("WanJian", "antiair", "antiair", 2, 1, 2, "基础防弹"),
 
       
       // 核爆类
-      ("nuclear", "nuclear", "nuclear", 5, 0, 6, "强力核爆")
+      ("Nuclear", "nuclear", "nuclear", 5, 0, 6, "强力核爆")
     )
 
     activeObjects.traverse { case (name, baseClass, attackType, damage, defense, energyCost, description) =>
@@ -66,14 +66,14 @@ object InitGameData {
   private def initPassiveObjects(using PlanContext): IO[Unit] = {
     val passiveObjects = List(
       // 饼类
-      ("cake", "cake", "cake", 1, 1.0, 1.0, "", "基础饼"),
-      ("nang", "cake", "cake", 2, 2.0, 1.0, "", "囊"),
+      ("Cake", "cake", "cake", 1, 1.0, 1.0, "", "基础饼"),
+      ("Pouch", "cake", "cake", 2, 2.0, 1.0, "", "囊"),
       
       // 盾类
-      ("shield", "shield", "shield", 0, 1.0, 1.0, "", "基础盾"),
+      ("BasicShield", "shield", "shield", 0, 1.0, 1.0, "", "基础盾"),
 
       // 攻击类型防御
-      ("basic_defense", "attack_type_defense", "type_defense", 0, 1.0, 1.0, "normal,antiair", "基础攻击防御")
+      ("BasicDefense", "attack_type_defense", "type_defense", 0, 1.0, 1.0, "normal,antiair", "基础攻击防御")
     )
 
     passiveObjects.traverse { case (name, objectType, baseClass, energyGain, damageMultiplier, shieldMultiplier, targetAttackTypes, description) =>
