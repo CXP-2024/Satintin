@@ -43,26 +43,38 @@ object ActiveVsActiveResolver {
     
     logger.info(s"伤害计算结果: P1受到${p1Damage}伤害, P2受到${p2Damage}伤害")
     
-    val p1After = p1AfterEnergy.takeDamage(p1Damage)
-    val p2After = p2AfterEnergy.takeDamage(p2Damage)
+    val p1After = p1AfterEnergy.copy(health = p1AfterEnergy.health - p1Damage)
+    val p2After = p2AfterEnergy.copy(health = p2AfterEnergy.health - p2Damage)
     
     // 如果有人扣血，双方能量清零
     val (p1Final, p2Final) = if (p1Damage > 0 || p2Damage > 0) {
       logger.info("有人扣血，双方能量清零")
-      (p1After.clearEnergy(), p2After.clearEnergy())
+      (p1After.copy(energy = 0), p2After.copy(energy = 0))
     } else {
       (p1After, p2After)
     }
     
+    val actionRight1 = Right(active1)
+    val actionRight2 = Right(active2)
+    
+    val battleAction1 = BattleAction(actionRight1, player1.playerId, System.currentTimeMillis())
+    val battleAction2 = BattleAction(actionRight2, player2.playerId, System.currentTimeMillis())
+    
     val result = RoundResult(
-      roundNumber = roundNumber,
-      player1Action = Some(Right(active1)),
-      player2Action = Some(Right(active2)),
-      player1DamageTaken = p1Damage,
-      player2DamageTaken = p2Damage,
-      player1EnergyChange = p1Final.energy - player1.energy,
-      player2EnergyChange = p2Final.energy - player2.energy,
-      explosionOccurred = false
+      round = roundNumber,
+      player1Action = battleAction1,
+      player2Action = battleAction2,
+      results = io.circe.Json.obj(
+        "player1" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(-p1Damage),
+          "energyChange" -> io.circe.Json.fromInt(p1Final.energy - player1.energy)
+        ),
+        "player2" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(-p2Damage),
+          "energyChange" -> io.circe.Json.fromInt(p2Final.energy - player2.energy)
+        )
+      ),
+      cardEffects = List()
     )
     
     (p1Final, p2Final, result)

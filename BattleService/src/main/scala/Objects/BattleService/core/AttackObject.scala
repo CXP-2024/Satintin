@@ -25,7 +25,7 @@ import scala.util.Try
  * @param baseClass 基础类别
  * @param description 对象描述
  */
-case class AttackObject(
+case class AttackObject( 
   objectName: String,
   attackType: AttackType,
   damage: Int,

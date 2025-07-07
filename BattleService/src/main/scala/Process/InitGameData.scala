@@ -66,11 +66,11 @@ object InitGameData {
   private def initPassiveObjects(using PlanContext): IO[Unit] = {
     val passiveObjects = List(
       // 饼类
-      ("cake", "cake", "cake", 1, 1.0, 1.0, null, "基础饼"),
-      ("nang", "cake", "cake", 2, 2.0, 1.0, null, "囊"),
+      ("cake", "cake", "cake", 1, 1.0, 1.0, "", "基础饼"),
+      ("nang", "cake", "cake", 2, 2.0, 1.0, "", "囊"),
       
       // 盾类
-      ("shield", "shield", "shield", 0, 1.0, 1.0, null, "基础盾"),
+      ("shield", "shield", "shield", 0, 1.0, 1.0, "", "基础盾"),
 
       // 攻击类型防御
       ("basic_defense", "attack_type_defense", "type_defense", 0, 1.0, 1.0, "normal,antiair", "基础攻击防御")

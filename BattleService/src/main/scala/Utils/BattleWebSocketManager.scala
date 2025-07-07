@@ -21,7 +21,9 @@ import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration.*
 import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
 import Common.Object.SqlParameter
+import Utils.gamecore.BattleResolver
 import ch.qos.logback.core.pattern.Converter
+import Objects.BattleService.PlayerStatus  // 保留这个导入用于数据库转换
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -219,24 +221,36 @@ class BattleWebSocketManager(roomId: String) {
 
     for {
       // Save current state before processing
-      stateBeforeBattle <- IO(gameState)
+      stateBeforeBattleOpt <- IO(gameState)
       
-      // Process actions using PlayerActionProcess
-      result <- PlayerActionProcess.processSimultaneousActions(
-        roomId,
-        player1Id, action1.`type`, None,
-        player2Id, action2.`type`, None
-      )
-
-      // Update game state
-      _ <- updateGameStateAfterAction(result)
-
-      // Create round result message based on actual state changes
-      roundResult <- createRoundResultFromStateChanges(action1, action2, stateBeforeBattle)
-
-      // Broadcast round result
-      _ <- IO(broadcast(WebSocketMessage("round_result", roundResult.asJson)))
-
+      // Make sure we have a game state before proceeding
+      _ <- if (stateBeforeBattleOpt.isEmpty) {
+        IO(logger.error(s"No game state available in room $roomId before processing actions"))
+      } else IO.unit
+      
+      // Process actions using BattleResolver, unwrap Option
+      result <- stateBeforeBattleOpt match {
+        case Some(stateBeforeBattle) =>
+          // Process actions using the new BattleResolver that returns (GameState, RoundResult)
+          val (updatedGameState, roundResult) = BattleResolver.resolveBattle(
+            stateBeforeBattle,
+            action1,
+            action2
+          )
+          
+          // Update the game state
+          IO {
+            gameState = Some(updatedGameState)
+            // Broadcast updated game state
+            broadcast(WebSocketMessage("game_state", updatedGameState.asJson))
+            // Broadcast round result
+            broadcast(WebSocketMessage("round_result", roundResult.asJson))
+          }
+          
+        case None =>
+          IO(logger.error("Cannot process actions: game state is not initialized"))
+      }
+      
       // Check if game is over
       _ <- checkGameOver
     } yield ()
@@ -267,8 +281,8 @@ class BattleWebSocketManager(roomId: String) {
             val player2StatusJson = decodeField[String](battleStateJson, "player_two_status")
             val currentRound = decodeField[Int](battleStateJson, "current_round")
             
-            val player1Status = decodeType[Objects.BattleService.PlayerStatus](player1StatusJson)
-            val player2Status = decodeType[Objects.BattleService.PlayerStatus](player2StatusJson)
+            val player1Status = decodeType[PlayerStatus](player1StatusJson)
+            val player2Status = decodeType[PlayerStatus](player2StatusJson)
             
             // Update game state with new player data
             gameState.foreach { state =>

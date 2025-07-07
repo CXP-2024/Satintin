@@ -31,15 +31,25 @@ object PassiveVsPassiveResolver {
     val p1After = player1.copy(energy = math.max(0, player1.energy + p1EnergyChange))
     val p2After = player2.copy(energy = math.max(0, player2.energy + p2EnergyChange))
     
+    // 创建BattleAction对象
+    val player1Action = BattleAction(Left(passive1), player1.playerId, System.currentTimeMillis())
+    val player2Action = BattleAction(Left(passive2), player2.playerId, System.currentTimeMillis())
+    
     val result = RoundResult(
-      roundNumber = roundNumber,
-      player1Action = Some(Left(passive1)),
-      player2Action = Some(Left(passive2)),
-      player1DamageTaken = 0,
-      player2DamageTaken = 0,
-      player1EnergyChange = p1EnergyChange,
-      player2EnergyChange = p2EnergyChange,
-      explosionOccurred = false
+      round = roundNumber,
+      player1Action = player1Action,
+      player2Action = player2Action,
+      results = io.circe.Json.obj(
+        "player1" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(0),
+          "energyChange" -> io.circe.Json.fromInt(p1EnergyChange)
+        ),
+        "player2" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(0),
+          "energyChange" -> io.circe.Json.fromInt(p2EnergyChange)
+        )
+      ),
+      cardEffects = List()
     )
     
     (p1After, p2After, result)

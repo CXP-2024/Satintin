@@ -58,26 +58,45 @@ object ActiveVsPassiveResolver {
       (passiveEnergyChange, activeEnergyChange)
     }
     
-    val p1After = player1.takeDamage(p1Damage).copy(energy = math.max(0, player1.energy + p1EnergyChange))
-    val p2After = player2.takeDamage(p2Damage).copy(energy = math.max(0, player2.energy + p2EnergyChange))
+    val p1After = player1.copy(health = player1.health - p1Damage, energy = math.max(0, player1.energy + p1EnergyChange))
+    val p2After = player2.copy(health = player2.health - p2Damage, energy = math.max(0, player2.energy + p2EnergyChange))
     
     // 如果有人扣血，双方能量清零
     val (p1Final, p2Final) = if (p1Damage > 0 || p2Damage > 0) {
       logger.info("有人扣血，双方能量清零")
-      (p1After.clearEnergy(), p2After.clearEnergy())
+      (p1After.copy(energy = 0), p2After.copy(energy = 0))
     } else {
       (p1After, p2After)
     }
     
+    // 创建BattleAction对象
+    val player1Action = if (isPlayer1Active) {
+      BattleAction(Right(active), player1.playerId, System.currentTimeMillis())
+    } else {
+      BattleAction(Left(passive), player1.playerId, System.currentTimeMillis())
+    }
+    
+    val player2Action = if (isPlayer1Active) {
+      BattleAction(Left(passive), player2.playerId, System.currentTimeMillis())
+    } else {
+      BattleAction(Right(active), player2.playerId, System.currentTimeMillis())
+    }
+    
     val result = RoundResult(
-      roundNumber = roundNumber,
-      player1Action = if (isPlayer1Active) Some(Right(active)) else Some(Left(passive)),
-      player2Action = if (isPlayer1Active) Some(Left(passive)) else Some(Right(active)),
-      player1DamageTaken = p1Damage,
-      player2DamageTaken = p2Damage,
-      player1EnergyChange = p1Final.energy - player1.energy,
-      player2EnergyChange = p2Final.energy - player2.energy,
-      explosionOccurred = false
+      round = roundNumber,
+      player1Action = player1Action,
+      player2Action = player2Action,
+      results = io.circe.Json.obj(
+        "player1" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(-p1Damage),
+          "energyChange" -> io.circe.Json.fromInt(p1Final.energy - player1.energy)
+        ),
+        "player2" -> io.circe.Json.obj(
+          "healthChange" -> io.circe.Json.fromInt(-p2Damage),
+          "energyChange" -> io.circe.Json.fromInt(p2Final.energy - player2.energy)
+        )
+      ),
+      cardEffects = List()
     )
     
     (p1Final, p2Final, result)

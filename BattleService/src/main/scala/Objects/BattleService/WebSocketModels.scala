@@ -1,7 +1,9 @@
 package Objects.BattleService
 
+import Objects.BattleService.core._
 import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax._
 import org.joda.time.DateTime
 
 /**
@@ -12,12 +14,35 @@ import org.joda.time.DateTime
  * Battle action (饼、防、撒)
  */
 case class BattleAction(
-  `type`: String,  // "cake" (饼), "defense" (防), "spray" (撒)
+  Action: Either[PassiveAction, ActiveAction],
   playerId: String,
   timestamp: Long
 )
 
 object BattleAction {
+  // 为 Either[PassiveAction, ActiveAction] 创建编码器
+  implicit val eitherActionEncoder: Encoder[Either[PassiveAction, ActiveAction]] = {
+    Encoder.instance {
+      case Left(passive) => Json.obj("isLeft" -> Json.True, "value" -> passive.asJson)
+      case Right(active) => Json.obj("isLeft" -> Json.False, "value" -> active.asJson)
+    }
+  }
+
+  // 为 Either[PassiveAction, ActiveAction] 创建解码器
+  implicit val eitherActionDecoder: Decoder[Either[PassiveAction, ActiveAction]] = {
+    Decoder.instance { cursor =>
+      cursor.downField("isLeft").as[Boolean].flatMap { isLeft =>
+        val valueCursor = cursor.downField("value")
+        if (isLeft) {
+          valueCursor.as[PassiveAction].map(Left(_))
+        } else {
+          valueCursor.as[ActiveAction].map(Right(_))
+        }
+      }
+    }
+  }
+
+  // 现在可以使用这些编码器和解码器来派生BattleAction的编码器和解码器
   implicit val encoder: Encoder[BattleAction] = deriveEncoder
   implicit val decoder: Decoder[BattleAction] = deriveDecoder
 }
@@ -52,8 +77,25 @@ case class PlayerState(
   currentAction: Option[BattleAction] = None, // 当前采取的行动
   isConnected: Boolean = true,  // 是否在线
   remainingTime: Int = 60, // 剩余时间（秒）, 默认30秒, 采取行动之后时间暂停
-  hasActed: Boolean = false, // 是否已经采取行动
-)
+  hasActed: Boolean = false // 是否已经采取行动
+) {
+  // 必要的辅助方法
+  
+  // 处理受到伤害
+  def takeDamage(damage: Int): PlayerState = copy(health = health - damage)
+  
+  // 清空能量
+  def clearEnergy(): PlayerState = copy(energy = 0)
+  
+  // 检查是否会爆点
+  def wouldExplode: Boolean = currentAction match {
+    case Some(BattleAction(Right(activeAction), _, _)) => energy < activeAction.getTotalEnergyCost
+    case _ => false
+  }
+  
+  // 清除行动
+  def clearAction(): PlayerState = copy(currentAction = None)
+}
 
 object PlayerState {
   implicit val encoder: Encoder[PlayerState] = deriveEncoder
@@ -66,11 +108,25 @@ object PlayerState {
 case class GameState(
   roomId: String,
   player1: PlayerState,
-  player2: PlayerState, // add remaining time for each player
+  player2: PlayerState,
   currentRound: Int,
   roundPhase: String,  // "waiting", "action", "result", "finished"
   winner: Option[String] = None
-)
+) {
+  // 获取指定玩家
+  def getPlayer(playerId: String): Option[PlayerState] = {
+    if (player1.playerId == playerId) Some(player1)
+    else if (player2.playerId == playerId) Some(player2)
+    else None
+  }
+  
+  // 更新玩家状态
+  def updatePlayer(playerId: String, newState: PlayerState): GameState = {
+    if (player1.playerId == playerId) copy(player1 = newState)
+    else if (player2.playerId == playerId) copy(player2 = newState)
+    else this
+  }
+}
 
 object GameState {
   implicit val encoder: Encoder[GameState] = deriveEncoder

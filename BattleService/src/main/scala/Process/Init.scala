@@ -97,8 +97,8 @@ object Init {
        * base_class: 基础属性类别
        * energy_gain: 能量获取量
        * damage_multiplier: 伤害倍率
-       * target_class: 目标属性类别
-       * target_action: 目标行为
+       * shield_multiplier: 盾反射伤害倍率
+       * target_attack_types: 目标攻击类型（逗号分隔的列表）
        * description: 对象描述
        * created_time: 创建时间
        */
@@ -111,8 +111,8 @@ object Init {
             base_class VARCHAR NOT NULL,
             energy_gain INT DEFAULT 0,
             damage_multiplier DECIMAL(3,2) DEFAULT 1.0,
-            target_class VARCHAR DEFAULT NULL,
-            target_action VARCHAR DEFAULT NULL,
+            shield_multiplier DECIMAL(3,2) DEFAULT 1.0,
+            target_attack_types VARCHAR DEFAULT NULL,
             description TEXT,
             created_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
