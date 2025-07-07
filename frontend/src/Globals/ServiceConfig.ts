@@ -5,9 +5,9 @@
 
 export class ServiceConfig {
 	// 基础主机地址
-	// private static readonly HOST = '127.0.0.1';
+	private static readonly HOST = '127.0.0.1';
 	// private static readonly HOST = '59.66.18.59';
-	private static readonly HOST = '192.168.3.25'; // 本地测试地址
+	// private static readonly HOST = '192.168.3.25'; // 本地测试地址
 
 	// 各服务端口配置
 	private static readonly PORTS = {
