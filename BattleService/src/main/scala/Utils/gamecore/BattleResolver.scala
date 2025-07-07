@@ -122,7 +122,8 @@ object BattleResolver {
         winner = winner
       )
     } else {
-      gameState
+      gameState.copy(player1 = player1.copy(currentAction = None, remainingTime = 60, hasActed = false),
+                     player2 = player2.copy(currentAction = None, remainingTime = 60, hasActed = false)) // 继续游戏，
     }
   }
 }

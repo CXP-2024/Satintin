@@ -127,7 +127,7 @@ const ActionSelector: React.FC = () => {
 	// 特殊防御行动配置
 	const specialDefenseActions = [
 		{
-			type: 'ObjectDefense' as BasicObjectName,
+			type: 'object_defense' as BasicObjectName,
 			icon: '🎯',
 			name: '对象防御',
 			description: '防御指定的一种攻击类型',
@@ -135,7 +135,7 @@ const ActionSelector: React.FC = () => {
 			requirements: '需选择防御目标'
 		},
 		{
-			type: 'ActionDefense' as BasicObjectName,
+			type: 'action_defense' as BasicObjectName,
 			icon: '🌀',
 			name: '行动防御',
 			description: '防御多种攻击组合',
@@ -184,12 +184,12 @@ const ActionSelector: React.FC = () => {
 		if (selectedAction.actionCategory === 'passive') {
 			const passiveAction = selectedAction;
 
-			// ObjectDefense必须选择目标
+			// object_defense必须选择目标
 			if (passiveAction.defenseType === 'object_defense') {
 				return selectedObjectDefenseTarget !== null;
 			}
 
-			// ActionDefense必须选择至少2个行动
+			// action_defense必须选择至少2个行动
 			if (passiveAction.defenseType === 'action_defense') {
 				return selectedActiveActions.length >= 2;
 			}
@@ -226,7 +226,7 @@ const ActionSelector: React.FC = () => {
 		removeActiveAction(actionType);
 	};
 
-	// 选择ObjectDefense目标
+	// 选择object_defense目标
 	const handleSelectObjectDefenseTarget = (target: AttackObjectName) => {
 		if (isActionSubmitted) return;
 
@@ -420,7 +420,7 @@ const ActionSelector: React.FC = () => {
 					<div className="actions-grid horizontal">
 						{specialDefenseActions.map((action) => {
 							const isSelected = selectedAction?.actionCategory === 'passive' &&
-								selectedAction.defenseType === action.type.replace('Defense', 'Defense');
+								selectedAction.defenseType === action.type;
 							const isDisabled = isActionDisabled('special');
 
 							return (

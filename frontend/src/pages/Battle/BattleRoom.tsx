@@ -45,7 +45,6 @@ const BattleRoom: React.FC = () => {
 				setRoomStatus('waiting');
 				// 设置事件监听器
 				console.log('🔌 [BattleRoom] 设置事件监听器');
-				webSocketHandles.updateBattleStore();
 				webSocketHandles.setupWebSocketListeners(setRoomStatus);
 				console.log('🎮 [BattleRoom] 事件监听器已设置');
 			} catch (error) {
