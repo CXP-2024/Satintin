@@ -107,7 +107,7 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
             // 使用PassiveObjectManager创建被动对象
             action <- PassiveObjectManager.createPassiveObjectSmart(
               objectName = objectName,
-              defenseType = Some("object_defense"),
+                     defenseType = Some("object_defense"),
               targetObject = targetObjectResult.toOption,
               targetAction = None
             ).flatMap {

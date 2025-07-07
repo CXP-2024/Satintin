@@ -177,9 +177,9 @@ export const useBattleStore = create<BattleState>((set, get) => ({
 		};
 
 		// 如果是特殊防御类型，需要设置defenseType
-		if (objectName === 'ObjectDefense') {
+		if (objectName === 'object_defense') {
 			passiveAction.defenseType = 'object_defense';
-		} else if (objectName === 'ActionDefense') {
+		} else if (objectName === 'action_defense') {
 			passiveAction.defenseType = 'action_defense';
 		}
 
