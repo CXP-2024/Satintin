@@ -1,6 +1,7 @@
 
 import { webSocketService, GameState, GameOverResult } from './WebSocketService';
-import { useBattleStore } from '../store/battleStore';
+import { useBattleGameStore } from '../store/battleGameStore';
+import { useBattleUIStore } from '../store/battleUIStore';
 
 export class WebSocketHandles {
 	private setRoomStatus: ((status: 'connecting' | 'waiting' | 'ready' | 'playing') => void) | null = null;
@@ -17,22 +18,23 @@ export class WebSocketHandles {
 	// 游戏状态更新处理器
 	handleGameStateUpdate = (gameState: GameState) => {
 		console.log('🎮 [WebSocketHandles] 收到游戏状态更新:', gameState);
-		useBattleStore.getState().setGameState(gameState);
+		useBattleGameStore.getState().setGameState(gameState);
 		this.updateRoomStatusFromGameState(gameState);
 	};
 
 	// 回合结果处理器
 	handleRoundResult = (result: any) => {
 		console.log('🎮 [WebSocketHandles] 收到回合结果:', result);
-		const { addRoundResult, showRoundResultModal } = useBattleStore.getState();
-		addRoundResult(result);
-		showRoundResultModal(result);
+		const gameStore = useBattleGameStore.getState();
+		const uiStore = useBattleUIStore.getState();
+		gameStore.addRoundResult(result);
+		uiStore.showRoundResultModal(result);
 	};
 
 	// 游戏结束处理器
 	handleGameOver = (result: GameOverResult) => {
 		console.log('🎮 [WebSocketHandles] 游戏结束:', result);
-		useBattleStore.getState().showGameOverModal(result);
+		useBattleUIStore.getState().showGameOverModal(result);
 	};
 
 	// 玩家加入处理器
@@ -52,13 +54,13 @@ export class WebSocketHandles {
 	// WebSocket错误处理器
 	handleWebSocketError = (error: any) => {
 		console.error('❌ [WebSocketHandles] WebSocket错误:', error);
-		useBattleStore.getState().setConnectionStatus(false, error.message);
+		useBattleGameStore.getState().setConnectionStatus(false, error.message);
 	};
 
 	// 连接失败处理器
 	handleConnectionFailed = () => {
 		console.error('❌ [WebSocketHandles] 连接失败');
-		useBattleStore.getState().setConnectionStatus(false, '连接断开，正在重试...');
+		useBattleGameStore.getState().setConnectionStatus(false, '连接断开，正在重试...');
 	};
 
 	// 根据游戏状态更新房间状态
