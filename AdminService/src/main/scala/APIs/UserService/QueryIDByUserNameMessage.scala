@@ -17,50 +17,45 @@ import scala.util.Try
 import org.joda.time.DateTime
 import java.util.UUID
 
-
 /**
- * LoginUserMessage
- * desc: 用户登录，通过身份证或手机号登录并生成Token
- * @param userName: String (用户的身份证号或手机号，用于唯一标识用户。)
- * @param password: String (用户密码的明文，用于登录验证。)
- * @return loginToken: String (用户登录后的Token，用于后续身份验证。)
+ * QueryIDByUserNameMessage
+ * desc: 根据用户名查询用户ID
+ * @param username: String (用户名)
+ * @return userID: String (用户的唯一标识ID，如果用户不存在则抛出异常)
  */
 
-case class LoginUserMessage(
-  userName: String,
-  password: String
+case class QueryIDByUserNameMessage(
+  username: String
 ) extends API[String](UserServiceCode)
 
 
 
-case object LoginUserMessage{
+case object QueryIDByUserNameMessage{
     
   import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
 
   // Circe 默认的 Encoder 和 Decoder
-  private val circeEncoder: Encoder[LoginUserMessage] = deriveEncoder
-  private val circeDecoder: Decoder[LoginUserMessage] = deriveDecoder
+  private val circeEncoder: Encoder[QueryIDByUserNameMessage] = deriveEncoder
+  private val circeDecoder: Decoder[QueryIDByUserNameMessage] = deriveDecoder
 
   // Jackson 对应的 Encoder 和 Decoder
-  private val jacksonEncoder: Encoder[LoginUserMessage] = Encoder.instance { currentObj =>
+  private val jacksonEncoder: Encoder[QueryIDByUserNameMessage] = Encoder.instance { currentObj =>
     Json.fromString(JacksonSerializeUtils.serialize(currentObj))
   }
 
-  private val jacksonDecoder: Decoder[LoginUserMessage] = Decoder.instance { cursor =>
-    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[LoginUserMessage]() {})) } 
+  private val jacksonDecoder: Decoder[QueryIDByUserNameMessage] = Decoder.instance { cursor =>
+    try { Right(JacksonSerializeUtils.deserialize(cursor.value.noSpaces, new TypeReference[QueryIDByUserNameMessage]() {})) } 
     catch { case e: Throwable => Left(io.circe.DecodingFailure(e.getMessage, cursor.history)) }
   }
   
   // Circe + Jackson 兜底的 Encoder
-  given loginUserMessageEncoder: Encoder[LoginUserMessage] = Encoder.instance { config =>
+  given queryIDByUserNameMessageEncoder: Encoder[QueryIDByUserNameMessage] = Encoder.instance { config =>
     Try(circeEncoder(config)).getOrElse(jacksonEncoder(config))
   }
 
   // Circe + Jackson 兜底的 Decoder
-  given loginUserMessageDecoder: Decoder[LoginUserMessage] = Decoder.instance { cursor =>
+  given queryIDByUserNameMessageDecoder: Decoder[QueryIDByUserNameMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
 
-
 }
-

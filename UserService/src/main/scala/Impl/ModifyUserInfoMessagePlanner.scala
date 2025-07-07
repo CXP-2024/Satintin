@@ -35,7 +35,6 @@ import Objects.UserService.FriendEntry
 import Utils.UserTokenValidator
 
 case class ModifyUserInfoMessagePlanner(
-    userToken: String,
     userID: String,
     keys: List[String],
     values: List[String],
@@ -49,17 +48,12 @@ case class ModifyUserInfoMessagePlanner(
       _ <- IO(logger.info(s"[Step 1] 校验输入参数"))
       _ <- validateInputParameters(keys, values)
 
-      // Step 2: 验证userToken并获取真实的userID
-      _ <- IO(logger.info(s"[Step 2] 验证用户Token: ${userToken}"))
-      actualUserID <- UserTokenValidator.getUserIDFromToken(userToken)
-      _ <- IO(logger.info(s"[Step 2] userToken验证成功，实际userID: ${actualUserID}"))
-
       // Step 3: 使用真实的userID更新用户信息（忽略传入的userID参数）
-      _ <- IO(logger.info(s"[Step 3] 更新用户信息，userID: ${actualUserID}"))
-      _ <- updateUserInfo(actualUserID, keys, values)
+      _ <- IO(logger.info(s"[Step 3] 更新用户信息，userID: ${userID}"))
+      _ <- updateUserInfo(userID, keys, values)
 
       // Step 4: 返回成功提示
-      _ <- IO(logger.info(s"用户ID: ${actualUserID} 信息修改成功！"))
+      _ <- IO(logger.info(s"用户ID: ${userID} 信息修改成功！"))
     } yield "修改成功！"
   }
 
