@@ -24,21 +24,21 @@ object InitGameData {
   private def initActiveObjects(using PlanContext): IO[Unit] = {
     val activeObjects = List(
       // 撒类
-      ("Sa", "sa", "normal", 1, 0, 1, "基础撒"),
+      ("Sa", "sa", "normal", 1, 5, 1, "基础撒"),
       
       // Tin类
-      ("Tin", "tin", "normal", 1, 0, 1, "基础tin"),
+      ("Tin", "tin", "normal", 3, 1, 1, "基础tin"),
       
       // 穿透类
-      ("NanMan", "penetration", "penetration", 3, 0, 3, "基础穿透"),
-      ("DaShan", "penetration", "penetration", 4, 0, 4, "强力穿透"),
+      ("NanMan", "penetration", "penetration", 3, 5, 3, "基础穿透"),
+      ("DaShan", "penetration", "penetration", 4, 5, 4, "强力穿透"),
       
       // 防弹类
-      ("WanJian", "antiair", "antiair", 2, 1, 2, "基础防弹"),
+      ("WanJian", "antiair", "antiair", 2, 5, 3, "基础防弹"),
 
       
       // 核爆类
-      ("Nuclear", "nuclear", "nuclear", 5, 0, 6, "强力核爆")
+      ("Nuclear", "nuclear", "nuclear", 5, 6, 5, "强力核爆")
     )
 
     activeObjects.traverse { case (name, baseClass, attackType, damage, defense, energyCost, description) =>
