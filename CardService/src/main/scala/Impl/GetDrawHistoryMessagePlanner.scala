@@ -26,13 +26,6 @@ case class GetDrawHistoryMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[List[DrawHistoryEntry]] = {
     for {
-      // Step 1: Validate user token
-      _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userID=${userID}"))
-      // validation to be completed 
-
-      // Step 2: Get user ID from token (using token directly as userID for consistency)
-      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userID}"))
-
       // Step 3: Query draw history from database
       _ <- IO(logger.info(s"[Step 3] 查询用户抽卡历史记录"))
       drawLogs <- readDBRows(

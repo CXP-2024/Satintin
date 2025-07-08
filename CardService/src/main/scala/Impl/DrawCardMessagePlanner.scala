@@ -30,11 +30,7 @@ case class DrawCardMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[DrawResult] = {
-    for {      // Step 1: Validate user token
-      _ <- IO(logger.info("[Step 1] 验证用户Token合法性"))
-      // validation to be completed
-
-      // Step 1.5: Validate poolType
+    for {    
       _ <- IO(logger.info("[Step 1.5] 验证卡池类型"))
       _ <- if (!List("featured", "standard").contains(poolType)) {
         IO.raiseError(new IllegalArgumentException(s"卡池类型无效，必须是 featured 或 standard，当前值: ${poolType}"))

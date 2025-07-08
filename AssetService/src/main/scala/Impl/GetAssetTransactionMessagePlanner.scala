@@ -23,12 +23,6 @@ case class GetAssetTransactionMessagePlanner(
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
     override def plan(using context: PlanContext): IO[String] = {
     for {
-      // Step 1: 使用Utils验证用户身份
-      _ <- IO(logger.info("[GetAssetTransactionMessagePlanner] 验证用户身份"))
-      // 这里应该实现真正的用户验证逻辑
-
-      // Step 2: 获取交易历史
-      _ <- IO(logger.info("[GetAssetTransactionMessagePlanner] 获取用户交易历史"))
       transactionHistory <- TransactionService.fetchTransactionHistory(userID)
       _ <- IO(logger.info(s"[GetAssetTransactionMessagePlanner] 交易历史获取成功，记录数: ${transactionHistory.length}"))
 
