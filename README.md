@@ -1,5 +1,5 @@
 # SaTinTin -- 在线双人卡牌行动对战游戏
-![SaTinTin](assets/satintin.png)
+![SaTinTin](Assets/satintin.png)
 
 ## 🛠️ 类型安全技术栈
 - **后端**: Scala
@@ -29,12 +29,12 @@ npm start
 ### 登录注册
 首先注册并登录账号
 
-<img src="assets/login.png" alt="login" width="50%">
+<img src="Assets/login.png" alt="login" width="50%">
 
 ### 游戏大厅
 登录后进入游戏大厅
 
-<img src="assets/gamehome.png" alt="Home" width="100%">
+<img src="Assets/gamehome.png" alt="Home" width="100%">
 
 ### 游戏准备
 1. 前往祈愿界面进行抽卡
@@ -128,4 +128,4 @@ npm start
 
 ## GameCore设计
 
-<img src="assets/gamecore.jpg" alt="login" width="100%">
+<img src="Assets/gamecore.jpg" alt="login" width="100%">
