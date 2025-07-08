@@ -13,11 +13,10 @@ import org.slf4j.LoggerFactory
 import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
-import Objects.BattleService.{BattleAction,  CardState, GameState, PlayerState, RoundResult}
+import Objects.BattleService.{BattleAction, CardState, GameOverResult, GameState, PlayerState, RoundResult}
 import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration.*
-
 import Utils.gamecore.BattleResolver
 
 
@@ -264,7 +263,47 @@ class BattleWebSocketManager(roomId: String) {
         case None =>
           IO(logger.error("Cannot process actions: game state is not initialized"))
       }
+
+      // Check if game is over
+      _ <- checkGameOver
     } yield ()
+  }
+
+
+  private def checkGameOver: IO[Unit] = {
+    IO {
+      // Check if any player's health is 0
+      gameState.foreach { state =>
+        if (state.player1.health <= 0 || state.player2.health <= 0) {
+          val winnerName = if (state.player1.health <= 0 ) {
+            state.player2.username
+          } else {
+            state.player1.username
+          }
+          val reason = "health_zero"
+
+          val gameOverResult = GameOverResult(
+            winner = winnerName,
+            reason = reason,
+            rewards = Some(Json.obj(
+              "stones" -> Json.fromInt(10),
+              "rankChange" -> Json.fromInt(5)
+            ))
+          )
+          // also update game state to finished
+          val updatedState = state.copy(
+            roundPhase = "finished",
+            winner = Some(winnerName)
+          )
+          gameState = Some(updatedState)
+          // Broadcast game over message
+          logger.info(s"Game over in room $roomId: Winner: ${gameOverResult.winner}, Reason: ${gameOverResult.reason}")
+
+          broadcast(WebSocketMessage("game_state", updatedState.asJson))
+          broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
+        }
+      }
+    }
   }
 
   // decide effect chance based on rarity
