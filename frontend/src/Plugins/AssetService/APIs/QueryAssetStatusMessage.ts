@@ -11,7 +11,7 @@ import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class QueryAssetStatusMessage extends TongWenMessage {
     constructor(
-        public  userID : string
+        public userID: string
     ) {
         super()
     }

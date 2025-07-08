@@ -29,7 +29,7 @@ import java.util.UUID
  */
 
 case class CreateAssetTransactionMessage(
-  : String,
+  userID : String,
   transactionType: String,
   changeAmount: Int,
   changeReason: String

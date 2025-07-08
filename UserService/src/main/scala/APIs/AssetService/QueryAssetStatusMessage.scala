@@ -26,7 +26,7 @@ import java.util.UUID
  */
 
 case class QueryAssetStatusMessage(
-  : String
+  userID : String
 ) extends API[Int](AssetServiceCode)
 
 

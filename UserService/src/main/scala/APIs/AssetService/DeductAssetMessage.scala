@@ -27,7 +27,7 @@ import java.util.UUID
  */
 
 case class DeductAssetMessage(
-  : String,
+  userID : String,
   deductAmount: Int
 ) extends API[String](AssetServiceCode)
 

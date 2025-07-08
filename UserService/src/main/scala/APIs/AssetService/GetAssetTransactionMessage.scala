@@ -26,7 +26,7 @@ import java.util.UUID
  */
 
 case class GetAssetTransactionMessage(
-  : String
+  userID : String
 ) extends API[String](AssetServiceCode)
 
 

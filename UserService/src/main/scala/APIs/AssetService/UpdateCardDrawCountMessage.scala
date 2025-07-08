@@ -28,7 +28,7 @@ import java.util.UUID
  */
 
 case class UpdateCardDrawCountMessage(
-  : String,
+  userID : String,
   poolType: String,
   drawCount: Int
 ) extends API[String](AssetServiceCode)

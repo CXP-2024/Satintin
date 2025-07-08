@@ -27,7 +27,7 @@ import java.util.UUID
  */
 
 case class ChargeAssetMessage(
-  : String,
+  userID : String,
   rewardAmount: Int
 ) extends API[String](AssetServiceCode)
 

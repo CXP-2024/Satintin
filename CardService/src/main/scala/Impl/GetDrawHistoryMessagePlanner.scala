@@ -57,7 +57,7 @@ case class GetDrawHistoryMessagePlanner(
           // Parse card list JSON - card IDs are stored as strings
           cardList <- IO.fromEither(parser.parse(cardListJson).flatMap(_.as[List[String]]))
             .handleErrorWith(e => 
-              IO(logger.error(s"[Step 4.1] 解析卡牌列表JSON失败: drawID=${drawID}, error=${e.getMessage}"))
+              IO(logger.error(s"[Step 4.1] 解析卡牌列表JSON失败: drawId=${drawId}, error=${e.getMessage}"))
                 >> IO.raiseError(new RuntimeException(s"解析卡牌列表失败: ${e.getMessage}"))
             )
           
