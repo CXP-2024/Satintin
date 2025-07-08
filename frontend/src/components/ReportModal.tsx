@@ -1,11 +1,17 @@
 import React from 'react';
 import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
+
+interface UserNameCache {
+  [key: string]: string;
+}
+
 export interface ReportModalProps {
     selectedReport: CheatingReport | null;
     isReportModalClosing: boolean;
     handleCloseReportModal: () => void;
     handleResolveReport: (reportID: string, isResolved: boolean) => void;
     handleBanPlayer: (userID: string, days: number) => void;
+    userNameCache: UserNameCache;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
@@ -13,7 +19,8 @@ const ReportModal: React.FC<ReportModalProps> = ({
   isReportModalClosing,
   handleCloseReportModal,
   handleResolveReport,
-  handleBanPlayer
+  handleBanPlayer,
+  userNameCache
 }) => {
   if (!selectedReport) return null;
   return (
@@ -33,11 +40,17 @@ const ReportModal: React.FC<ReportModalProps> = ({
             </div>
             <div className="admin-info-row">
               <span className="admin-info-label">举报者:</span>
-              <span className="admin-info-value">{selectedReport.reportingUserID}</span>
+              <span className="admin-info-value">
+                {userNameCache[selectedReport.reportingUserID] || selectedReport.reportingUserID}
+                <span className="user-id">({selectedReport.reportingUserID})</span>
+              </span>
             </div>
             <div className="admin-info-row">
               <span className="admin-info-label">被举报者:</span>
-              <span className="admin-info-value">{selectedReport.reportedUserID}</span>
+              <span className="admin-info-value">
+                {userNameCache[selectedReport.reportedUserID] || selectedReport.reportedUserID}
+                <span className="user-id">({selectedReport.reportedUserID})</span>
+              </span>
             </div>
             <div className="admin-info-row">
               <span className="admin-info-label">举报原因:</span>
