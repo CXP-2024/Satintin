@@ -20,7 +20,7 @@ import Objects.CardService.CardTemplate
  * @return result: List[CardTemplate] (卡牌模板列表)
  */
 case class GetAllCardTemplatesMessage(
-  userToken: String
+  userID: String
 ) extends API[List[CardTemplate]](CardServiceCode)
 
 case object GetAllCardTemplatesMessage {

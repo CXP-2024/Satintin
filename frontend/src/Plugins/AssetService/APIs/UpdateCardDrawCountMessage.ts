@@ -1,7 +1,7 @@
 /**
  * UpdateCardDrawCountMessage
  * desc: 设置用户在指定卡池的抽卡次数记录
- * @param userToken: String (用户的身份令牌，用于验证用户身份)
+ * @param userID : String (用户的身份令牌，用于验证用户身份)
  * @param poolType: String (卡池类型，"standard"为标准池，"featured"为限定池)
  * @param drawCount: Int (要设置的抽卡次数数值)
  * @return result: String (操作结果信息，例如'抽卡次数更新成功！')
@@ -11,7 +11,7 @@ import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 export class UpdateCardDrawCountMessage extends TongWenMessage {
     constructor(
-        public userToken: string,
+        public userID : string,
         public poolType: string,
         public drawCount: number
     ) {

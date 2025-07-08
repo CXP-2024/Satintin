@@ -21,7 +21,7 @@ import java.util.UUID
 /**
  * CreateAssetTransactionMessage
  * desc: 创建用户资产的变动记录，并实时更新资产状态。
- * @param userToken: String (用户的认证令牌，用于身份验证。)
+ * @param userID: String (用户的认证令牌，用于身份验证。)
  * @param transactionType: String (资产变动类型，例如CHARGE、PURCHASE或REWARD。)
  * @param changeAmount: Int (资产变动数量，正数表示增加，负数表示减少。)
  * @param changeReason: String (资产变动原因，例如购买物品或活动REWARD。)
@@ -29,7 +29,7 @@ import java.util.UUID
  */
 
 case class CreateAssetTransactionMessage(
-  userToken: String,
+  userID: String,
   transactionType: String,
   changeAmount: Int,
   changeReason: String

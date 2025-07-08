@@ -25,17 +25,12 @@ case object AssetTransactionFacade {
    * 包括资产修改和交易记录创建
    */
   def executeAssetTransaction(
-    userToken: String,
+    userID: String,
     transactionType: String,
     changeAmount: Int,
     changeReason: String
   )(using PlanContext): IO[String] = {
     for {
-      // 验证用户
-      // validation to be completed
-      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      
-      // 修改资产
       _ <- AssetStatusService.modifyAsset(userID, changeAmount)
       
       // 创建交易记录
