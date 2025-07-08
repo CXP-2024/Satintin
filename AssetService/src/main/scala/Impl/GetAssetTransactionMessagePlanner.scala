@@ -16,7 +16,7 @@ import Objects.AssetService.AssetTransaction
 import org.joda.time.DateTime
 
 case class GetAssetTransactionMessagePlanner(
-  userToken: String,
+  userID: String,
   override val planContext: PlanContext
 ) extends Planner[String] {
 
@@ -29,7 +29,7 @@ case class GetAssetTransactionMessagePlanner(
 
       // Step 2: 获取交易历史
       _ <- IO(logger.info("[GetAssetTransactionMessagePlanner] 获取用户交易历史"))
-      transactionHistory <- TransactionService.fetchTransactionHistory(userToken)
+      transactionHistory <- TransactionService.fetchTransactionHistory(userID)
       _ <- IO(logger.info(s"[GetAssetTransactionMessagePlanner] 交易历史获取成功，记录数: ${transactionHistory.length}"))
 
       // Step 3: 序列化返回结果

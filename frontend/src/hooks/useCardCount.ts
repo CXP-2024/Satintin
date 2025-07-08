@@ -16,7 +16,6 @@ export const useCardCount = (userToken: string | null, userID: string | undefine
             const response: any = await new Promise((resolve, reject) => {
                 new GetPlayerCardsMessage(userID).send(
                     (res: any) => {
-                        console.log('🃏 [useCardCount] 获取卡牌原始响应:', res);
                         resolve(res);
                     },
                     (err: any) => {

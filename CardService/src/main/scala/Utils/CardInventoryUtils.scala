@@ -32,50 +32,63 @@ case object CardInventoryUtils {
              IO(logger.info(s"userID ${userID} 通过验证"))
            }
 
-      // Step 2: Prepare and log SQL query for fetching user card inventory with template details
-      _ <- IO(logger.info(s"准备查询用户卡牌信息并关联模板表，userID=${userID}"))
-      sqlQuery <- IO {
-        s"""
-        SELECT 
-          uc.user_card_id,
-          uc.card_id, 
-          uc.rarity_level, 
-          uc.card_level,
-          uc.acquisition_time,
-          ct.card_name,
-          ct.description,
-          ct.type as card_type
-        FROM ${schemaName}.user_card_table uc
-        INNER JOIN ${schemaName}.card_template_table ct ON uc.card_id = ct.card_id
-        WHERE uc.user_id = ?;
-        """.stripMargin
+      // Step 2: 分页查询大量数据
+      _ <- IO(logger.info(s"准备分页查询用户卡牌信息，userID=${userID}"))
+      
+      // 先查询总数
+      countQuery <- IO {
+        s"SELECT COUNT(*) as total FROM ${schemaName}.user_card_table WHERE user_id = ?"
       }
-      _ <- IO(logger.info(s"SQL命令为: ${sqlQuery}"))
-
-      // Step 3: Execute database query
-      queryResults <- readDBRows(
-        sqlQuery,
-        List(SqlParameter("String", userID))
-      )
-      _ <- IO(logger.info(s"查询数据库返回了 ${queryResults.size} 条记录"))
-
-      // Step 4: Map database results to CardEntry objects with template details
-      cardEntries <- IO {
-        queryResults.map { json =>
-          // 按后端 send 出来的 camelCase 字段名来取
-          val userCardID  = decodeField[String](json, "userCardID")
-          val cardID      = decodeField[String](json, "cardID")
-          val rarityLevel = decodeField[String](json, "rarityLevel")
-          val cardLevel   = decodeField[Int](json, "cardLevel")
-          val acquisitionTime = DateTime.now
-          val cardName    = decodeField[String](json, "cardName")
-          val description = decodeField[String](json, "description")
-          val cardType    = decodeField[String](json, "cardType")
-          CardEntry(userCardID, cardID, rarityLevel, cardLevel, cardName, description, cardType, acquisitionTime)
-        }
+      countResult <- readDBRows(countQuery, List(SqlParameter("String", userID)))
+      totalCards <- IO {
+        countResult.headOption.map(json => decodeField[Int](json, "total")).getOrElse(0)
       }
-      _ <- IO(logger.info(s"成功将查询结果转换为 CardEntry 对象列表，共 ${cardEntries.size} 条记录"))
+      _ <- IO(logger.info(s"用户总卡牌数量: ${totalCards}"))
 
-    } yield cardEntries
+      // 分批查询，每批50张卡牌
+      batchSize = 50
+      totalBatches = Math.ceil(totalCards.toDouble / batchSize).toInt
+      
+      allCardEntries <- (0 until totalBatches).toList.traverse { batchIndex =>
+        val offset = batchIndex * batchSize
+        val sqlQuery = s"""
+          SELECT 
+            uc.user_card_id,
+            uc.card_id, 
+            uc.rarity_level, 
+            uc.card_level,
+            uc.acquisition_time,
+            ct.card_name,
+            ct.description,
+            ct.type as card_type
+          FROM ${schemaName}.user_card_table uc
+          INNER JOIN ${schemaName}.card_template_table ct ON uc.card_id = ct.card_id
+          WHERE uc.user_id = ?
+          LIMIT ${batchSize} OFFSET ${offset};
+          """.stripMargin
+        
+        for {
+          _ <- IO(logger.info(s"查询第${batchIndex + 1}批，偏移量: ${offset}"))
+          queryResults <- readDBRows(sqlQuery, List(SqlParameter("String", userID)))
+          cardEntries <- IO {
+            queryResults.map { json =>
+              val userCardID  = decodeField[String](json, "userCardID")
+              val cardID      = decodeField[String](json, "cardID")
+              val rarityLevel = decodeField[String](json, "rarityLevel")
+              val cardLevel   = decodeField[Int](json, "cardLevel")
+              val acquisitionTime = DateTime.now
+              val cardName    = decodeField[String](json, "cardName")
+              val description = decodeField[String](json, "description")
+              val cardType    = decodeField[String](json, "cardType")
+              CardEntry(userCardID, cardID, rarityLevel, cardLevel, cardName, description, cardType, acquisitionTime)
+            }
+          }
+        } yield cardEntries
+      }
+      
+      finalCardEntries = allCardEntries.flatten
+      _ <- IO(logger.info(s"成功分批查询完成，总计 ${finalCardEntries.size} 条记录"))
+
+    } yield finalCardEntries
   }
 }

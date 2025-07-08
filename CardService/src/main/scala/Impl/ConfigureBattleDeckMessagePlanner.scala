@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
 import APIs.UserService.GetUserInfoMessage
 
 case class ConfigureBattleDeckMessagePlanner(
-  userToken: String, 
+  userID: String, 
   cardIDs: List[String],
   override val planContext: PlanContext
 ) extends Planner[String] {
@@ -26,10 +26,6 @@ case class ConfigureBattleDeckMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Validate user token
-      _ <- IO(logger.info("[Step 1] 验证用户令牌状态"))
-      // validation to be completed
-      userID <- IO(userToken) 
 
       // Step 2: Validate cardIDs list length
       _ <- IO(logger.info("[Step 2] 检查cardIDs列表的长度"))

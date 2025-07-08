@@ -136,17 +136,22 @@ const RewardModal: React.FC<RewardModalProps> = ({
 					<p className="reward-description">{rewardInfo.description}</p>
 
 					{/* 奖励金额显示 */}
-					<div className={`reward-amount ${showRewardAnimation ? 'animate' : ''}`}>
-						<div className="reward-primogem">
-							<img src={primogemIcon} alt="原石" className="reward-primogem-icon" />
-							<span className="reward-amount-text">+{rewardAmount}</span>
+					{rewardAmount > 0 && (
+						<div className={`reward-amount ${showRewardAnimation ? 'animate' : ''}`}>
+							<div className="reward-primogem">
+								<img src={primogemIcon} alt="原石" className="reward-primogem-icon" />
+								<span className="reward-amount-text">+{rewardAmount}</span>
+							</div>
 						</div>
-					</div>
+					)}
 
 					{/* 确认按钮 */}
 					<button className={`reward-confirm-btn ${showRewardAnimation ? 'animate' : ''}`} onClick={handleClose}>
-						<span className="btn-icon">✨</span>
-						领取完成
+						{rewardAmount > 0 ? (
+							<> <span className="btn-icon">✨</span> 领取完成 </>
+						) : (
+							'好的'
+						)}
 					</button>
 				</div>
 

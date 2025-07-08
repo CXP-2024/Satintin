@@ -17,7 +17,7 @@ import scala.util.Try
 /**
  * CreateCardTemplateMessage
  * desc: 创建卡牌模板，插入到card_template_table
- * @param userToken: String (用户认证token)
+ * @param userID: String (用户认证token)
  * @param cardName: String (卡牌名称)  
  * @param rarity: String (卡牌稀有度，如普通、稀有、传说)
  * @param description: String (卡牌技能描述)
@@ -25,7 +25,7 @@ import scala.util.Try
  * @return cardTemplateId: String (创建的卡牌模板ID)
  */
 case class CreateCardTemplateMessage(
-  userToken: String,
+  userID: String,
   cardName: String,
   rarity: String, 
   description: String,

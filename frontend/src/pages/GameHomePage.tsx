@@ -5,6 +5,7 @@ import { useCardCount } from '../hooks/useCardCount';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/gameHome/UserProfile';
 import RewardModal from '../components/gameHome/RewardModal';
+import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';
 import GameHeader from '../components/gameHome/GameHeader';
 import UserStats from '../components/gameHome/UserStats';
 import MainActions from '../components/MainActions';
@@ -19,14 +20,21 @@ import {
 	initUserToken,
 	getUserInfo,
 	useUserToken,
-	getUserToken
+	getUserToken,
+	setUserInfoField
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { autoLogoutManager } from '../utils/autoLogout';
+import { GetAssetTransactionMessage } from "Plugins/AssetService/APIs/GetAssetTransactionMessage";
+import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage";
+import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";
+import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
+import { LoadBattleDeckMessage } from "Plugins/CardService/APIs/LoadBattleDeckMessage";
 
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
     const userToken = useUserToken();
     const userID = user?.userID;
+    const DailyRewardAmount = 200; // 每日奖励数量
     const { navigateWithTransition } = usePageTransition();
     const { cardCount } = useCardCount(userToken, userID);
     const {
@@ -43,6 +51,7 @@ const GameHomePage: React.FC = () => {
     
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showRewardModal, setShowRewardModal] = useState(false);
+    const [showAlreadyClaimedModal, setShowAlreadyClaimedModal] = useState(false);
     
     console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
     console.log('🔍 [GameHomePage] userID:', userID, 'userToken:', userToken ? '有token' : '无token');
@@ -87,7 +96,36 @@ const GameHomePage: React.FC = () => {
 
     const handleNavigateToBattle = () => {
         playClickSound();
-        navigateWithTransition('/battle', '正在进入战斗...');
+        if (!userID) return;
+        
+        // 先检查战斗卡组配置
+        new LoadBattleDeckMessage(userID).send(
+            (info: any) => {
+                try {
+                    let battleDeck: string[] = [];
+                    if (typeof info === 'string') {
+                        battleDeck = JSON.parse(info);
+                    } else {
+                        battleDeck = info;
+                    }
+                    
+                    if (battleDeck.length < 3) {
+                        window.alert('战斗卡组需配置3个卡牌');
+                        return;
+                    }
+                    
+                    // 卡组检查通过，跳转到战斗页面
+                    navigateWithTransition('/battle', '正在进入战斗...');
+                } catch (e) {
+                    console.error('parse battle deck error:', e);
+                    window.alert('获取战斗卡组失败');
+                }
+            },
+            (error: any) => {
+                console.error('LoadBattleDeckMessage error:', error);
+                window.alert('获取战斗卡组失败');
+            }
+        );
     };
 
     const handleNavigateToCards = () => {
@@ -107,7 +145,66 @@ const GameHomePage: React.FC = () => {
 
     const handleClaimReward = () => {
         playClickSound();
-        setShowRewardModal(true);
+        if (!userID) return;
+        new GetAssetTransactionMessage(userID).send(
+            (info: any) => {
+                try {
+                    let parsed: any = info;
+                    if (typeof parsed === 'string') {
+                        parsed = JSON.parse(parsed);
+                        if (typeof parsed === 'string') parsed = JSON.parse(parsed);
+                    }
+                    const transactionData = (parsed as any[]).map(item => new AssetTransaction(
+                        item.transactionID,
+                        item.userID,
+                        item.transactionType,
+                        item.changeAmount,
+                        item.changeReason,
+                        item.timestamp
+                    ));
+                    const rewardTxs = transactionData.filter(tx => tx.transactionType.toUpperCase() === 'REWARD' && tx.changeAmount === DailyRewardAmount);
+                    if (rewardTxs.length > 0) {
+                        const latest = rewardTxs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+                        const latestDate = new Date(latest.timestamp);
+                        const now = new Date();
+                        if (
+                            latestDate.getFullYear() === now.getFullYear() &&
+                            latestDate.getMonth() === now.getMonth() &&
+                            latestDate.getDate() === now.getDate()
+                        ) {
+                            // 今日已领取，显示样式化弹窗
+                            setShowAlreadyClaimedModal(true);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.error('parse transactions error:', e);
+                }
+                new RewardAssetMessage(userID, DailyRewardAmount).send(
+                    () => {
+                        setShowRewardModal(true);
+                        // 刷新原石数量
+                        new QueryAssetStatusMessage(userID).send(
+                            (res: string) => {
+                                try {
+                                    const amt = typeof res === 'string' ? parseInt(JSON.parse(res)) : res;
+                                    setUserInfoField('stoneAmount', amt);
+                                } catch (e) {
+                                    console.error('parse asset status error:', e);
+                                }
+                            },
+                            (err: any) => console.error('QueryAssetStatusMessage error:', err)
+                        );
+                    },
+                    (error: any) => {
+                        console.error('RewardAssetMessage error:', error);
+                    }
+                );
+            },
+            (error: any) => {
+                console.error('GetAssetTransactionMessage error:', error);
+            }
+        );
     };
 
     const handleShowUserProfile = () => {
@@ -165,15 +262,21 @@ const GameHomePage: React.FC = () => {
                 <UserProfile
                     isOpen={showUserProfile}
                     onClose={handleCloseUserProfile}
-                />
-
-                <RewardModal
+                />                <RewardModal
                     isOpen={showRewardModal}
                     onClose={handleCloseRewardModal}
                     rewardType="daily"
                     rewardAmount={200}
                     rewardTitle="每日奖励"
                     rewardDescription="恭喜您获得每日登录奖励！"
+                />
+                
+                <AlreadyClaimedModal
+                    isOpen={showAlreadyClaimedModal}
+                    onClose={() => setShowAlreadyClaimedModal(false)}
+                    rewardType="daily"
+                    rewardTitle="今日已领取"
+                    rewardDescription="您已领取过今日奖励，明天再来哦~"
                 />
 
                 <SearchUserModal

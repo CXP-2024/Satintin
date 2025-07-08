@@ -21,7 +21,7 @@ import io.circe.generic.auto._
 import io.circe.Json
 
 case class DrawCardMessagePlanner(
-  userToken: String,
+  userID: String,
   drawCount: Int,
   poolType: String,
   override val planContext: PlanContext
@@ -42,7 +42,7 @@ case class DrawCardMessagePlanner(
 
       // Step 2: Query user's asset status
       _ <- IO(logger.info("[Step 2] 检查用户资产原石数量"))
-      stoneAmount <- QueryAssetStatusMessage(userToken).send
+      stoneAmount <- QueryAssetStatusMessage(userID).send
       stoneCostPerDraw = 160
       totalCost = drawCount * stoneCostPerDraw
       _ <- if (stoneAmount < totalCost) {
@@ -50,7 +50,7 @@ case class DrawCardMessagePlanner(
       
       // Step 4: Execute card draw (drawCards will handle asset deduction and transaction logging)
       _ <- IO(logger.info(s"[Step 4] 执行抽卡操作，数量=${drawCount}，卡池类型=${poolType}"))
-      drawResult <- drawCards(userToken, userToken, drawCount, poolType)
+      drawResult <- drawCards(userID, drawCount, poolType)
 
       _ <- IO(logger.info(s"抽卡完成，返回结果: $drawResult"))
     } yield drawResult

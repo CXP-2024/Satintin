@@ -23,7 +23,7 @@ class TestCardService:
         """Test upgrading a card with valid parameters"""
         payload = {
             "type": "UpgradeCardMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardID": self.test_card_id
         }
         
@@ -39,7 +39,7 @@ class TestCardService:
         """Test upgrading card with invalid token"""
         payload = {
             "type": "UpgradeCardMessage",
-            "userToken": self.invalid_token,
+            "userID": self.invalid_token,
             "cardID": self.test_card_id
         }
         
@@ -55,7 +55,7 @@ class TestCardService:
         """Test upgrading a card not owned by user"""
         payload = {
             "type": "UpgradeCardMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardID": "not-owned-card-999"
         }
         
@@ -71,7 +71,7 @@ class TestCardService:
         """Test upgrading card with insufficient stones"""
         payload = {
             "type": "UpgradeCardMessage",
-            "userToken": "low-stone-user-token",
+            "userID": "low-stone-user-token",
             "cardID": self.test_card_id
         }
         
@@ -89,7 +89,7 @@ class TestCardService:
         """Test configuring battle deck with valid cards"""
         payload = {
             "type": "ConfigureBattleDeckMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardIDs": self.test_card_ids[:3]  # Maximum 3 cards
         }
         
@@ -105,7 +105,7 @@ class TestCardService:
         """Test configuring battle deck with single card"""
         payload = {
             "type": "ConfigureBattleDeckMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardIDs": [self.test_card_id]
         }
         
@@ -121,7 +121,7 @@ class TestCardService:
         """Test configuring battle deck with too many cards"""
         payload = {
             "type": "ConfigureBattleDeckMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardIDs": ["card-001", "card-002", "card-003", "card-004"]  # More than 3
         }
         
@@ -137,7 +137,7 @@ class TestCardService:
         """Test configuring battle deck with empty card list"""
         payload = {
             "type": "ConfigureBattleDeckMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardIDs": []
         }
         
@@ -153,7 +153,7 @@ class TestCardService:
         """Test configuring battle deck with cards not owned by user"""
         payload = {
             "type": "ConfigureBattleDeckMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "cardIDs": ["not-owned-card-1", "not-owned-card-2"]
         }
         
@@ -171,7 +171,7 @@ class TestCardService:
         """Test drawing a single card"""
         payload = {
             "type": "DrawCardMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "drawCount": 1
         }
         
@@ -189,7 +189,7 @@ class TestCardService:
         """Test drawing multiple cards"""
         payload = {
             "type": "DrawCardMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "drawCount": 5
         }
         
@@ -207,7 +207,7 @@ class TestCardService:
         """Test ten-card draw (common gacha mechanic)"""
         payload = {
             "type": "DrawCardMessage",
-            "userToken": self.valid_token,
+            "userID": self.valid_token,
             "drawCount": 10
         }
         
@@ -225,7 +225,7 @@ class TestCardService:
         """Test drawing cards with insufficient stones"""
         payload = {
             "type": "DrawCardMessage",
-            "userToken": "low-stone-user-token",
+            "userID": "low-stone-user-token",
             "drawCount": 10
         }
         
@@ -244,7 +244,7 @@ class TestCardService:
         for count in invalid_counts:
             payload = {
                 "type": "DrawCardMessage",
-                "userToken": self.valid_token,
+                "userID": self.valid_token,
                 "drawCount": count
             }
             
@@ -259,7 +259,7 @@ class TestCardService:
         """Test drawing cards with invalid token"""
         payload = {
             "type": "DrawCardMessage",
-            "userToken": self.invalid_token,
+            "userID": self.invalid_token,
             "drawCount": 1
         }
         
@@ -277,7 +277,7 @@ class TestCardService:
         """Test getting player cards with valid token"""
         payload = {
             "type": "GetPlayerCardsMessage",
-            "userToken": self.valid_token
+            "userID": self.valid_token
         }
         
         response = requests.post(f"{BASE_URL}/api/GetPlayerCards", json=payload)
@@ -300,7 +300,7 @@ class TestCardService:
         """Test getting player cards with invalid token"""
         payload = {
             "type": "GetPlayerCardsMessage",
-            "userToken": self.invalid_token
+            "userID": self.invalid_token
         }
         
         response = requests.post(f"{BASE_URL}/api/GetPlayerCards", json=payload)
@@ -315,7 +315,7 @@ class TestCardService:
         """Test getting player cards with empty token"""
         payload = {
             "type": "GetPlayerCardsMessage",
-            "userToken": ""
+            "userID": ""
         }
         
         response = requests.post(f"{BASE_URL}/api/GetPlayerCards", json=payload)
@@ -330,7 +330,7 @@ class TestCardService:
         """Test getting player cards with too short token"""
         payload = {
             "type": "GetPlayerCardsMessage",
-            "userToken": "short"  # Less than 10 characters
+            "userID": "short"  # Less than 10 characters
         }
         
         response = requests.post(f"{BASE_URL}/api/GetPlayerCards", json=payload)
@@ -351,7 +351,7 @@ class TestCardServiceIntegration:
         # Step 1: Draw cards
         draw_payload = {
             "type": "DrawCardMessage",
-            "userToken": token,
+            "userID": token,
             "drawCount": 3
         }
         
@@ -364,7 +364,7 @@ class TestCardServiceIntegration:
             # Step 2: Get player cards
             get_payload = {
                 "type": "GetPlayerCardsMessage",
-                "userToken": token
+                "userID": token
             }
             
             get_response = requests.post(f"{BASE_URL}/api/GetPlayerCards", json=get_payload)
@@ -377,7 +377,7 @@ class TestCardServiceIntegration:
                 if len(player_cards) >= 1:
                     deck_payload = {
                         "type": "ConfigureBattleDeckMessage",
-                        "userToken": token,
+                        "userID": token,
                         "cardIDs": [card["cardID"] for card in player_cards[:3]]
                     }
                     
@@ -388,7 +388,7 @@ class TestCardServiceIntegration:
                     if player_cards:
                         upgrade_payload = {
                             "type": "UpgradeCardMessage",
-                            "userToken": token,
+                            "userID": token,
                             "cardID": player_cards[0]["cardID"]
                         }
                         
@@ -405,14 +405,14 @@ class TestCardServiceIntegration:
             if operation_type == "draw":
                 payload = {
                     "type": "DrawCardMessage",
-                    "userToken": token,
+                    "userID": token,
                     "drawCount": 1
                 }
                 endpoint = "/api/DrawCard"
             elif operation_type == "get":
                 payload = {
                     "type": "GetPlayerCardsMessage",
-                    "userToken": token
+                    "userID": token
                 }
                 endpoint = "/api/GetPlayerCards"
             
@@ -455,7 +455,7 @@ class TestCardServiceLoadTesting:
         for i in range(10):
             payload = {
                 "type": "DrawCardMessage",
-                "userToken": token,
+                "userID": token,
                 "drawCount": 1
             }
             
@@ -483,7 +483,7 @@ class TestCardServiceLoadTesting:
         for i, deck in enumerate(deck_configurations):
             payload = {
                 "type": "ConfigureBattleDeckMessage",
-                "userToken": token,
+                "userID": token,
                 "cardIDs": deck
             }
             

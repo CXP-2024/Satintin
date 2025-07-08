@@ -1,5 +1,5 @@
-/* 奖励弹窗样式 */
-.reward-modal-overlay {
+/* 已领取弹窗样式 */
+.claimed-modal-overlay {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -14,15 +14,15 @@
 	animation: fadeIn 0.3s ease;
 }
 
-.reward-modal-overlay.closing {
+.claimed-modal-overlay.closing {
 	animation: fadeOut 0.3s ease;
 }
 
-.reward-modal {
+.claimed-modal {
 	border-radius: 20px;
 	width: 90%;
 	max-width: 450px;
-	min-height: 400px;
+	min-height: 350px;
 	border: 2px solid rgba(255, 255, 255, 0.2);
 	backdrop-filter: blur(15px);
 	animation: slideUp 0.3s ease;
@@ -34,7 +34,7 @@
 	padding: 40px 30px;
 }
 
-.reward-modal.closing {
+.claimed-modal.closing {
 	animation: slideDown 0.3s ease;
 }
 
@@ -43,7 +43,6 @@
 	from {
 		opacity: 0;
 	}
-
 	to {
 		opacity: 1;
 	}
@@ -53,7 +52,6 @@
 	from {
 		opacity: 1;
 	}
-
 	to {
 		opacity: 0;
 	}
@@ -64,7 +62,6 @@
 		transform: translateY(50px);
 		opacity: 0;
 	}
-
 	to {
 		transform: translateY(0);
 		opacity: 1;
@@ -76,7 +73,6 @@
 		transform: translateY(0);
 		opacity: 1;
 	}
-
 	to {
 		transform: translateY(50px);
 		opacity: 0;
@@ -84,7 +80,7 @@
 }
 
 /* 关闭按钮 */
-.reward-close-btn {
+.claimed-close-btn {
 	position: absolute;
 	top: 20px;
 	right: 20px;
@@ -106,14 +102,14 @@
 	user-select: none;
 }
 
-.reward-close-btn:hover {
+.claimed-close-btn:hover {
 	background: rgba(255, 255, 255, 0.3);
 	transform: rotate(90deg) scale(1.1);
 	box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
 }
 
-/* 奖励内容 */
-.reward-content {
+/* 内容 */
+.claimed-content {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -125,22 +121,22 @@
 	z-index: 10;
 }
 
-/* 奖励图标 */
-.reward-icon {
+/* 图标 */
+.claimed-icon {
 	font-size: 5rem;
 	margin-bottom: 10px;
 	opacity: 0;
-	transform: scale(0.5) rotate(-180deg);
+	transform: scale(0.5);
 	transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.reward-icon.animate {
+.claimed-icon.animate {
 	opacity: 1;
-	transform: scale(1) rotate(0deg);
+	transform: scale(1);
 }
 
-/* 奖励标题 */
-.reward-title {
+/* 标题 */
+.claimed-title {
 	font-size: 2.2rem;
 	font-weight: bold;
 	color: white;
@@ -149,62 +145,18 @@
 	text-align: center;
 }
 
-/* 奖励描述 */
-.reward-description {
+/* 描述 */
+.claimed-description {
 	color: rgba(255, 255, 255, 0.9);
 	font-size: 1.1rem;
 	margin: 0;
 	line-height: 1.4;
-	margin-left: 15px;
 	text-align: center;
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* 奖励金额 */
-.reward-amount {
-	opacity: 0;
-	transform: translateY(30px);
-	transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-	transition-delay: 0.3s;
-}
-
-.reward-amount.animate {
-	opacity: 1;
-	transform: translateY(0);
-}
-
-.reward-primogem {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 15px;
-	background: rgba(255, 255, 255, 0.15);
-	backdrop-filter: blur(10px);
-	border: 2px solid rgba(255, 255, 255, 0.2);
-	border-radius: 20px;
-	padding: 20px 30px;
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-}
-
-.reward-primogem-icon {
-	width: 60px;
-	height: 60px;
-	filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.3));
-}
-
-.reward-amount-text {
-	font-size: 2rem;
-	font-weight: bold;
-	color: #ffd700;
-	text-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
-	background: linear-gradient(45deg, #ffd700, #ffed4e);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-}
-
 /* 确认按钮 */
-.reward-confirm-btn {
+.claimed-confirm-btn {
 	background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
 	backdrop-filter: blur(10px);
 	border: 2px solid rgba(255, 255, 255, 0.3);
@@ -214,10 +166,10 @@
 	cursor: pointer;
 	font-weight: 600;
 	font-size: 1.1rem;
-	transition: all 0.3s ease;	display: flex;
+	transition: all 0.3s ease;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 	margin-top: 10px;
 	opacity: 0;
@@ -225,191 +177,83 @@
 	transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 	transition-delay: 0.6s;
 	user-select: none;
-	padding-left: 10px;
+	min-width: 120px;
 }
 
-.reward-confirm-btn.animate {
+.claimed-confirm-btn.animate {
 	opacity: 1;
 	transform: translateY(0);
 }
 
-.reward-confirm-btn:hover {
+.claimed-confirm-btn:hover {
 	transform: translateY(-3px);
 	box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
 	background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
 	border-color: rgba(255, 255, 255, 0.5);
 }
 
-.reward-confirm-btn.animate:hover {
+.claimed-confirm-btn.animate:hover {
 	transform: translateY(-3px);
-}
-
-.reward-confirm-btn .btn-icon {
-	font-size: 1.2rem;
-	margin-top: 10px;
-	animation: sparkle 2s infinite;
-}
-
-@keyframes sparkle {
-
-	0%,
-	100% {
-		transform: scale(1) rotate(0deg);
-		opacity: 1;
-	}
-
-	25% {
-		transform: scale(1.2) rotate(5deg);
-		opacity: 0.8;
-	}
-
-	50% {
-		transform: scale(1.1) rotate(-5deg);
-		opacity: 1;
-	}
-
-	75% {
-		transform: scale(1.2) rotate(3deg);
-		opacity: 0.9;
-	}
-}
-
-/* 装饰元素 */
-.reward-decorations {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	pointer-events: none;
-	overflow: hidden;
-}
-
-.decoration-star {
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	font-size: 1.5rem;
-	opacity: 0;
-	transform-origin: center;
-	animation: none;
-}
-
-.decoration-star.animate {
-	animation: starFloat 3s ease-out forwards;
-	animation-delay: var(--delay, 0s);
-}
-
-@keyframes starFloat {
-	0% {
-		opacity: 0;
-		transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(0) scale(0.5);
-	}
-
-	30% {
-		opacity: 1;
-		transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(-80px) scale(1);
-	}
-
-	100% {
-		opacity: 0;
-		transform: translate(-50%, -50%) rotate(var(--angle, 0deg)) translateY(-150px) scale(0.3);
-	}
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-	.reward-modal {
+	.claimed-modal {
 		width: 95%;
 		max-width: none;
-		min-height: 350px;
+		min-height: 300px;
 		padding: 30px 20px;
 		border-radius: 15px;
 	}
 
-	.reward-icon {
+	.claimed-icon {
 		font-size: 4rem;
 	}
 
-	.reward-title {
+	.claimed-title {
 		font-size: 1.8rem;
 	}
 
-	.reward-description {
+	.claimed-description {
 		font-size: 1rem;
 	}
 
-	.reward-primogem {
-		padding: 15px 25px;
-		gap: 12px;
-	}
-
-	.reward-primogem-icon {
-		width: 35px;
-		height: 35px;
-	}
-
-	.reward-amount-text {
-		font-size: 1.7rem;
-	}
-
-	.reward-confirm-btn {
+	.claimed-confirm-btn {
 		padding: 12px 30px;
 		font-size: 1rem;
-		padding-left: 25px;
-	}
-
-	.decoration-star {
-		font-size: 1.2rem;
 	}
 }
 
 @media (max-width: 480px) {
-	.reward-modal {
+	.claimed-modal {
 		width: 98%;
-		min-height: 320px;
+		min-height: 280px;
 		padding: 25px 15px;
 		border-radius: 12px;
 	}
 
-	.reward-content {
+	.claimed-content {
 		gap: 20px;
 	}
 
-	.reward-icon {
+	.claimed-icon {
 		font-size: 3.5rem;
 	}
 
-	.reward-title {
+	.claimed-title {
 		font-size: 1.6rem;
 	}
 
-	.reward-description {
+	.claimed-description {
 		font-size: 0.95rem;
 	}
 
-	.reward-primogem {
-		padding: 12px 20px;
-		gap: 10px;
-	}
-
-	.reward-primogem-icon {
-		width: 30px;
-		height: 30px;
-	}
-
-	.reward-amount-text {
-		font-size: 1.5rem;
-	}
-
-	.reward-confirm-btn {
+	.claimed-confirm-btn {
 		padding: 10px 25px;
 		font-size: 0.95rem;
-		gap: 8px;
-		padding-left: 20px;
 	}
 
-	.reward-close-btn {
+	.claimed-close-btn {
 		top: 15px;
 		right: 15px;
 		width: 30px;
