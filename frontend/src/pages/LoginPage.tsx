@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
 			<div className="login-container">
 				<div className="login-card">
 					<LoginHeader 
-						title="阵面对战" 
+						title="SaTinTin"
 						subtitle="登录游戏" 
 					/>
 

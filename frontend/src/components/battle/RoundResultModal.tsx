@@ -19,6 +19,7 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
+	console.log('RoundResultModal rendered with result:', result);
 
 	// 获取行动显示信息
 	const getActionDisplay = (action: PassiveAction | ActiveAction) => {
@@ -74,23 +75,45 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 
 	// 判断战斗结果
 	const getBattleOutcome = () => {
-		const currentAction = playerData.current.action.type;
-		const opponentAction = playerData.opponent.action.type;
-
-		if (currentAction === opponentAction) {
-			return { type: 'tie', message: '平局！' };
+		const currentHealthChange = playerData.current.result.healthChange;
+		const opponentHealthChange = playerData.opponent.result.healthChange;
+		const currentEnergyChange = playerData.current.result.energyChange;
+		const opponentEnergyChange = playerData.opponent.result.energyChange;
+		if (result.results?.exploded) {
+			const explodedPlayers = result.results.explodedPlayers || [];
+			if (explodedPlayers.includes(currentPlayer?.playerId) && explodedPlayers.includes(opponent?.playerId)) {
+				return { type: 'lose', message: '你们都爆炸了！' };
+			} else if (explodedPlayers.includes(opponent?.playerId)) {
+				return { type: 'win', message: '对手爆炸了！' };
+			} else {
+				return { type: 'tie', message: '你爆炸了！' };
+			}
 		}
 
-		// 饼 vs 撒：撒获胜，暂时不予判断message
-		/*if ((currentAction === 'cake' && opponentAction === 'spray') ||
-			(currentAction === 'spray' && opponentAction === 'cake')) {
-			return currentAction === 'spray'
-				? { type: 'win', message: '你的撒击中了对手的饼！' }
-				: { type: 'lose', message: '对手的撒击中了你的饼！' };
-		}*/
-
-		// 其他情况为平局
-		return { type: 'tie', message: '平局！' };
+		// 基于血量变化判断输赢
+		if (currentHealthChange < 0 && opponentHealthChange < 0) {
+			// 双方都掉血，比较掉血量
+			if (Math.abs(currentHealthChange) > Math.abs(opponentHealthChange)) {
+				return { type: 'lose', message: '你受到了更多伤害！' };
+			} else if (Math.abs(currentHealthChange) < Math.abs(opponentHealthChange)) {
+				return { type: 'win', message: '对手受到了更多伤害！' };
+			} else {
+				return { type: 'tie', message: '双方受到相同伤害！' };
+			}
+		} else if (currentHealthChange < 0) {
+			return { type: 'lose', message: '你受到了伤害！' };
+		} else if (opponentHealthChange < 0) {
+			return { type: 'win', message: '对手受到了伤害！' };
+		} else {
+			// 都没掉血，基于能量变化或其他因素判断
+			if (currentEnergyChange > opponentEnergyChange) {
+				return { type: 'win', message: '你获得了更多能量！' };
+			} else if (currentEnergyChange < opponentEnergyChange) {
+				return { type: 'lose', message: '对手获得了更多能量！' };
+			} else {
+				return { type: 'tie', message: '平局！' };
+			}
+		}
 	};
 
 	const battleOutcome = getBattleOutcome();

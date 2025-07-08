@@ -75,6 +75,8 @@ export interface RoundResult {
 	player1Action: BattleAction;
 	player2Action: BattleAction;
 	results: {
+		exploded?: boolean; // 是否有玩家爆炸
+		explodedPlayers?: string[]; // 爆炸玩家ID List
 		player1: { healthChange: number; energyChange: number };
 		player2: { healthChange: number; energyChange: number };
 	};
