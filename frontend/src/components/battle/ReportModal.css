@@ -1,0 +1,252 @@
+.report-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+.report-modal {
+  background: linear-gradient(135deg, #2c3e50 0%, #1a2a3a 100%);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: white;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUp 0.3s ease;
+}
+
+.report-modal-header {
+  background: rgba(231, 76, 60, 0.8);
+  padding: 15px 20px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.close-button:hover {
+  opacity: 1;
+}
+
+.report-modal-body {
+  padding: 20px;
+}
+
+.report-reason-section,
+.report-description-section {
+  margin-bottom: 20px;
+}
+
+.report-reason-section h3,
+.report-description-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  color: #ddd;
+}
+
+.report-reason-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.report-reason-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.report-reason-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.report-reason-option input[type="radio"] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.report-description-section textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  resize: vertical;
+  font-family: inherit;
+  transition: border 0.3s;
+  box-sizing: border-box;
+}
+
+.report-description-section textarea:focus {
+  outline: none;
+  border-color: #e74c3c;
+}
+
+.description-char-count {
+  text-align: right;
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+.report-error-message {
+  background: rgba(231, 76, 60, 0.2);
+  border-left: 4px solid #e74c3c;
+  padding: 10px 15px;
+  margin: 15px 0;
+  color: #f8d7da;
+  font-size: 0.9rem;
+  animation: shake 0.4s ease-in-out;
+}
+
+.report-modal-footer {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-cancel-button,
+.report-submit-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.report-cancel-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.report-cancel-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.report-submit-button {
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: white;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.report-submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+}
+
+.report-submit-button:disabled,
+.report-cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.report-modal-note {
+  padding: 10px 20px 20px;
+  font-size: 0.85rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-5px);
+  }
+  40%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+@media (max-width: 768px) {
+  .report-modal {
+    width: 95%;
+    max-width: none;
+    max-height: 80vh;
+  }
+  
+  .report-modal-header h2 {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .report-modal-header {
+    padding: 12px 15px;
+  }
+  
+  .report-modal-body {
+    padding: 15px;
+  }
+  
+  .report-modal-footer {
+    padding: 12px 15px;
+    flex-direction: column;
+  }
+  
+  .report-cancel-button,
+  .report-submit-button {
+    width: 100%;
+    padding: 12px;
+  }
+} 
