@@ -4,6 +4,8 @@ import { BanUserMessage } from "Plugins/AdminService/APIs/BanUserMessage";
 import { ManageReportMessage } from "Plugins/AdminService/APIs/ManageReportMessage";
 import { getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
+import ReportModal from './ReportModal';
+import { playClickSound, getAdminToken } from './reportUtils';
 
 // 更新接口定义
 interface ReportHandlingProps {
@@ -31,13 +33,8 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 每页显示10条记录
 
-  // 播放按钮点击音效
-  const playClickSound = () => {
-    SoundUtils.playClickSound(0.5);
-  };
-
   const handleViewReport = (report: CheatingReport) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     setSelectedReport(report);
     setIsReportModalClosing(false);
     setShowReportModal(true);
@@ -52,10 +49,10 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   };
 
   const handleResolveReport = (reportId: string, isResolved: boolean = true) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     console.log(`🛡️ [ReportHandling] 更新举报状态 ${reportId}, isResolved: ${isResolved}`);
     
-    const adminToken = getUserToken() || localStorage.getItem('adminToken') || '';
+    const adminToken = getAdminToken(getUserToken);
     
     if (!adminToken) {
       console.error('❌ [ReportHandling] 管理员token不存在');
@@ -75,10 +72,10 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   };
 
   const handleBanPlayer = (playerId: string, days: number) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     console.log(`🔨 [ReportHandling] 封禁玩家 ${playerId} ${days}天`);
     
-    const adminToken = getUserToken() || localStorage.getItem('adminToken') || '';
+    const adminToken = getAdminToken(getUserToken);
 
     new BanUserMessage(adminToken, playerId, days).send(
       (response: string) => {
@@ -124,7 +121,7 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
 
   // 处理页码变化
   const handlePageChange = (pageNumber: number) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     setCurrentPage(pageNumber);
   };
 
@@ -234,88 +231,13 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
 
       {/* 举报详情模态框 */}
       {showReportModal && selectedReport && (
-        <div className={`admin-modal-overlay ${isReportModalClosing ? 'closing' : ''}`}>
-          <div className="admin-modal-container report-modal">
-            <div className="admin-modal-header">
-              <h3>举报详情</h3>
-              <button className="admin-close-btn" onClick={handleCloseReportModal}>
-                <span>×</span>
-              </button>
-            </div>
-            <div className="admin-modal-content">
-              <div className="report-info">
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报ID:</span>
-                  <span className="admin-info-value">{selectedReport.reportID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报者:</span>
-                  <span className="admin-info-value">{selectedReport.reportingUserID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">被举报者:</span>
-                  <span className="admin-info-value">{selectedReport.reportedUserID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报原因:</span>
-                  <span className="admin-info-value">{selectedReport.reportReason}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报日期:</span>
-                  <span className="admin-info-value">{selectedReport.getFormattedTime()}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">状态:</span>
-                  <span className="admin-info-value" style={{ justifyContent: 'center' }}>
-                    <span className={`admin-status-badge ${selectedReport.isResolved ? 'admin-status-resolved' : 'admin-status-pending'}`}>
-                      {selectedReport.getStatusText()}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div className="admin-actions">
-                <h4>处理决定</h4>
-                <div className="admin-action-buttons">
-                  {!selectedReport.isResolved ? (
-                    <>
-                      <button
-                        className="admin-action-btn admin-resolve-btn"
-                        onClick={() => handleResolveReport(selectedReport.reportID, true)}
-                      >
-                        标记为已处理
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 1)}
-                      >
-                        警告并封禁1天
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 7)}
-                      >
-                        封禁7天
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn severe"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 30)}
-                      >
-                        封禁30天
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="admin-action-btn admin-reopen-btn"
-                      onClick={() => handleResolveReport(selectedReport.reportID, false)}
-                    >
-                      重新开启举报
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReportModal
+          selectedReport={selectedReport}
+          isReportModalClosing={isReportModalClosing}
+          handleCloseReportModal={handleCloseReportModal}
+          handleResolveReport={handleResolveReport}
+          handleBanPlayer={handleBanPlayer}
+        />
       )}
     </div>
   );
