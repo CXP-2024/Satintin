@@ -1,5 +1,4 @@
 import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
-import {FriendEntry} from "Plugins/UserService/Objects/FriendEntry";
 // 定义类型接口
 export interface FriendInfo {
     id: string;
@@ -14,6 +13,11 @@ export interface BlockedUserInfo {
     username: string;
     rank: string;
     blockedDate: string;
+}
+
+// 好友列表条目类型
+export interface FriendEntry {
+    friendID: string;
 }
 
 // 定义状态管理函数类型
@@ -168,98 +172,193 @@ export const fetchFriendInfo = async (friendID: string): Promise<FriendInfo | nu
     }
 };
 
-// 获取好友列表数据（优化版：先批量验证用户存在性，再获取详细信息）
+// 解析好友列表数据为标准数组格式
+const parseFriendListToArray = (friendList: any): FriendEntry[] => {
+    console.log('User friend list:', friendList);
+    console.log('Friend list length:', friendList?.length);
+
+    if (Array.isArray(friendList)) {
+        console.log('Friend list is already an array');
+        return friendList;
+    } 
+    
+    if (typeof friendList === 'string') {
+        console.log('Friend list is a string, attempting to parse...');
+        try {
+            const parsed = JSON.parse(friendList);
+            if (Array.isArray(parsed)) {
+                console.log('Successfully parsed friend list from string:', parsed);
+                return parsed;
+            } else {
+                console.error('Parsed friend list is not an array:', parsed);
+                return [];
+            }
+        } catch (e) {
+            console.error('Failed to parse friend list JSON:', e);
+            return [];
+        }
+    } 
+    
+    if (friendList && typeof friendList === 'object') {
+        console.log('Friend list is an object, checking if it needs parsing...');
+        try {
+            const jsonString = JSON.stringify(friendList);
+            const parsed = JSON.parse(jsonString);
+            if (Array.isArray(parsed)) {
+                console.log('Successfully converted object to array:', parsed);
+                return parsed;
+            } else {
+                console.error('Converted object is not an array:', parsed);
+                return [];
+            }
+        } catch (e) {
+            console.error('Failed to convert object to array:', e);
+            return [];
+        }
+    }
+    
+    console.error('Friend list is not an array, string, or object:', typeof friendList);
+    return [];
+};
+
+// 验证好友条目是否有效
+const isValidFriendEntry = (entry: any): boolean => {
+    if (!entry) {
+        console.warn('Found null/undefined friend entry');
+        return false;
+    }
+    if (!entry.friendID) {
+        console.warn('Found friend entry without friendID:', entry);
+        return false;
+    }
+    if (typeof entry.friendID !== 'string') {
+        console.warn('Found friend entry with non-string friendID:', entry);
+        return false;
+    }
+    if (entry.friendID.trim() === '') {
+        console.warn('Found friend entry with empty friendID:', entry);
+        return false;
+    }
+    return true;
+};
+
+// 过滤有效的好友条目
+const filterValidFriendEntries = (friendListArray: FriendEntry[]): FriendEntry[] => {
+    console.log('Processing friend list array:', friendListArray);
+    console.log('Friend list array length:', friendListArray.length);
+
+    const validEntries = friendListArray.filter(isValidFriendEntry);
+    console.log('Valid friend entries:', validEntries);
+    
+    return validEntries;
+};
+
+// 批量验证用户存在性
+const validateFriendUsers = async (
+    validEntries: FriendEntry[], 
+    setFriendsLoadingStatus: (status: string) => void
+): Promise<{ validUserIDs: string[], invalidUserIDs: string[] }> => {
+    const validationStartTime = performance.now();
+    const friendIDs = validEntries.map(entry => entry.friendID);
+    const { valid: validUserIDs, invalid: invalidUserIDs } = await validateMultipleUsersExist(friendIDs, setFriendsLoadingStatus);
+    const validationEndTime = performance.now();
+
+    console.log(`🚀 Validation completed in ${(validationEndTime - validationStartTime).toFixed(2)}ms`);
+    console.log('User validation results:', { validUserIDs, invalidUserIDs });
+
+    if (invalidUserIDs.length > 0) {
+        console.warn('Found invalid friend user IDs:', invalidUserIDs);
+        setFriendsLoadingStatus(`发现 ${invalidUserIDs.length} 个无效用户ID，将跳过`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    return { validUserIDs, invalidUserIDs };
+};
+
+// 批量获取好友详细信息
+const fetchFriendsDetailedInfo = async (
+    validUserIDs: string[], 
+    setFriendsLoadingStatus: (status: string) => void
+): Promise<FriendInfo[]> => {
+    const fetchStartTime = performance.now();
+    setFriendsLoadingStatus('正在获取好友详细信息...');
+    const validFriends: FriendInfo[] = [];
+
+    for (let i = 0; i < validUserIDs.length; i++) {
+        const friendID = validUserIDs[i];
+        setFriendsLoadingStatus(`正在加载好友 ${i + 1}/${validUserIDs.length}...`);
+        console.log(`Fetching detailed info for valid user ${i}:`, friendID);
+
+        try {
+            const friendInfo = await fetchFriendInfo(friendID);
+            if (friendInfo) {
+                validFriends.push(friendInfo);
+                console.log(`Successfully fetched friend ${i}:`, friendInfo);
+            } else {
+                console.warn(`Failed to fetch detailed info for friend ${friendID}`);
+            }
+        } catch (error) {
+            console.error(`Error fetching friend ${i} (${friendID}):`, error);
+            // Continue with next friend instead of failing completely
+        }
+
+        // Add small delay to prevent overwhelming the backend
+        if (i < validUserIDs.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+
+    const fetchEndTime = performance.now();
+    console.log(`🚀 Detailed info fetch completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
+    console.log('All valid friends fetched:', validFriends);
+
+    return validFriends;
+};
+
+// 处理加载完成状态
+const handleLoadingComplete = (
+    invalidUserIDs: string[], 
+    setFriendsLoadingStatus: (status: string) => void
+): void => {
+    if (invalidUserIDs.length > 0) {
+        setFriendsLoadingStatus(`加载完成，跳过了 ${invalidUserIDs.length} 个无效用户`);
+        // Optional: Clean up invalid friends
+        // await cleanInvalidFriends(invalidUserIDs);
+    } else {
+        setFriendsLoadingStatus('加载完成');
+    }
+
+    // Clear status after a delay
+    setTimeout(() => setFriendsLoadingStatus(''), 3000);
+};
+
+// 获取好友列表数据（重构版：分解为多个职责明确的函数）
 export const fetchFriendsData = async (state: UserProfileState) => {
     const { user, setFriendsData, setLoading, setFriendsLoadingStatus } = state;
     const startTime = performance.now();
 
+    // 检查用户是否有好友列表
     if (!user?.friendList) {
         console.log('No friend list found for user');
         setFriendsData([]);
         return;
     }
 
-    console.log('User friend list:', user.friendList);
-    console.log('Friend list length:', user.friendList.length);
-
-    // Handle different possible formats of friendList
-    let friendListArray: FriendEntry[] = [];
-
-    if (Array.isArray(user.friendList)) {
-        console.log('Friend list is already an array');
-        friendListArray = user.friendList;
-    } else if (typeof user.friendList === 'string') {
-        console.log('Friend list is a string, attempting to parse...');
-        try {
-            const parsed = JSON.parse(user.friendList);
-            if (Array.isArray(parsed)) {
-                friendListArray = parsed;
-                console.log('Successfully parsed friend list from string:', friendListArray);
-            } else {
-                console.error('Parsed friend list is not an array:', parsed);
-                setFriendsData([]);
-                return;
-            }
-        } catch (e) {
-            console.error('Failed to parse friend list JSON:', e);
-            setFriendsData([]);
-            return;
-        }
-    } else if (user.friendList && typeof user.friendList === 'object') {
-        console.log('Friend list is an object, checking if it needs parsing...');
-        // Sometimes the data might come as an object that needs to be converted
-        try {
-            const jsonString = JSON.stringify(user.friendList);
-            const parsed = JSON.parse(jsonString);
-            if (Array.isArray(parsed)) {
-                friendListArray = parsed;
-                console.log('Successfully converted object to array:', friendListArray);
-            } else {
-                console.error('Converted object is not an array:', parsed);
-                setFriendsData([]);
-                return;
-            }
-        } catch (e) {
-            console.error('Failed to convert object to array:', e);
-            setFriendsData([]);
-            return;
-        }
-    } else {
-        console.error('Friend list is not an array, string, or object:', typeof user.friendList);
-        setFriendsData([]);
-        return;
-    }
-
-    console.log('Processing friend list array:', friendListArray);
-    console.log('Friend list array length:', friendListArray.length);
-
     setLoading(true);
     setFriendsLoadingStatus('正在验证好友列表...');
 
     try {
-        // Filter out any invalid entries before processing
-        const validEntries = friendListArray.filter(entry => {
-            if (!entry) {
-                console.warn('Found null/undefined friend entry');
-                return false;
-            }
-            if (!entry.friendID) {
-                console.warn('Found friend entry without friendID:', entry);
-                return false;
-            }
-            if (typeof entry.friendID !== 'string') {
-                console.warn('Found friend entry with non-string friendID:', entry);
-                return false;
-            }
-            if (entry.friendID.trim() === '') {
-                console.warn('Found friend entry with empty friendID:', entry);
-                return false;
-            }
-            return true;
-        });
+        // 1. 解析好友列表为标准数组格式
+        const friendListArray = parseFriendListToArray(user.friendList);
+        if (friendListArray.length === 0) {
+            setFriendsData([]);
+            setFriendsLoadingStatus('');
+            setLoading(false);
+            return;
+        }
 
-        console.log('Valid friend entries:', validEntries);
-
+        // 2. 过滤有效的好友条目
+        const validEntries = filterValidFriendEntries(friendListArray);
         if (validEntries.length === 0) {
             console.log('No valid friend entries found');
             setFriendsData([]);
@@ -268,74 +367,25 @@ export const fetchFriendsData = async (state: UserProfileState) => {
             return;
         }
 
-        // Step 1: Batch validate user existence using lightweight method
-        const validationStartTime = performance.now();
-        const friendIDs = validEntries.map(entry => entry.friendID);
-        const { valid: validUserIDs, invalid: invalidUserIDs } = await validateMultipleUsersExist(friendIDs, setFriendsLoadingStatus);
-        const validationEndTime = performance.now();
+        // 3. 批量验证用户存在性
+        const { validUserIDs, invalidUserIDs } = await validateFriendUsers(validEntries, setFriendsLoadingStatus);
 
-        console.log(`🚀 Validation completed in ${(validationEndTime - validationStartTime).toFixed(2)}ms`);
-        console.log('User validation results:', { validUserIDs, invalidUserIDs });
+        // 4. 获取有效用户的详细信息
+        const validFriends = await fetchFriendsDetailedInfo(validUserIDs, setFriendsLoadingStatus);
 
-        if (invalidUserIDs.length > 0) {
-            console.warn('Found invalid friend user IDs:', invalidUserIDs);
-            setFriendsLoadingStatus(`发现 ${invalidUserIDs.length} 个无效用户ID，将跳过`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-        // Step 2: Fetch detailed info only for valid users
-        const fetchStartTime = performance.now();
-        setFriendsLoadingStatus('正在获取好友详细信息...');
-        const validFriends: FriendInfo[] = [];
-
-        for (let i = 0; i < validUserIDs.length; i++) {
-            const friendID = validUserIDs[i];
-            setFriendsLoadingStatus(`正在加载好友 ${i + 1}/${validUserIDs.length}...`);
-            console.log(`Fetching detailed info for valid user ${i}:`, friendID);
-
-            try {
-                const friendInfo = await fetchFriendInfo(friendID);
-                if (friendInfo) {
-                    validFriends.push(friendInfo);
-                    console.log(`Successfully fetched friend ${i}:`, friendInfo);
-                } else {
-                    console.warn(`Failed to fetch detailed info for friend ${friendID}`);
-                }
-            } catch (error) {
-                console.error(`Error fetching friend ${i} (${friendID}):`, error);
-                // Continue with next friend instead of failing completely
-            }
-
-            // Add small delay to prevent overwhelming the backend
-            if (i < validUserIDs.length - 1) {
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-        }
-
-        const fetchEndTime = performance.now();
-        const totalTime = fetchEndTime - startTime;
-
-        console.log(`🚀 Detailed info fetch completed in ${(fetchEndTime - fetchStartTime).toFixed(2)}ms`);
+        // 5. 处理加载完成状态
+        const totalTime = performance.now() - startTime;
         console.log(`🚀 Total friend loading time: ${totalTime.toFixed(2)}ms`);
-        console.log('All valid friends fetched:', validFriends);
-
-        if (invalidUserIDs.length > 0) {
-            setFriendsLoadingStatus(`加载完成，跳过了 ${invalidUserIDs.length} 个无效用户`);
-            // Optional: Clean up invalid friends
-            // await cleanInvalidFriends(invalidUserIDs);
-        } else {
-            setFriendsLoadingStatus('加载完成');
-        }
-
+        
+        handleLoadingComplete(invalidUserIDs, setFriendsLoadingStatus);
         setFriendsData(validFriends);
+
     } catch (error) {
         console.error('Failed to fetch friends data:', error);
         setFriendsData([]);
         setFriendsLoadingStatus('加载好友列表失败');
     } finally {
         setLoading(false);
-        // Clear status after a delay
-        setTimeout(() => setFriendsLoadingStatus(''), 3000);
     }
 };
 
