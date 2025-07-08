@@ -273,6 +273,9 @@ const RegisterPage: React.FC = () => {
                         <button type="submit" className="register-btn" disabled={loading}>
                             {loading ? '注册中...' : '注册'}
                         </button>
+                        <Link to="/admin-register" className="admin-register-btn">
+                            管理员注册
+                        </Link>
                     </form>
 
                     <div className="register-footer">
