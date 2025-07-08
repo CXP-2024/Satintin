@@ -262,7 +262,7 @@ const BattleRoom: React.FC = () => {
 				</main>
 
 				{/* 回合结果模态框 */}
-				{showRoundResult && currentRoundResult && (
+				{showRoundResult && currentRoundResult && gameState?.roundPhase !== "waiting" && (
 					<RoundResultModal
 						result={currentRoundResult}
 						onClose={gameOverTemporarilyHidden ? handleReturnToGameOver : hideRoundResultModal}

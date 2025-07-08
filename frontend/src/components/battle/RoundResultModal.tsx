@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-	ActiveAction,
-	PassiveAction,
-	RoundResult
-} from '../../services/WebSocketService';
+import { RoundResult } from '../../services/WebSocketService';
 import { useBattleStore } from '../../store/battleStore';
 import { SoundUtils } from 'utils/soundUtils';
 import './RoundResultModal.css';
+import { getBattleOutcome, getActionDisplay, getPlayerData } from './RoundResultModalUtils';
 
 interface RoundResultModalProps {
 	result: RoundResult;
@@ -16,55 +13,14 @@ interface RoundResultModalProps {
 }
 
 const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily, isGameOver }) => {
-	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
+	const { currentPlayer, opponent, roundResultExiting, lastRoundSelectedAction } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
 	console.log('RoundResultModal rendered with result:', result);
 
-	// 获取行动显示信息
-	const getActionDisplay = (action: PassiveAction | ActiveAction) => {
-		switch (action) {
-			// will be processed later
-			default:
-				return { icon: '❓', text: '未知', color: '#95a5a6' };
-		}
-	};
-
-	// 获取玩家数据（当前玩家vs对手）
-	const getPlayerData = () => {
-		const currentPlayerId = currentPlayer?.playerId;
-		const opponentId = opponent?.playerId;
-
-		if (result.player1Action.playerId === currentPlayerId) {
-			return {
-				current: {
-					action: result.player1Action,
-					result: result.results.player1,
-					name: currentPlayer?.username || '你'
-				},
-				opponent: {
-					action: result.player2Action,
-					result: result.results.player2,
-					name: opponent?.username || '对手'
-				}
-			};
-		} else {
-			return {
-				current: {
-					action: result.player2Action,
-					result: result.results.player2,
-					name: currentPlayer?.username || '你'
-				},
-				opponent: {
-					action: result.player1Action,
-					result: result.results.player1,
-					name: opponent?.username || '对手'
-				}
-			};
-		}
-	};
-
-	const playerData = getPlayerData();
+	// 计算玩家数据和战斗结果
+	const playerData = getPlayerData(currentPlayer, opponent, result);
+	const battleOutcome = getBattleOutcome(currentPlayer, opponent, result);
 
 	// 动画序列
 	useEffect(() => {
@@ -73,50 +29,7 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 		setAnimationPhase('results');
 	}, []);
 
-	// 判断战斗结果
-	const getBattleOutcome = () => {
-		const currentHealthChange = playerData.current.result.healthChange;
-		const opponentHealthChange = playerData.opponent.result.healthChange;
-		const currentEnergyChange = playerData.current.result.energyChange;
-		const opponentEnergyChange = playerData.opponent.result.energyChange;
-		if (result.results?.exploded) {
-			const explodedPlayers = result.results.explodedPlayers || [];
-			if (explodedPlayers.includes(currentPlayer?.playerId) && explodedPlayers.includes(opponent?.playerId)) {
-				return { type: 'lose', message: '你们都爆炸了！' };
-			} else if (explodedPlayers.includes(opponent?.playerId)) {
-				return { type: 'win', message: '对手爆炸了！' };
-			} else {
-				return { type: 'tie', message: '你爆炸了！' };
-			}
-		}
 
-		// 基于血量变化判断输赢
-		if (currentHealthChange < 0 && opponentHealthChange < 0) {
-			// 双方都掉血，比较掉血量
-			if (Math.abs(currentHealthChange) > Math.abs(opponentHealthChange)) {
-				return { type: 'lose', message: '你受到了更多伤害！' };
-			} else if (Math.abs(currentHealthChange) < Math.abs(opponentHealthChange)) {
-				return { type: 'win', message: '对手受到了更多伤害！' };
-			} else {
-				return { type: 'tie', message: '双方受到相同伤害！' };
-			}
-		} else if (currentHealthChange < 0) {
-			return { type: 'lose', message: '你受到了伤害！' };
-		} else if (opponentHealthChange < 0) {
-			return { type: 'win', message: '对手受到了伤害！' };
-		} else {
-			// 都没掉血，基于能量变化或其他因素判断
-			if (currentEnergyChange > opponentEnergyChange) {
-				return { type: 'win', message: '你获得了更多能量！' };
-			} else if (currentEnergyChange < opponentEnergyChange) {
-				return { type: 'lose', message: '对手获得了更多能量！' };
-			} else {
-				return { type: 'tie', message: '平局！' };
-			}
-		}
-	};
-
-	const battleOutcome = getBattleOutcome();
 
 	// 关闭模态框
 	const handleClose = () => {
@@ -156,12 +69,12 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 							<div className="action-display">
 								<span
 									className="action-icon"
-									style={{ color: getActionDisplay(playerData.current.action.type).color }}
+									style={{ color: getActionDisplay(lastRoundSelectedAction).color }}
 								>
-									{getActionDisplay(playerData.current.action.type).icon}
+									{getActionDisplay(lastRoundSelectedAction).icon}
 								</span>
 								<span className="action-text">
-									{getActionDisplay(playerData.current.action.type).text}
+									{getActionDisplay(lastRoundSelectedAction).text}
 								</span>
 							</div>
 						</div>
@@ -173,12 +86,12 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 							<div className="action-display">
 								<span
 									className="action-icon"
-									style={{ color: getActionDisplay(playerData.opponent.action.type).color }}
+									style={{ color: '#95a5a6' }}
 								>
-									{getActionDisplay(playerData.opponent.action.type).icon}
+									{'❓'}
 								</span>
 								<span className="action-text">
-									{getActionDisplay(playerData.opponent.action.type).text}
+									{'神之一手'}
 								</span>
 							</div>
 						</div>
