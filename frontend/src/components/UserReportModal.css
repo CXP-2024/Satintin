@@ -1,4 +1,4 @@
-.report-modal-overlay {
+.user-report-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -8,12 +8,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1100;
   backdrop-filter: blur(4px);
-  animation: fadeIn 0.3s ease;
+  animation: userReportFadeIn 0.3s ease;
 }
 
-.report-modal {
+.user-report-modal {
   background: linear-gradient(135deg, #2c3e50 0%, #1a2a3a 100%);
   border-radius: 12px;
   width: 90%;
@@ -23,10 +23,10 @@
   color: white;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  animation: slideUp 0.3s ease;
+  animation: userReportSlideUp 0.3s ease;
 }
 
-.report-modal-header {
+.user-report-modal-header {
   background: rgba(231, 76, 60, 0.8);
   padding: 15px 20px;
   border-top-left-radius: 12px;
@@ -36,14 +36,14 @@
   align-items: center;
 }
 
-.report-modal-header h2 {
+.user-report-modal-header h2 {
   margin: 0;
   font-size: 1.4rem;
   font-weight: 600;
   color: white;
 }
 
-.close-button {
+.user-report-close-button {
   background: none;
   border: none;
   color: white;
@@ -53,33 +53,33 @@
   transition: opacity 0.2s;
 }
 
-.close-button:hover {
+.user-report-close-button:hover {
   opacity: 1;
 }
 
-.report-modal-body {
+.user-report-modal-body {
   padding: 20px;
 }
 
-.report-reason-section,
-.report-description-section {
+.user-report-reason-section,
+.user-report-description-section {
   margin-bottom: 20px;
 }
 
-.report-reason-section h3,
-.report-description-section h3 {
+.user-report-reason-section h3,
+.user-report-description-section h3 {
   margin: 0 0 15px 0;
   font-size: 1.1rem;
   color: #ddd;
 }
 
-.report-reason-options {
+.user-report-reason-options {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.report-reason-option {
+.user-report-reason-option {
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -87,19 +87,18 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   transition: background 0.2s;
-  color: white;
 }
 
-.report-reason-option:hover {
+.user-report-reason-option:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.report-reason-option input[type="radio"] {
+.user-report-reason-option input[type="radio"] {
   margin-right: 10px;
   cursor: pointer;
 }
 
-.report-description-section textarea {
+.user-report-description-section textarea {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
@@ -112,29 +111,29 @@
   box-sizing: border-box;
 }
 
-.report-description-section textarea:focus {
+.user-report-description-section textarea:focus {
   outline: none;
   border-color: #e74c3c;
 }
 
-.description-char-count {
+.user-report-char-count {
   text-align: right;
   margin-top: 8px;
   font-size: 0.85rem;
   color: #aaa;
 }
 
-.report-error-message {
+.user-report-error-message {
   background: rgba(231, 76, 60, 0.2);
   border-left: 4px solid #e74c3c;
   padding: 10px 15px;
   margin: 15px 0;
   color: #f8d7da;
   font-size: 0.9rem;
-  animation: shake 0.4s ease-in-out;
+  animation: userReportShake 0.4s ease-in-out;
 }
 
-.report-modal-footer {
+.user-report-modal-footer {
   padding: 15px 20px;
   display: flex;
   justify-content: flex-end;
@@ -142,8 +141,8 @@
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.report-cancel-button,
-.report-submit-button {
+.user-report-cancel-button,
+.user-report-submit-button {
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
@@ -152,42 +151,72 @@
   transition: all 0.2s;
 }
 
-.report-cancel-button {
+.user-report-cancel-button {
   background: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
-.report-cancel-button:hover {
+.user-report-cancel-button:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.report-submit-button {
+.user-report-submit-button {
   background: linear-gradient(45deg, #e74c3c, #c0392b);
   color: white;
   box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
 }
 
-.report-submit-button:hover {
+.user-report-submit-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
 }
 
-.report-submit-button:disabled,
-.report-cancel-button:disabled {
+.user-report-submit-button:disabled,
+.user-report-cancel-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.report-modal-note {
+.user-report-modal-note {
   padding: 10px 20px 20px;
   font-size: 0.85rem;
   color: #aaa;
   font-style: italic;
 }
 
-@keyframes fadeIn {
+.user-report-modal-success {
+  padding: 30px 20px;
+  text-align: center;
+  animation: userReportFadeIn 0.5s ease;
+}
+
+.user-report-success-icon {
+  font-size: 3rem;
+  color: #2ecc71;
+  margin-bottom: 15px;
+  display: inline-block;
+  border: 3px solid #2ecc71;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  line-height: 70px;
+  animation: userReportScaleIn 0.5s ease;
+}
+
+.user-report-modal-success h3 {
+  margin: 0 0 10px 0;
+  color: #2ecc71;
+  font-size: 1.5rem;
+}
+
+.user-report-modal-success p {
+  color: #ddd;
+  margin: 0;
+}
+
+@keyframes userReportFadeIn {
   from {
     opacity: 0;
   }
@@ -196,7 +225,7 @@
   }
 }
 
-@keyframes slideUp {
+@keyframes userReportSlideUp {
   from {
     transform: translateY(20px);
     opacity: 0;
@@ -207,7 +236,7 @@
   }
 }
 
-@keyframes shake {
+@keyframes userReportShake {
   0%, 100% {
     transform: translateX(0);
   }
@@ -219,34 +248,45 @@
   }
 }
 
+@keyframes userReportScaleIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 768px) {
-  .report-modal {
+  .user-report-modal {
     width: 95%;
     max-width: none;
     max-height: 80vh;
   }
   
-  .report-modal-header h2 {
+  .user-report-modal-header h2 {
     font-size: 1.2rem;
   }
 }
 
 @media (max-width: 480px) {
-  .report-modal-header {
+  .user-report-modal-header {
     padding: 12px 15px;
   }
   
-  .report-modal-body {
+  .user-report-modal-body {
     padding: 15px;
   }
   
-  .report-modal-footer {
+  .user-report-modal-footer {
     padding: 12px 15px;
     flex-direction: column;
   }
   
-  .report-cancel-button,
-  .report-submit-button {
+  .user-report-cancel-button,
+  .user-report-submit-button {
     width: 100%;
     padding: 12px;
   }

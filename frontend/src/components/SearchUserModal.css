@@ -1,0 +1,364 @@
+/* 搜索用户弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.search-user-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal-header h3 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  padding: 5px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-input-group input {
+  flex: 1;
+  padding: 16px 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  min-height: 50px;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: #95a5a6;
+  box-shadow: 0 0 0 3px rgba(149, 165, 166, 0.1);
+}
+
+.search-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 16px 28px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 100px;
+  min-height: 50px;
+  font-size: 1.1rem;
+}
+
+.search-btn:hover:not(:disabled) {
+  background: #7f8c8d;
+  transform: translateY(-1px);
+}
+
+.search-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: rgba(255, 0, 0, 0.1);
+  color: #d32f2f;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+.user-search-result {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.user-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  padding: 25px;
+  display: flex;
+  gap: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-icon {
+  font-size: 2rem;
+  color: white;
+}
+
+.user-details {
+  flex: 1;
+}
+
+.user-details h4 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.user-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* 滚动条样式 */
+.user-stats::-webkit-scrollbar {
+  width: 6px;
+}
+
+.user-stats::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.user-stats::-webkit-scrollbar-thumb {
+  background: #95a5a6;
+  border-radius: 3px;
+}
+
+.user-stats::-webkit-scrollbar-thumb:hover {
+  background: #7f8c8d;
+}
+
+.search-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 16px;
+  background: rgba(96, 74, 60, 0.6);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  min-height: 50px;
+  transition: all 0.2s ease;
+}
+
+.search-stat-item:hover {
+  background: rgba(166, 179, 185, 0.95);
+}
+
+.search-stat-label {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.search-stat-value {
+  color: white;
+  font-weight: 500;
+  text-align: right;
+  max-width: 60%;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-left: 10px;
+  padding-bottom: 5px;
+}
+
+.search-stat-value::-webkit-scrollbar {
+  height: 4px;
+}
+
+.search-stat-value::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.search-stat-value::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+}
+
+.search-stat-value::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.search-stat-value.online {
+  color: #27ae60;
+}
+
+.search-stat-value.offline {
+  color: #e74c3c;
+}
+
+/* 举报用户按钮样式 */
+.report-user-section {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-user-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-user-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+}
+
+.report-user-btn:active {
+  transform: translateY(0);
+}
+
+.report-success-message {
+  background: rgba(46, 204, 113, 0.15);
+  color: #27ae60;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border-left: 4px solid #2ecc71;
+  animation: fadeIn 0.3s ease;
+}
+
+.report-error-message {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border-left: 4px solid #e74c3c;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 响应式样式 */
+@media (max-width: 768px) {
+  .search-user-modal {
+    padding: 20px;
+    width: 95%;
+    max-width: none;
+  }
+  
+  .search-input-group {
+    flex-direction: column;
+  }
+  
+  .search-btn {
+    width: 100%;
+  }
+  
+  .user-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .user-avatar {
+    margin: 0 auto;
+  }
+  
+  .search-stat-value {
+    max-width: 200px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-user-modal {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  
+  .modal-header h3 {
+    font-size: 1.2rem;
+  }
+  
+  .search-stat-item {
+    padding: 10px;
+  }
+  
+  .search-stat-label,
+  .search-stat-value {
+    font-size: 0.8rem;
+  }
+}
