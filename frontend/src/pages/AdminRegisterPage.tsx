@@ -58,10 +58,6 @@ const AdminRegisterPage: React.FC = () => {
             setError('用户名长度必须在3到20个字符之间');
             return false;
         }
-        if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
-            setError('用户名只能包含字母、数字和下划线');
-            return false;
-        }
 
         // 邮箱验证
         if (!formData.email) {

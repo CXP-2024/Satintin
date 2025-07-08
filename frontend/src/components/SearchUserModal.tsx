@@ -1,4 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import './SearchUserModal.css';
+import UserReportModal from './UserReportModal';
+import { SoundUtils } from 'utils/soundUtils';
+import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 interface SearchUserModalProps {
     isOpen: boolean;
@@ -21,7 +25,28 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({
     onSearch,
     onClose
 }) => {
+    const currentUser = useUserInfo();
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportSuccess, setReportSuccess] = useState(false);
+    const [reportError, setReportError] = useState('');
+
     if (!isOpen) return null;
+
+    const handleReportClick = () => {
+        SoundUtils.playClickSound(0.5);
+        setShowReportModal(true);
+    };
+
+    const handleReportClose = () => {
+        setShowReportModal(false);
+    };
+    
+    const handleReportSubmit = (userId: string, reason: string, description: string) => {
+        setReportSuccess(true);
+        setTimeout(() => {
+            setReportSuccess(false);
+        }, 3000);
+    };
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -82,12 +107,47 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({
                                             </span>
                                         </div>
                                     </div>
+                                    
+                                    {/* 举报按钮 */}
+                                    {searchedUser.userID !== currentUser?.userID && (
+                                        <div className="report-user-section">
+                                            <button 
+                                                className="report-user-btn" 
+                                                onClick={handleReportClick}
+                                            >
+                                                举报用户
+                                            </button>
+                                            
+                                            {reportSuccess && (
+                                                <div className="report-success-message">
+                                                    举报已提交，我们会尽快处理
+                                                </div>
+                                            )}
+                                            
+                                            {reportError && (
+                                                <div className="report-error-message">
+                                                    {reportError}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+            
+            {/* 举报模态框 */}
+            {searchedUser && (
+                <UserReportModal
+                    isOpen={showReportModal}
+                    username={searchedUser.userName}
+                    userID={searchedUser.userID}
+                    onClose={handleReportClose}
+                    onSubmit={handleReportSubmit}
+                />
+            )}
         </div>
     );
 };
