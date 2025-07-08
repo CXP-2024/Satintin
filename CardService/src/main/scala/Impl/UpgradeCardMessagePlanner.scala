@@ -29,12 +29,6 @@ case class UpgradeCardMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Verify userID validity
-      _ <- IO(logger.info("验证用户身份令牌的合法性"))
-      // validation to be completed
-
-      // Step 2: Check if user owns the card
-      _ <- IO(logger.info(s"检查用户 ${userID} 是否拥有卡片 ${cardID}"))
       isCardOwned <- checkUserOwnsCard(userID, cardID)
       _ <- if (!isCardOwned) {
         IO.raiseError(new IllegalStateException(s"用户 ${userID} 未拥有卡片 ${cardID}"))

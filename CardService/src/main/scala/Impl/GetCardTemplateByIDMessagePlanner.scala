@@ -22,9 +22,6 @@ case class GetCardTemplateByIDMessagePlanner(
 
   override def plan(using PlanContext): IO[CardTemplate] = {
     for {
-      // Step 1: Validate input parameters
-      _ <- IO(logger.info(s"[Step 1] 开始根据卡牌ID查询卡牌模板，cardID='${cardID}'"))
-
       // Step 2: Query card template from database by cardID
       sqlQuery <- IO {
         s"""
