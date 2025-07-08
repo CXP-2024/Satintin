@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import primogemIcon from '../assets/images/primogem-icon.png';
-import { GetAssetTransactionMessage } from '../Plugins/AssetService/APIs/GetAssetTransactionMessage';
-import { AssetTransaction } from '../Plugins/AssetService/Objects/AssetTransaction';
+import primogemIcon from '../../assets/images/primogem-icon.png';
+import { GetAssetTransactionMessage } from '../../Plugins/AssetService/APIs/GetAssetTransactionMessage';
+import { AssetTransaction } from '../../Plugins/AssetService/Objects/AssetTransaction';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { SoundUtils } from 'utils/soundUtils';
 

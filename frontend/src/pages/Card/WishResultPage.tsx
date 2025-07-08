@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import PageTransition from '../components/PageTransition';
-import WishVideo from '../components/wishResult/WishVideo';
-import SingleCardResult from '../components/wishResult/SingleCardResult';
-import AllCardsOverview from '../components/wishResult/AllCardsOverview';
-import { useWishResultLogic } from '../hooks/useWishResultLogic';
+import { usePageTransition } from '../../hooks/usePageTransition';
+import PageTransition from '../../components/PageTransition';
+import WishVideo from '../../components/wishResult/WishVideo';
+import SingleCardResult from '../../components/wishResult/SingleCardResult';
+import AllCardsOverview from '../../components/wishResult/AllCardsOverview';
+import { useWishResultLogic } from '../../hooks/useWishResultLogic';
 import './WishResultPage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 
 const WishResultPage: React.FC = () => {

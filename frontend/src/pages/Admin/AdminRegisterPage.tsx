@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import PageTransition from '../components/PageTransition';
-import { RegisterFormData } from '../types/User';
+import PageTransition from '../../components/PageTransition';
+import { RegisterFormData } from '../../types/User';
 import './AdminRegisterPage.css';
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateAdminMessage} from "Plugins/AdminService/APIs/CreateAdminMessage";

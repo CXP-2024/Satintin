@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import primogemIcon from '../assets/images/primogem-icon.png';
+import primogemIcon from '../../assets/images/primogem-icon.png';
 import { SoundUtils } from 'utils/soundUtils';
 import TransactionRecords from './TransactionRecords';
-import { User } from '../Plugins/UserService/Objects/User';
+import { User } from '../../Plugins/UserService/Objects/User';
 
 // 更新接口定义以使用真实数据
 interface PlayerManagementProps {

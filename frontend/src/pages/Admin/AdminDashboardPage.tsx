@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import PageTransition from '../components/PageTransition';
+import { usePageTransition } from '../../hooks/usePageTransition';
+import PageTransition from '../../components/PageTransition';
 import './AdminDashboardPage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { clearUserInfo, useUserInfo, initUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
-import PlayerManagement from '../components/PlayerManagement';
-import ReportHandling from '../components/admin/ReportHandling';
-import { useAdminUsers } from '../hooks/useAdminUsers';
-import { useAdminReports } from '../hooks/useAdminReports';
-import { AdminTab } from '../types/adminDashboard';
+import PlayerManagement from '../../components/admin/PlayerManagement';
+import ReportHandling from '../../components/admin/ReportHandling';
+import { useAdminUsers } from '../../hooks/useAdminUsers';
+import { useAdminReports } from '../../hooks/useAdminReports';
+import { AdminTab } from '../../types/adminDashboard';
 
 const AdminDashboardPage: React.FC = () => {
   const user = useUserInfo();

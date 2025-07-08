@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import PageTransition from '../components/PageTransition';
+import { usePageTransition } from '../../hooks/usePageTransition';
+import PageTransition from '../../components/PageTransition';
 import './CardCollectionPage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
-import { GetAllCardTemplatesMessage } from '../Plugins/CardService/APIs/GetAllCardTemplatesMessage';
+import { GetAllCardTemplatesMessage } from '../../Plugins/CardService/APIs/GetAllCardTemplatesMessage';
 import { ConfigureBattleDeckMessage } from 'Plugins/CardService/APIs/ConfigureBattleDeckMessage';
 import { LoadBattleDeckMessage } from 'Plugins/CardService/APIs/LoadBattleDeckMessage';
 import { useUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
 import { CardEntry } from 'Plugins/CardService/Objects/CardEntry';
-import { CARD_IMAGE_MAP } from '../utils/cardImageMap';
+import { CARD_IMAGE_MAP } from '../../utils/cardImageMap';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { 
 	DeckManager, 
@@ -18,7 +18,7 @@ import {
 	ExtendedCardEntry, 
 	CardTemplate, 
 	TabType 
-} from '../components/cardCollection';
+} from '../../components/cardCollection';
 
 const CardCollectionPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

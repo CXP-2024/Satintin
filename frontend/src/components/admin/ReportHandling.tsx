@@ -7,7 +7,7 @@ import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
 import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
 import { User } from 'Plugins/UserService/Objects/User';
 import ReportModal from './ReportModal';
-import { playClickSound, getAdminToken } from '../reportUtils';
+import { playClickSound, getAdminToken } from './reportUtils';
 import { ReportHandlingProps } from './types';
 import { useUserNameCache } from './hooks/useUserNameCache';
 import { usePagination } from './hooks/usePagination';
