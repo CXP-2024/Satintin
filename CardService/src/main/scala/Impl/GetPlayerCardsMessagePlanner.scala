@@ -27,15 +27,6 @@ case class GetPlayerCardsMessagePlanner(
 
   override def plan(using planContext: PlanContext): IO[List[CardEntry]] = {
     for {
-      // Step 1: Validate user token
-      _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userID=${userID}"))
-      // validation to be completed
-
-      // Step 2: Use token directly as user ID (consistent with other services)
-      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userID}"))
-
-      // Step 3: Fetch user card inventory
-      _ <- IO(logger.info(s"[Step 3] 开始拉取用户卡牌信息: userID=${userID}"))
       cardEntries <- fetchUserCardInventory(userID)
       _ <- IO(logger.info(s"[Step 3.1] 成功拉取用户卡牌信息: 共 ${cardEntries.size} 条记录"))
     } yield cardEntries
