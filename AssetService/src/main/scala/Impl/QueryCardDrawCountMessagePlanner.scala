@@ -6,7 +6,7 @@ import cats.effect.IO
 import org.slf4j.LoggerFactory
 
 case class QueryCardDrawCountMessagePlanner(
-  userToken: String,
+  userID: String,
   poolType: String,
   override val planContext: PlanContext
 ) extends Planner[Int] {
@@ -22,11 +22,6 @@ case class QueryCardDrawCountMessagePlanner(
         IO(logger.info("[Step 1] 输入参数验证通过"))
       }
 
-      // Step 2: 使用Utils验证用户Token
-      _ <- IO(logger.info("[Step 2] 验证用户Token"))
-      // validation to be completed
-      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      _ <- IO(logger.info(s"[Step 2] 用户验证成功，userID=${userID}"))      // Step 3: 查询抽卡次数
       _ <- IO(logger.info(s"[Step 3] 开始查询用户在${poolType}池的抽卡次数: userID=${userID}"))
       result <- CardDrawCountService.fetchCardDrawCount(userID, poolType)
       _ <- IO(logger.info(s"[Step 3] 查询完成，${poolType}池抽卡次数: ${result}"))

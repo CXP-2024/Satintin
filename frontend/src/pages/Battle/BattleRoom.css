@@ -410,6 +410,7 @@
 	display: flex;
 	flex-direction: column;
 	gap: 15px;
+	align-items: stretch; /* 确保所有按钮宽度一致 */
 }
 
 .show-action-selector-btn {
@@ -446,6 +447,24 @@
 .show-last-result-btn:hover {
 	transform: translateY(-3px);
 	box-shadow: 0 12px 35px rgba(155, 89, 182, 0.5);
+}
+
+/* 举报按钮样式 */
+.report-opponent-btn {
+	background: linear-gradient(45deg, #e74c3c, #c0392b);
+	border: none;
+	padding: 15px 20px;
+	border-radius: 50px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+}
+
+.report-opponent-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 12px 35px rgba(231, 76, 60, 0.5);
 }
 
 @keyframes pulse-glow-purple {
@@ -620,6 +639,11 @@
 		padding: 12px 16px;
 		font-size: 0.9rem;
 	}
+	
+	.report-opponent-btn {
+		padding: 12px 16px;
+		font-size: 0.9rem;
+	}
 }
 
 /* 超小屏幕优化 */
@@ -662,6 +686,11 @@
 
 	.show-action-selector-btn,
 	.show-last-result-btn {
+		padding: 10px 14px;
+		font-size: 0.8rem;
+	}
+	
+	.report-opponent-btn {
 		padding: 10px 14px;
 		font-size: 0.8rem;
 	}

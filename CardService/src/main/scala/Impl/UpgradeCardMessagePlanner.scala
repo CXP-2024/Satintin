@@ -29,13 +29,6 @@ case class UpgradeCardMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Verify userToken validity
-      _ <- IO(logger.info("验证用户身份令牌的合法性"))
-      // validation to be completed
-      userToken <- IO(userID)
-
-      // Step 2: Check if user owns the card
-      _ <- IO(logger.info(s"检查用户 ${userID} 是否拥有卡片 ${cardID}"))
       isCardOwned <- checkUserOwnsCard(userID, cardID)
       _ <- if (!isCardOwned) {
         IO.raiseError(new IllegalStateException(s"用户 ${userID} 未拥有卡片 ${cardID}"))
@@ -45,7 +38,7 @@ case class UpgradeCardMessagePlanner(
 
       // Step 3: Verify user has sufficient resources
       _ <- IO(logger.info("验证用户是否拥有足够的升级资源"))
-      currentStoneAmount <- QueryAssetStatusMessage(userToken).send
+      currentStoneAmount <- QueryAssetStatusMessage(userID).send
       upgradeCost <- calculateUpgradeCost(userID, cardID)
       _ <- if (currentStoneAmount < upgradeCost) {
         IO.raiseError(new IllegalStateException(s"资源不足: 当前原石数量 ${currentStoneAmount}, 升级需要 ${upgradeCost}"))
@@ -55,11 +48,11 @@ case class UpgradeCardMessagePlanner(
 
       // Step 4: Deduct upgrade resources
       _ <- IO(logger.info(s"扣减用户的升级资源，数量: ${upgradeCost}"))
-      _ <- DeductAssetMessage(userToken, upgradeCost).send
+      _ <- DeductAssetMessage(userID, upgradeCost).send
 
       // Step 5: Upgrade the card
       _ <- IO(logger.info(s"执行卡片升级逻辑，升级卡片 ${cardID}"))
-      _ <- upgradeCard(userToken, userID, cardID)
+      _ <- upgradeCard(userID, userID, cardID)
 
       // Step 6: Return success result
       result <- IO.pure("卡牌升级成功！")

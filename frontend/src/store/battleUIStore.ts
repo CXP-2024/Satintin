@@ -3,6 +3,7 @@ import {
 	RoundResult,
 	GameOverResult
 } from '../services/WebSocketService';
+import { useReportStore, useReportActions } from './reportStore';
 
 export interface BattleUIState {
 	// UI状态
@@ -178,6 +179,9 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 
 	resetUI: () => {
 		console.log('📝 [BattleUIStore] 重置UI状态');
+		// 同时重置举报UI
+		useReportStore.getState().resetReportUI();
+		
 		set({
 			showActionSelector: false,
 			actionSelectorTemporarilyHidden: false,
@@ -201,6 +205,7 @@ export const useBattleActions = () => {
 
 	const gameStore = useBattleGameStore();
 	const uiStore = useBattleUIStore();
+	const reportStore = useReportActions();
 
 	const submitActionWithUI = () => {
 		gameStore.submitAction(() => {
@@ -249,6 +254,7 @@ export const useBattleActions = () => {
 	return {
 		...gameStore,
 		...uiStore,
+		...reportStore, // 添加举报相关功能
 		submitActionWithUI,
 		addRoundResultWithUI,
 		resetBattleComplete,

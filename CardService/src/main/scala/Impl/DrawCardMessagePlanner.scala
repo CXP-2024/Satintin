@@ -21,7 +21,7 @@ import io.circe.generic.auto._
 import io.circe.Json
 
 case class DrawCardMessagePlanner(
-  userToken: String,
+  userID: String,
   drawCount: Int,
   poolType: String,
   override val planContext: PlanContext
@@ -30,11 +30,7 @@ case class DrawCardMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[DrawResult] = {
-    for {      // Step 1: Validate user token
-      _ <- IO(logger.info("[Step 1] 验证用户Token合法性"))
-      // validation to be completed
-
-      // Step 1.5: Validate poolType
+    for {    
       _ <- IO(logger.info("[Step 1.5] 验证卡池类型"))
       _ <- if (!List("featured", "standard").contains(poolType)) {
         IO.raiseError(new IllegalArgumentException(s"卡池类型无效，必须是 featured 或 standard，当前值: ${poolType}"))
@@ -42,7 +38,7 @@ case class DrawCardMessagePlanner(
 
       // Step 2: Query user's asset status
       _ <- IO(logger.info("[Step 2] 检查用户资产原石数量"))
-      stoneAmount <- QueryAssetStatusMessage(userToken).send
+      stoneAmount <- QueryAssetStatusMessage(userID).send
       stoneCostPerDraw = 160
       totalCost = drawCount * stoneCostPerDraw
       _ <- if (stoneAmount < totalCost) {
@@ -50,7 +46,7 @@ case class DrawCardMessagePlanner(
       
       // Step 4: Execute card draw (drawCards will handle asset deduction and transaction logging)
       _ <- IO(logger.info(s"[Step 4] 执行抽卡操作，数量=${drawCount}，卡池类型=${poolType}"))
-      drawResult <- drawCards(userToken, userToken, drawCount, poolType)
+      drawResult <- drawCards(userID, drawCount, poolType)
 
       _ <- IO(logger.info(s"抽卡完成，返回结果: $drawResult"))
     } yield drawResult

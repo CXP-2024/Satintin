@@ -1,0 +1,263 @@
+/* 已领取弹窗样式 */
+.claimed-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(6px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	animation: fadeIn 0.3s ease;
+}
+
+.claimed-modal-overlay.closing {
+	animation: fadeOut 0.3s ease;
+}
+
+.claimed-modal {
+	border-radius: 20px;
+	width: 90%;
+	max-width: 450px;
+	min-height: 350px;
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	backdrop-filter: blur(15px);
+	animation: slideUp 0.3s ease;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+	padding: 40px 30px;
+}
+
+.claimed-modal.closing {
+	animation: slideDown 0.3s ease;
+}
+
+/* 动画关键帧 */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(50px);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideDown {
+	from {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(50px);
+		opacity: 0;
+	}
+}
+
+/* 关闭按钮 */
+.claimed-close-btn {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	width: 35px;
+	height: 35px;
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: white;
+	font-size: 16px;
+	font-weight: bold;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(8px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	z-index: 100;
+	user-select: none;
+}
+
+.claimed-close-btn:hover {
+	background: rgba(255, 255, 255, 0.3);
+	transform: rotate(90deg) scale(1.1);
+	box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+/* 内容 */
+.claimed-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	flex: 1;
+	gap: 25px;
+	position: relative;
+	z-index: 10;
+}
+
+/* 图标 */
+.claimed-icon {
+	font-size: 5rem;
+	margin-bottom: 10px;
+	opacity: 0;
+	transform: scale(0.5);
+	transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.claimed-icon.animate {
+	opacity: 1;
+	transform: scale(1);
+}
+
+/* 标题 */
+.claimed-title {
+	font-size: 2.2rem;
+	font-weight: bold;
+	color: white;
+	margin: 0;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	text-align: center;
+}
+
+/* 描述 */
+.claimed-description {
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 1.1rem;
+	margin: 0;
+	line-height: 1.4;
+	text-align: center;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 确认按钮 */
+.claimed-confirm-btn {
+	background: linear-gradient(45deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+	backdrop-filter: blur(10px);
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	padding: 15px 40px;
+	border-radius: 15px;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 1.1rem;
+	transition: all 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	margin-top: 10px;
+	opacity: 0;
+	transform: translateY(30px);
+	transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+	transition-delay: 0.6s;
+	user-select: none;
+	min-width: 120px;
+}
+
+.claimed-confirm-btn.animate {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.claimed-confirm-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+	background: linear-gradient(45deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.2));
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.claimed-confirm-btn.animate:hover {
+	transform: translateY(-3px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+	.claimed-modal {
+		width: 95%;
+		max-width: none;
+		min-height: 300px;
+		padding: 30px 20px;
+		border-radius: 15px;
+	}
+
+	.claimed-icon {
+		font-size: 4rem;
+	}
+
+	.claimed-title {
+		font-size: 1.8rem;
+	}
+
+	.claimed-description {
+		font-size: 1rem;
+	}
+
+	.claimed-confirm-btn {
+		padding: 12px 30px;
+		font-size: 1rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.claimed-modal {
+		width: 98%;
+		min-height: 280px;
+		padding: 25px 15px;
+		border-radius: 12px;
+	}
+
+	.claimed-content {
+		gap: 20px;
+	}
+
+	.claimed-icon {
+		font-size: 3.5rem;
+	}
+
+	.claimed-title {
+		font-size: 1.6rem;
+	}
+
+	.claimed-description {
+		font-size: 0.95rem;
+	}
+
+	.claimed-confirm-btn {
+		padding: 10px 25px;
+		font-size: 0.95rem;
+	}
+
+	.claimed-close-btn {
+		top: 15px;
+		right: 15px;
+		width: 30px;
+		height: 30px;
+		font-size: 14px;
+	}
+}

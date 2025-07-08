@@ -24,6 +24,7 @@ export interface BattleGameState {
 
 	// 游戏流程
 	selectedAction: PassiveAction | ActiveAction | null;
+	lastRoundSelectedAction: PassiveAction | ActiveAction | null; // 上一回合选择的行动
 	selectedActiveActions: AttackObjectName[]; // 存储选中的主动行动
 	selectedObjectDefenseTarget: AttackObjectName | null; // ObjectDefense的目标
 	isActionSubmitted: boolean;
@@ -47,7 +48,7 @@ export interface BattleGameState {
 export const useBattleGameStore = create<BattleGameState>((set, get) => ({
 	// 初始状态
 	roomId: null, gameState: null, isConnected: false, connectionError: null,
-	currentPlayer: null, opponent: null,
+	currentPlayer: null, opponent: null, lastRoundSelectedAction: null,
 	selectedAction: null, selectedActiveActions: [], selectedObjectDefenseTarget: null, isActionSubmitted: false, roundHistory: [],
 
 	// Actions
@@ -267,7 +268,7 @@ export const useBattleGameStore = create<BattleGameState>((set, get) => ({
 		}
 
 		// 更新selectedAction为最终版本
-		set({selectedAction: finalAction, isActionSubmitted: true});
+		set({selectedAction: finalAction, isActionSubmitted: true, lastRoundSelectedAction: finalAction});
 
 		// 调用成功回调
 		if (onSubmitSuccess) {

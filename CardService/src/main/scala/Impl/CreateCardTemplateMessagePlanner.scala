@@ -12,7 +12,7 @@ import Common.ServiceUtils.schemaName
 import io.circe.generic.auto.*
 
 case class CreateCardTemplateMessagePlanner(
-  userToken: String,
+  userID: String,
   cardName: String,
   rarity: String,
   description: String,
@@ -23,11 +23,7 @@ case class CreateCardTemplateMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[String] = {
-    for {
-      // Step 1: Validate user token
-      _ <- IO(logger.info("[Step 1] 验证用户Token合法性"))
-      // validation to be completed
-
+    for {、
       // Step 2: Validate input parameters
       _ <- IO(logger.info("[Step 2] 验证输入参数"))
       _ <- validateInputs(cardName, rarity, description, cardType)

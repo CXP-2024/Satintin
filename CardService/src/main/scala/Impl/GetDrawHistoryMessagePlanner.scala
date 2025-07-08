@@ -19,22 +19,13 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import java.util.UUID
 
 case class GetDrawHistoryMessagePlanner(
-  userToken: String,
+  userID: String,
   override val planContext: PlanContext
 ) extends Planner[List[DrawHistoryEntry]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[DrawHistoryEntry]] = {
     for {
-      // Step 1: Validate user token
-      _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userToken=${userToken}"))
-      // validation to be completed
-
-      // Step 2: Get user ID from token (using token directly as userID for consistency)
-      _ <- IO(logger.info(s"[Step 2] 使用Token作为用户ID"))
-      userId = userToken  // 直接使用 token 作为 userID，与其他服务保持一致
-      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userId}"))
-
       // Step 3: Query draw history from database
       _ <- IO(logger.info(s"[Step 3] 查询用户抽卡历史记录"))
       drawLogs <- readDBRows(
@@ -44,7 +35,7 @@ case class GetDrawHistoryMessagePlanner(
         WHERE user_id = ?
         ORDER BY draw_time DESC
         """,
-        List(SqlParameter("String", userId))
+        List(SqlParameter("String", userID))
       )
       _ <- IO(logger.info(s"[Step 3.1] 查询到 ${drawLogs.length} 条抽卡记录"))
 

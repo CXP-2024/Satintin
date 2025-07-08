@@ -6,15 +6,6 @@ import { getAutoRedirectTimerSnap, setAutoRedirectTimer } from 'Plugins/CommonUt
 import { getUserIDSnap, setUserInfo, setUserToken, UserInfo } from 'Plugins/CommonUtils/Store/UserInfoStore'
 import { alertCallBack, API, InfoCallBackType, SimpleCallBackType } from 'Plugins/CommonUtils/Send/API'
 
-/**
- * -1 白名单： 处理 patientToken失效，不要退掉当前的医生的账号，
- *
- * CheckConsiliaIDMessage  这个是校验   patientToken 是否有效
- * GetRealNameMessage 避免退出登录，是为了让在mm里面，如果输入了错误的医案令牌，就不用再，重新登录的了，其实
- * GetInterventionPlanByConsiliaIDMessage: 获取用户的治疗方案， 这个里面的token应该也是用户的！
- * */
-const whitelist = ['CheckConsiliaIDMessage', 'GetRealNameMessage', 'GetInterventionPlanByConsiliaIDMessage']
-
 const retrySubstrings = [
     'akka.stream.StreamTcpException:The connection closed with error: Connection reset by peer',
     'akka.stream.StreamTcpException',
@@ -70,7 +61,16 @@ export async function commonSend(
         return
     }
     const responseText = await res.text()
-    console.log('http got: ' + responseText)
+    const MAX_LOG_LENGTH = 500
+    if (responseText.length > MAX_LOG_LENGTH) {
+        console.log(
+            `http got (truncated to ${MAX_LOG_LENGTH} chars, total ${responseText.length}):\n` +
+                responseText.slice(0, MAX_LOG_LENGTH) +
+                '\n…截断显示…'
+        )
+    } else {
+        console.log('http got:', responseText)
+    }
     console.log('status= ' + res.status)
     if (res.status === -1 || res.status === -2) {
         for (const substring of retrySubstrings) {
@@ -120,19 +120,12 @@ export async function commonSend(
             ) {
                 const splitURL = url.split('/')
                 const apiName = splitURL[splitURL.length - 1]
-                /* 有的请求token失效不重新登录, 因为失效的可能不是医生的token, 而是患者的token */
-                if (whitelist.includes(apiName)) {
-                    failureCall(responseText)
-                    return
-                }
                 if (!checkIsOnRedirecting()) {
                     failureCall('您的登录凭证已失效，请重新登录。即将为您跳转到登录页。')
                     clearTokenTimeOut()
                     return
                 }
-            } else if (responseText === '错误：该诊所的注册码错误，请重启设置诊所的服务器！') {
-                // setClinicToken('')
-            } else failureCall(responseText)
+            } 
             break
         case 200:
             successCall(responseText)

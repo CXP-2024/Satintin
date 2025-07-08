@@ -214,10 +214,9 @@
 	cursor: pointer;
 	font-weight: 600;
 	font-size: 1.1rem;
-	transition: all 0.3s ease;
-	display: flex;
+	transition: all 0.3s ease;	display: flex;
 	align-items: center;
-	justify-content: flex-start;
+	justify-content: center;
 	gap: 10px;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 	margin-top: 10px;

@@ -141,7 +141,6 @@ case object UserRegistrationProcess {
     IO(logger.info(s"[Validation] 开始验证注册输入：用户名=${username}，邮箱=${email}，电话=${phoneNumber.getOrElse("None")}， password=${password}")) >>
     // Regular expressions for validation
     IO {
-      val usernameRegex = "^[a-zA-Z0-9_]{3,20}$".r
       val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$".r
       val phoneRegex = "^[0-9]{10,15}$".r
 
@@ -151,7 +150,6 @@ case object UserRegistrationProcess {
       // Validate username
       if (username.isEmpty) errors += "用户名不能为空"
       if (username.length < 3 || username.length > 20) errors += "用户名长度必须在3到20个字符之间"
-      if (!usernameRegex.matches(username)) errors += "用户名只能包含字母、数字和下划线"
 
       // Validate password
       if (password.isEmpty) errors += "密码不能为空"

@@ -13,16 +13,12 @@ import org.slf4j.LoggerFactory
 import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
-import Objects.BattleService.{BattleAction, CardEffect, CardState, GameOverResult, GameState, PlayerState, RoundResult}
-import APIs.UserService.FetchUserStatusMessage
-import org.joda.time.DateTime
+import Objects.BattleService.{BattleAction, CardState, GameOverResult, GameState, PlayerState, RoundResult}
 import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration.*
-import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
-import Common.Object.SqlParameter
 import Utils.gamecore.BattleResolver
-import ch.qos.logback.core.pattern.Converter
+
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -267,58 +263,45 @@ class BattleWebSocketManager(roomId: String) {
         case None =>
           IO(logger.error("Cannot process actions: game state is not initialized"))
       }
+
+      // Check if game is over
+      _ <- checkGameOver
     } yield ()
   }
 
-  /**
-   * Create a round result message based on actual state changes
-   */
-  private def createRoundResultFromStateChanges(
-    action1: BattleAction, 
-    action2: BattleAction, 
-    stateBeforeBattle: Option[GameState]
-  ): IO[RoundResult] = {
+
+  private def checkGameOver: IO[Unit] = {
     IO {
-      val currentState = gameState
-      
-      (stateBeforeBattle, currentState) match {
-        case (Some(beforeState), Some(afterState)) =>
-          // Calculate actual changes
-          val player1HealthChange = afterState.player1.health - beforeState.player1.health
-          val player1EnergyChange = afterState.player1.energy - beforeState.player1.energy
-          val player2HealthChange = afterState.player2.health - beforeState.player2.health
-          val player2EnergyChange = afterState.player2.energy - beforeState.player2.energy
-          
-          RoundResult(
-            round = beforeState.currentRound,
-            player1Action = action1,
-            player2Action = action2,
-            results = Json.obj(
-              "player1" -> Json.obj(
-                "healthChange" -> Json.fromInt(player1HealthChange), 
-                "energyChange" -> Json.fromInt(player1EnergyChange)
-              ),
-              "player2" -> Json.obj(
-                "healthChange" -> Json.fromInt(player2HealthChange), 
-                "energyChange" -> Json.fromInt(player2EnergyChange)
-              )
-            ),
-            cardEffects = List()
+      // Check if any player's health is 0
+      gameState.foreach { state =>
+        if (state.player1.health <= 0 || state.player2.health <= 0) {
+          val winnerName = if (state.player1.health <= 0 ) {
+            state.player2.username
+          } else {
+            state.player1.username
+          }
+          val reason = "health_zero"
+
+          val gameOverResult = GameOverResult(
+            winner = winnerName,
+            reason = reason,
+            rewards = Some(Json.obj(
+              "stones" -> Json.fromInt(10),
+              "rankChange" -> Json.fromInt(5)
+            ))
           )
-          
-        case _ =>
-          logger.warn(s"！！！！In CreateRoundResultFromStateChanges: Game state not available for round result creation in room $roomId")
-          // Fallback RoundResult
-          RoundResult(
-            round         = stateBeforeBattle.map(_.currentRound).getOrElse(0),
-            player1Action = action1,
-            player2Action = action2,
-            results       = Json.obj(
-              "player1" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0)),
-              "player2" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0))
-            ),
-            cardEffects   = List()
+          // also update game state to finished
+          val updatedState = state.copy(
+            roundPhase = "finished",
+            winner = Some(winnerName)
           )
+          gameState = Some(updatedState)
+          // Broadcast game over message
+          logger.info(s"Game over in room $roomId: Winner: ${gameOverResult.winner}, Reason: ${gameOverResult.reason}")
+
+          broadcast(WebSocketMessage("game_state", updatedState.asJson))
+          broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
+        }
       }
     }
   }
@@ -326,7 +309,7 @@ class BattleWebSocketManager(roomId: String) {
   // decide effect chance based on rarity
   private def ChooseEffect(rarity: String): Double = {
     rarity match {
-      case "普通" => 0.05
+      case "普通" => 0.20
       case "稀有" => 0.15
       case "传说" => 0.33
       case _ => 0.1 // Default chance for unknown rarities
