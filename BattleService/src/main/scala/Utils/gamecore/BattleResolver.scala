@@ -7,6 +7,10 @@ import org.slf4j.LoggerFactory
 import io.circe.Json
 import io.circe.generic.auto.*
 import Utils.gamecore.ExplosionHandler
+import io.circe.syntax._
+import org.slf4j.LoggerFactory
+import scala.util.Random
+
 
 /**
  * 主要战斗解决器 - 协调不同类型的战斗
@@ -46,33 +50,49 @@ object BattleResolver {
         // 双方都被动
         case (Left(passive1), Left(passive2)) =>
           logger.info("双方都是被动行动")
-          PassiveVsPassiveResolver.resolve(player1, player2, passive1, passive2, gameState.currentRound)
+          PassiveVsPassiveResolver.resolve(updatedPlayer1, updatedPlayer2, passive1, passive2, gameState.currentRound)
         
         // 双方都主动
         case (Right(active1), Right(active2)) =>
           logger.info("双方都是主动行动")
-          ActiveVsActiveResolver.resolve(player1, player2, active1, active2, gameState.currentRound)
+          ActiveVsActiveResolver.resolve(updatedPlayer1, updatedPlayer2, active1, active2, gameState.currentRound)
         
         // 一方主动，一方被动
         case (Right(active), Left(passive)) =>
           logger.info("玩家1主动，玩家2被动")
-          ActiveVsPassiveResolver.resolve(player1, player2, active, passive, isPlayer1Active = true, gameState.currentRound)
+          ActiveVsPassiveResolver.resolve(updatedPlayer1, updatedPlayer2, active, passive, isPlayer1Active = true, gameState.currentRound)
         
         case (Left(passive), Right(active)) =>
           logger.info("玩家1被动，玩家2主动")
-          ActiveVsPassiveResolver.resolve(player1, player2, active, passive, isPlayer1Active = false, gameState.currentRound)
+          ActiveVsPassiveResolver.resolve(updatedPlayer1, updatedPlayer2, active, passive, isPlayer1Active = false, gameState.currentRound)
       }
+      
+      // 更新玩家状态
+      updatedPlayer1 = p1Updated
+      updatedPlayer2 = p2Updated
+      
+      // 应用卡牌效果
+      val cardEffectResult = CardEffectManager.applyCardEffects(
+        updatedPlayer1, updatedPlayer2, player1Action, player2Action
+      )
+      
+      // 更新玩家状态
+      updatedPlayer1 = cardEffectResult.updatedPlayer1
+      updatedPlayer2 = cardEffectResult.updatedPlayer2
+      val triggeredCardEffects = cardEffectResult.triggeredEffects
       
       // 创建更新后的GameState
       val updatedGameState = gameState.copy(
-        player1 = p1Updated,
-        player2 = p2Updated,
+        player1 = updatedPlayer1,
+        player2 = updatedPlayer2,
         currentRound = gameState.currentRound + 1,
         roundPhase = "action"  // 回合结束后进入下一轮"action"阶段
       )
       
-      // 创建回合结果
-      val roundResult = createRoundResult(player1Action, player2Action, stateBeforeBattle, updatedGameState)
+      // 创建回合结果，包含触发的卡牌效果
+      val roundResult = createRoundResult(
+        player1Action, player2Action, stateBeforeBattle, updatedGameState, triggeredCardEffects
+      )
       
       // 检查游戏是否结束
       val finalGameState = determineGameStatus(updatedGameState)
@@ -107,7 +127,8 @@ object BattleResolver {
     player1Action: BattleAction,
     player2Action: BattleAction,
     stateBeforeBattle: GameState,
-    stateAfterBattle: GameState
+    stateAfterBattle: GameState,
+    cardEffects: List[CardEffect] = List()
   ): RoundResult = {
     // 计算状态变化
     val player1HealthChange = stateAfterBattle.player1.health - stateBeforeBattle.player1.health
@@ -129,7 +150,7 @@ object BattleResolver {
           "energyChange" -> Json.fromInt(player2EnergyChange)
         )
       ),
-      cardEffects = List()
+      cardEffects = cardEffects
     )
   }
   
