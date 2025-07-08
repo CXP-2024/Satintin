@@ -87,6 +87,7 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   transition: background 0.2s;
+  color: white;
 }
 
 .report-reason-option:hover {
