@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBattleStore } from '../../store/battleStore';
+import { useReportStore } from '../../store/reportStore';
 import { webSocketService } from '../../services/WebSocketService';
 import { webSocketHandles } from '../../services/WebsocketHandles';
 import PageTransition from '../../components/PageTransition';
@@ -8,6 +9,7 @@ import GameBoard from '../../components/battle/GameBoard';
 import ActionSelector from '../../components/battle/ActionSelector';
 import RoundResultModal from '../../components/battle/RoundResultModal';
 import { GameOverModal } from '../../components/battle/GameOverModal';
+import ReportModal from '../../components/battle/ReportModal'; // 导入举报模态框组件
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -17,9 +19,23 @@ const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
 	const user = useUserInfo();
 	const {
-		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, showActionSelector, actionSelectorTemporarilyHidden, showRoundResult, currentRoundResult, lastRoundResult, showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
-		setRoomId, setConnectionStatus, hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, showActionSelectorAgain, resetBattle
+		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, 
+		showActionSelector, actionSelectorTemporarilyHidden, 
+		showRoundResult, currentRoundResult, lastRoundResult, 
+		showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
+		setRoomId, setConnectionStatus, 
+		hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, 
+		hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, 
+		showActionSelectorAgain, resetBattle
 	} = useBattleStore();
+	
+	// 使用举报store
+	const {
+		showReportModal,
+		openReportModal,
+		closeReportModal,
+		submitReport
+	} = useReportStore();
 
 	const [isConnecting, setIsConnecting] = useState(true);
 	const [roomStatus, setRoomStatus] = useState<'connecting' | 'waiting' | 'ready' | 'playing'>('connecting');
@@ -101,6 +117,17 @@ const BattleRoom: React.FC = () => {
 		SoundUtils.playClickSound(0.5);
 		hideRoundResultModal(); // 隐藏结果面板
 		showGameOverAgain(); // 重新显示游戏结束面板
+	};
+
+	// 处理游戏中举报功能
+	const handleInGameReport = () => {
+		SoundUtils.playClickSound(0.5);
+		openReportModal();
+	};
+	
+	// 处理举报提交
+	const handleReportSubmit = (reason: string, description: string) => {
+		submitReport(reason, description);
 	};
 
 	// 渲染连接状态
@@ -197,16 +224,16 @@ const BattleRoom: React.FC = () => {
 								<h2>对手已就位！</h2>
 								<div className="ready-players-info">
 									<div className="ready-player-card">
-										<h3>{currentPlayer.username || '你'}</h3>
-										<p>{currentPlayer.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+										<h3>{currentPlayer?.username || '你'}</h3>
+										<p>{currentPlayer?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
 									</div>
 									<div className="ready-vs-divider">VS</div>
 									<div className="ready-player-card">
-										<h3>{opponent.username || '对手'}</h3>
-										<p>{opponent.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
+										<h3>{opponent?.username || '对手'}</h3>
+										<p>{opponent?.isReady ? '✅ 已准备' : '⏳ 未准备'}</p>
 									</div>
 								</div>
-								{!currentPlayer.isReady && (
+								{!currentPlayer?.isReady && (
 									<button
 										className="ready-btn"
 										onClick={handleReady}
@@ -214,10 +241,10 @@ const BattleRoom: React.FC = () => {
 										🎮 准备战斗
 									</button>
 								)}
-								{currentPlayer.isReady && !opponent.isReady && (
+								{currentPlayer?.isReady && !opponent?.isReady && (
 									<p className="ready-waiting-text">等待对手准备...</p>
 								)}
-								{currentPlayer.isReady && opponent.isReady && (
+								{currentPlayer?.isReady && opponent?.isReady && (
 									<p className="ready-starting-text">🎉 开始战斗！</p>
 								)}
 							</div>
@@ -250,6 +277,12 @@ const BattleRoom: React.FC = () => {
 											📊 上回合结果
 										</button>
 									)}
+									<button
+										className="report-opponent-btn"
+										onClick={handleInGameReport}
+									>
+										⚠️ 举报对手
+									</button>
 								</div>
 							)}
 
@@ -281,6 +314,16 @@ const BattleRoom: React.FC = () => {
 							handleLeaveRoom();
 						}}
 						onViewLastRound={lastRoundResult ? handleViewLastRoundFromGameOver : undefined}
+					/>
+				)}
+				
+				{/* 举报玩家模态框 */}
+				{showReportModal && opponent && (
+					<ReportModal
+						opponentName={opponent.username}
+						isOpen={showReportModal}
+						onClose={closeReportModal}
+						onSubmit={handleReportSubmit}
 					/>
 				)}
 			</div>
