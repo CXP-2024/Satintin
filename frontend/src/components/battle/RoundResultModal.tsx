@@ -19,6 +19,7 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 	const { currentPlayer, opponent, roundResultExiting } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
+	console.log('RoundResultModal rendered with result:', result);
 
 	// 获取行动显示信息
 	const getActionDisplay = (action: PassiveAction | ActiveAction) => {
@@ -78,6 +79,16 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 		const opponentHealthChange = playerData.opponent.result.healthChange;
 		const currentEnergyChange = playerData.current.result.energyChange;
 		const opponentEnergyChange = playerData.opponent.result.energyChange;
+		if (result.results?.exploded) {
+			const explodedPlayers = result.results.explodedPlayers || [];
+			if (explodedPlayers.includes(currentPlayer?.playerId) && explodedPlayers.includes(opponent?.playerId)) {
+				return { type: 'lose', message: '你们都爆炸了！' };
+			} else if (explodedPlayers.includes(opponent?.playerId)) {
+				return { type: 'win', message: '对手爆炸了！' };
+			} else {
+				return { type: 'tie', message: '你爆炸了！' };
+			}
+		}
 
 		// 基于血量变化判断输赢
 		if (currentHealthChange < 0 && opponentHealthChange < 0) {
