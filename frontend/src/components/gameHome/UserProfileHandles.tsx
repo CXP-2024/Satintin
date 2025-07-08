@@ -3,7 +3,7 @@ import { AddFriendMessage } from "Plugins/UserService/APIs/AddFriendMessage";
 import { RemoveFriendMessage } from "Plugins/UserService/APIs/RemoveFriendMessage";
 import { BlockUserMessage } from "Plugins/UserService/APIs/BlockUserMessage";
 import { SoundUtils } from 'utils/soundUtils';
-import { FriendInfo, BlockedUserInfo} from './UserProfileUtils';
+import { FriendInfo, BlockedUserInfo, refreshUserInfo, clearFriendValidationCache} from './UserProfileUtils';
 
 // 定义 UserProfile 处理函数所需的状态类型
 export interface UserProfileHandleState {
@@ -21,11 +21,12 @@ export interface UserProfileHandleState {
     activeTab: 'friends' | 'blocked';
     setActiveTab: (tab: 'friends' | 'blocked') => void;
     onClose: () => void;
+    refreshUserInfo?: () => Promise<void>; // 刷新用户信息的函数
 }
 
 // 添加好友
 export const handleAddFriend = async (state: UserProfileHandleState) => {
-    const { user, addFriendID, setLoading, setAddFriendID } = state;
+    const { user, addFriendID, setLoading, setAddFriendID, refreshUserInfo } = state;
     
     if (!addFriendID.trim()) return;
 
@@ -39,6 +40,14 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
         });
 
         setAddFriendID('');
+        
+        // 刷新用户信息以获取最新的好友列表
+        if (refreshUserInfo) {
+            console.log('🔄 Refreshing user info after adding friend...');
+            await refreshUserInfo();
+            clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
+        }
+        
         alert('好友添加成功！');
     } catch (error) {
         console.error('Failed to add friend:', error);
@@ -50,7 +59,7 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
 
 // 移除好友
 export const handleRemoveFriend = async (friendID: string, state: UserProfileHandleState) => {
-    const { setLoading, setFriendsData } = state;
+    const { setLoading, setFriendsData, refreshUserInfo } = state;
     const user = getUserInfo()
     
     setLoading(true);
@@ -62,8 +71,16 @@ export const handleRemoveFriend = async (friendID: string, state: UserProfileHan
             );
         });
 
-        // 从本地状态中移除好友
+        // 先从本地状态中移除好友（即时反馈）
         setFriendsData(prev => prev.filter(friend => friend.id !== friendID));
+        
+        // 然后刷新用户信息以确保数据一致性
+        if (refreshUserInfo) {
+            console.log('🔄 Refreshing user info after removing friend...');
+            await refreshUserInfo();
+            clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
+        }
+        
     } catch (error) {
         console.error('Failed to remove friend:', error);
         alert('移除好友失败');
@@ -74,7 +91,7 @@ export const handleRemoveFriend = async (friendID: string, state: UserProfileHan
 
 // 拉黑用户
 export const handleBlockUser = async (userID: string, state: UserProfileHandleState) => {
-    const { setLoading, friendsData, setFriendsData, setBlockedData } = state;
+    const { setLoading, friendsData, setFriendsData, setBlockedData, refreshUserInfo } = state;
     
     setLoading(true);
     try {
@@ -85,7 +102,7 @@ export const handleBlockUser = async (userID: string, state: UserProfileHandleSt
             );
         });
 
-        // 从好友列表中移除并添加到黑名单
+        // 从好友列表中移除并添加到黑名单（即时反馈）
         const friendToBlock = friendsData.find(friend => friend.id === userID);
         if (friendToBlock) {
             setFriendsData(prev => prev.filter(friend => friend.id !== userID));
@@ -96,6 +113,14 @@ export const handleBlockUser = async (userID: string, state: UserProfileHandleSt
                 blockedDate: new Date().toISOString().split('T')[0]
             }]);
         }
+        
+        // 刷新用户信息以确保数据一致性
+        if (refreshUserInfo) {
+            console.log('🔄 Refreshing user info after blocking user...');
+            await refreshUserInfo();
+            clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
+        }
+        
     } catch (error) {
         console.error('Failed to block user:', error);
         alert('拉黑用户失败');

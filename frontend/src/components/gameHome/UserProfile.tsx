@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import './UserProfile.css';
 import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo, getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserInfo, getUserToken, getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {
 	FriendInfo,
 	BlockedUserInfo,
 	UserProfileState,
 	fetchFriendsData,
-	fetchBlockedData
+	fetchBlockedData,
+	refreshUserInfo
 } from './UserProfileUtils';
 import {
 	UserProfileHandleState,
@@ -35,10 +36,34 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 	const [addFriendID, setAddFriendID] = useState('');
 	const [friendsLoadingStatus, setFriendsLoadingStatus] = useState<string>('');
 
+	// 创建刷新用户信息的函数
+	const handleRefreshUserInfo = async () => {
+		try {
+			await refreshUserInfo();
+			// 刷新后重新获取好友和黑名单数据
+			const updatedUser = getUserInfo();
+			if (updatedUser.userID) {
+				const userProfileState: UserProfileState = {
+					user: updatedUser,
+					setFriendsData,
+					setBlockedData,
+					setLoading,
+					setFriendsLoadingStatus,
+					refreshUserInfo: handleRefreshUserInfo
+				};
+				fetchFriendsData(userProfileState);
+				fetchBlockedData(userProfileState);
+			}
+		} catch (error) {
+			console.error('Failed to refresh user info in UserProfile:', error);
+		}
+	};
+
 	// 创建处理函数状态对象
 	const handleState: UserProfileHandleState = {
 		user, loading, setLoading, friendsData, setFriendsData, blockedData, setBlockedData,
-		addFriendID, setAddFriendID, isClosing, setIsClosing, activeTab, setActiveTab, onClose
+		addFriendID, setAddFriendID, isClosing, setIsClosing, activeTab, setActiveTab, onClose,
+		refreshUserInfo: handleRefreshUserInfo
 	};
 
 	// 初始化数据
@@ -79,7 +104,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 				setFriendsData,
 				setBlockedData,
 				setLoading,
-				setFriendsLoadingStatus
+				setFriendsLoadingStatus,
+				refreshUserInfo: handleRefreshUserInfo
 			};
 			
 			fetchFriendsData(userProfileState);
