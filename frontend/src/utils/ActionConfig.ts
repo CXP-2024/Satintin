@@ -8,33 +8,33 @@ export const passiveActions = [
         type: 'Cake' as BasicObjectName,
         icon: '🍰',
         name: '饼',
-        description: '获得1能量',
+        description: '获得1能量，伤害倍率×1',
         color: '#f39c12',
         requirements: '无消耗'
     },
     {
         type: 'Pouch' as BasicObjectName,
         icon: '💰',
-        name: '袋',
-        description: '不消耗能量，消耗所有能量',
+        name: '囊',
+        description: '获得2能量，伤害倍率×3',
         color: '#8e44ad',
         requirements: '消耗所有能量'
     },
     {
         type: 'BasicShield' as BasicObjectName,
         icon: '🛡️',
-        name: '基础盾',
-        description: '不消耗能量',
+        name: '弹',
+        description: '可以反弹一定基础攻击类',
         color: '#3498db',
-        requirements: '无消耗'
+        requirements: '消耗所有能量'
     },
     {
         type: 'BasicDefense' as BasicObjectName,
         icon: '🚧',
         name: '基础防',
-        description: '消耗所有能量',
+        description: '防御部分基础攻击类',
         color: '#95a5a6',
-        requirements: '消耗所有能量'
+        requirements: '不消耗能量'
     }
 ];
 
@@ -89,10 +89,10 @@ export const activeActions = [
         type: 'Nuclear' as AttackObjectName,
         icon: '☢️',
         name: '核爆',
-        description: '攻击6[核爆]，防御6',
+        description: '攻击5[核爆]，防御6',
         color: '#27ae60',
-        requirements: '消耗6能量',
-        energyCost: 6
+        requirements: '消耗5能量',
+        energyCost: 5
     }
 ];
 
