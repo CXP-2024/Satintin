@@ -6,7 +6,7 @@ import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { clearUserInfo, useUserInfo, initUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import PlayerManagement from '../components/PlayerManagement';
-import ReportHandling from '../components/ReportHandling';
+import ReportHandling from '../components/admin/ReportHandling';
 import { useAdminUsers } from '../hooks/useAdminUsers';
 import { useAdminReports } from '../hooks/useAdminReports';
 import { AdminTab } from '../types/adminDashboard';

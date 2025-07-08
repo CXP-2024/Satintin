@@ -9,7 +9,7 @@ import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';
 import GameHeader from '../components/gameHome/GameHeader';
 import UserStats from '../components/gameHome/UserStats';
 import MainActions from '../components/MainActions';
-import QuickInfo from '../components/QuickInfo';
+import QuickInfo from '../components/gameHome/QuickInfo';
 import SearchUserModal from '../components/SearchUserModal';
 import './GameHomePage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
@@ -23,7 +23,7 @@ import {
 	getUserToken,
 	setUserInfoField
 } from "Plugins/CommonUtils/Store/UserInfoStore";
-import { autoLogoutManager } from '../utils/autoLogout';
+import { autoLogoutManager } from 'utils/autoLogout';
 import { GetAssetTransactionMessage } from "Plugins/AssetService/APIs/GetAssetTransactionMessage";
 import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage";
 import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";

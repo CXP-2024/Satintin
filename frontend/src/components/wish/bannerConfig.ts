@@ -1,6 +1,6 @@
-import { BannerData } from '../types/wish';
-import nailongImage from '../assets/images/nailong.webp';
-import jiegeImage from '../assets/images/jiege.png';
+import { BannerData } from '../../types/wish';
+import nailongImage from '../../assets/images/nailong.webp';
+import jiegeImage from '../../assets/images/jiege.png';
 
 export const bannerConfig: Record<'featured' | 'standard', BannerData> = {
 	featured: {

@@ -269,7 +269,7 @@ const BattleRoom: React.FC = () => {
 									>
 										🎮 行动选择器
 									</button>
-									{lastRoundResult && (
+									{lastRoundResult && gameState.currentRound !== 1 && (
 										<button
 											className="show-last-result-btn"
 											onClick={handleShowLastRoundResult}

@@ -7,7 +7,7 @@ import WishInfoPanel from '../components/wish/WishInfoPanel';
 import HistoryModal from '../components/wish/HistoryModal';
 import RulesModal from '../components/wish/RulesModal';
 import { useWishLogic } from '../hooks/useWishLogic';
-import { bannerConfig } from '../config/bannerConfig';
+import { bannerConfig } from '../components/wish/bannerConfig';
 import './WishPage.css';
 import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
