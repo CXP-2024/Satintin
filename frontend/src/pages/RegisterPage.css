@@ -156,29 +156,6 @@
 	text-decoration: underline;
 }
 
-/* Add admin register button styling */
-.admin-register-btn {
-    background: #c62828;
-    color: white;
-    border: none;
-    display: block;
-    text-align: center;
-    padding: 15px;
-    border-radius: 10px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.admin-register-btn:hover {
-    background: #b71c1c;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(198, 40, 40, 0.3);
-}
-
 @media (max-width: 480px) {
 	.register-card {
 		padding: 30px 20px;
