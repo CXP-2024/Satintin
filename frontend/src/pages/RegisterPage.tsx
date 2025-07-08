@@ -5,7 +5,7 @@ import { RegisterFormData } from '../types/User';
 import './RegisterPage.css';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
-import {RewardAssetByIDMessage} from "Plugins/AdminService/APIs/RewardAssestByIDMessage";
+import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -131,7 +131,7 @@ const RegisterPage: React.FC = () => {
                     console.log('callback message', info);
                     const userID = JSON.parse(info);
 
-                    new RewardAssetByIDMessage('1111',userID,10000).send(
+                    new RewardAssetMessage(userID,10000).send(
                         (info: string) => {
                             const successmessage = JSON.parse(info);
                             console.log(successmessage)

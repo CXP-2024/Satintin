@@ -16,6 +16,7 @@ import scala.collection.concurrent.TrieMap
 import Common.Serialize.CustomColumnTypes.*
 import Impl.CreateAssetTransactionMessagePlanner
 import Impl.RewardAssetMessagePlanner
+import Impl.ChargeAssetMessagePlanner
 import Impl.DeductAssetMessagePlanner
 import Impl.QueryAssetStatusMessagePlanner
 import Impl.UpdateCardDrawCountMessagePlanner
@@ -38,7 +39,6 @@ object Routes:
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for CreateAssetTransactionMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
-       
       case "RewardAssetMessage" =>
         IO(
           decode[RewardAssetMessagePlanner](str) match
@@ -46,7 +46,14 @@ object Routes:
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
        
-      case "DeductAssetMessage" =>        IO(
+      case "ChargeAssetMessage" =>
+        IO(
+          decode[ChargeAssetMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ChargeAssetMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+       
+      case "DeductAssetMessage" =>IO(
           decode[DeductAssetMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for DeductAssetMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)

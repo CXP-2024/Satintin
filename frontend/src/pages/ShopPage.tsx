@@ -7,7 +7,7 @@ import primogemIcon from '../assets/images/primogem-icon.png';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
-import { RewardAssetMessage } from 'Plugins/AssetService/APIs/RewardAssetMessage';
+import { ChargeAssetMessage } from 'Plugins/AssetService/APIs/ChargeAssetMessage';
 import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetStatusMessage';
 
 const ShopPage: React.FC = () => {
@@ -88,7 +88,7 @@ const ShopPage: React.FC = () => {
         
         try {
             const result = await new Promise((resolve, reject) => {
-                new RewardAssetMessage(userID, currentPayment.crystals).send(
+                new ChargeAssetMessage(userID, currentPayment.crystals).send(
                     (response: any) => response.error ? reject(new Error(response.error)) : resolve(response)
                 );
             });
