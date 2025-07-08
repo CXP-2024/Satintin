@@ -1,5 +1,5 @@
 /* 导入全局过渡动画样式 */
-@import './styles/transitions.css';
+@import './components/transitions.css';
 
 .App {
   text-align: center;

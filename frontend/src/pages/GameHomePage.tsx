@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import { useUserSearch } from '../hooks/useUserSearch';
-import { useCardCount } from '../hooks/useCardCount';
+import { usePageTransition } from '../components/usePageTransition';
+import { useUserSearch } from '../components/gameHome/useUserSearch';
+import { useCardCount } from '../components/gameHome/useCardCount';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/gameHome/UserProfile';
 import RewardModal from '../components/gameHome/RewardModal';

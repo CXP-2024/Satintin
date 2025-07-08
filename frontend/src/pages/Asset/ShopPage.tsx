@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { usePageTransition } from '../../hooks/usePageTransition';
+import { usePageTransition } from '../../components/usePageTransition';
 import PageTransition from '../../components/PageTransition';
 import PaymentModal from '../../components/shop/PaymentModal';
 import './ShopPage.css';

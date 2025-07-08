@@ -4,7 +4,7 @@ import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetSta
 import { QueryCardDrawCountMessage } from 'Plugins/AssetService/APIs/QueryCardDrawCountMessage';
 import { GetDrawHistoryMessage, DrawHistoryEntry } from 'Plugins/CardService/APIs/GetDrawHistoryMessage';
 import { setUserInfoField } from 'Plugins/CommonUtils/Store/UserInfoStore';
-import { WishHistory, CardDrawCounts } from '../types/wish';
+import { WishHistory, CardDrawCounts } from '../../types/wish';
 
 export const useWishLogic = (userID: string | undefined) => {
 	const [wishHistory, setWishHistory] = useState<WishHistory>({
