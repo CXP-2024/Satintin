@@ -21,13 +21,13 @@ import java.util.UUID
 /**
  * RewardAssetMessage
  * desc: 增加用户的资产，并记录相关交易记录。处理REWARD资产的需求。
- * @param userToken: String (用户的身份令牌，用于验证用户身份。)
+ * @param userID: String (用户的身份令牌，用于验证用户身份。)
  * @param rewardAmount: Int (REWARD的资产数量。)
  * @return result: String (操作结果的描述信息，例如“REWARD发放成功！”。)
  */
 
 case class RewardAssetMessage(
-  userToken: String,
+  userID: String,
   rewardAmount: Int
 ) extends API[String](AssetServiceCode)
 

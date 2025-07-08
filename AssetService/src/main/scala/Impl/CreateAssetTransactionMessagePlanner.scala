@@ -14,7 +14,7 @@ import cats.implicits._
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class CreateAssetTransactionMessagePlanner(
-  userToken: String,
+  userID: String,
   transactionType: String,
   changeAmount: Int,
   changeReason: String,
@@ -26,7 +26,7 @@ case class CreateAssetTransactionMessagePlanner(
     for {
       _ <- IO(logger.info(s"[CreateAssetTransactionMessagePlanner] 开始执行资产交易"))
       result <- AssetTransactionFacade.executeAssetTransaction(
-        userToken, transactionType, changeAmount, changeReason
+        userID, transactionType, changeAmount, changeReason
       )
       _ <- IO(logger.info(s"[CreateAssetTransactionMessagePlanner] ${result}"))
     } yield result

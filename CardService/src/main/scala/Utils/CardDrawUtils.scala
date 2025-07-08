@@ -26,13 +26,12 @@ case object CardDrawUtils {
 
   /**
    * 抽卡功能
-   * @param userToken 用户令牌
    * @param userID 用户ID
    * @param drawCount 抽卡次数
    * @param poolType 卡池类型
    * @return 抽卡结果
    */
-  def drawCards(userToken: String, userID: String, drawCount: Int, poolType: String)(using PlanContext): IO[DrawResult] = {
+  def drawCards(userID: String, drawCount: Int, poolType: String)(using PlanContext): IO[DrawResult] = {
     for {
       // Step 1: Validate input parameters
       _ <- IO(logger.info(s"验证输入参数 userID=${userID}, drawCount=${drawCount}"))
@@ -46,14 +45,14 @@ case object CardDrawUtils {
       // Step 2: Fetch and validate user's stone count
       _ <- IO(logger.info(s"校验用户[userID=${userID}]的原石数量"))
       _ <- IO(logger.info(s"调用 AssetService 查询原石数量 userID=${userID}"))
-      userStone <- QueryAssetStatusMessage(userToken).send
+      userStone <- QueryAssetStatusMessage(userID).send
       _ <- if (userStone < drawCount * STONE_COST_PER_DRAW) {
         IO.raiseError(new IllegalStateException(s"原石数量不足，本次抽卡需要消耗 ${drawCount * STONE_COST_PER_DRAW} 原石，但当前仅有 ${userStone} 原石"))
       } else IO.unit
 
       // Step 2.5: Fetch current card draw count for pity system
       _ <- IO(logger.info(s"获取用户[userID=${userID}]在${poolType}池的当前抽卡次数用于保底计算"))
-      currentDrawCount <- QueryCardDrawCountMessage(userToken, poolType).send
+      currentDrawCount <- QueryCardDrawCountMessage(userID, poolType).send
       _ <- IO(logger.info(s"用户在${poolType}池当前抽卡次数: ${currentDrawCount}"))
 
       // Step 3: Fetch user's card inventory
@@ -183,12 +182,12 @@ case object CardDrawUtils {
 
       // Step 7.5: Deduct stones from user's account
       _ <- IO(logger.info(s"调用 AssetService 扣减原石，userID=${userID}, 数量=${stonesToDeduct}"))
-      _ <- DeductAssetMessage(userToken, stonesToDeduct).send
+      _ <- DeductAssetMessage(userID, stonesToDeduct).send
       _ <- IO(logger.info(s"成功扣减原石，数量=${stonesToDeduct}"))
 
       // Step 7.6: Update card draw count with pity system consideration
       _ <- IO(logger.info(s"更新用户抽卡次数，考虑保底重置机制"))
-      _ <- UpdateCardDrawCountMessage(userToken, poolType, finalDrawCount).send
+      _ <- UpdateCardDrawCountMessage(userID, poolType, finalDrawCount).send
       _ <- IO(logger.info(s"抽卡次数更新完成，最终抽卡次数=${finalDrawCount}"))
 
       // Step 8: Update user's card library with new cards

@@ -12,7 +12,7 @@ import Common.ServiceUtils.schemaName
 import io.circe.generic.auto.*
 
 case class CreateCardTemplateMessagePlanner(
-  userToken: String,
+  userID: String,
   cardName: String,
   rarity: String,
   description: String,

@@ -21,13 +21,13 @@ import java.util.UUID
 /**
  * UpgradeCardMessage
  * desc: 扣减升级资源并将指定卡牌进行升级。
- * @param userToken: String (用户的身份认证令牌)
+ * @param userID: String (用户的身份认证令牌)
  * @param cardID: String (需要进行升级的卡牌ID)
  * @return result: String (卡牌升级完成后的提示信息)
  */
 
 case class UpgradeCardMessage(
-  userToken: String,
+  userID: String,
   cardID: String
 ) extends API[String](CardServiceCode)
 

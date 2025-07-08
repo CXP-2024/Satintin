@@ -21,13 +21,13 @@ import java.util.UUID
 /**
  * ChargeAssetMessage
  * desc: 增加用户的资产，并记录相关交易记录。处理CHARGE资产的需求。
- * @param userToken: String (用户的身份令牌，用于验证用户身份。)
+ * @param : String (用户的身份令牌，用于验证用户身份。)
  * @param rewardAmount: Int (CHARGE的资产数量。)
  * @return result: String (操作结果的描述信息，例如"CHARGE发放成功！"。)
  */
 
 case class ChargeAssetMessage(
-  userToken: String,
+  : String,
   rewardAmount: Int
 ) extends API[String](AssetServiceCode)
 

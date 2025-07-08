@@ -19,7 +19,7 @@ import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import java.util.UUID
 
 case class GetDrawHistoryMessagePlanner(
-  userToken: String,
+  userID: String,
   override val planContext: PlanContext
 ) extends Planner[List[DrawHistoryEntry]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
@@ -27,13 +27,11 @@ case class GetDrawHistoryMessagePlanner(
   override def plan(using planContext: PlanContext): IO[List[DrawHistoryEntry]] = {
     for {
       // Step 1: Validate user token
-      _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userToken=${userToken}"))
-      // validation to be completed
+      _ <- IO(logger.info(s"[Step 1] 验证用户Token合法性: userID=${userID}"))
+      // validation to be completed 
 
       // Step 2: Get user ID from token (using token directly as userID for consistency)
-      _ <- IO(logger.info(s"[Step 2] 使用Token作为用户ID"))
-      userId = userToken  // 直接使用 token 作为 userID，与其他服务保持一致
-      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userId}"))
+      _ <- IO(logger.info(s"[Step 2.1] 用户ID: ${userID}"))
 
       // Step 3: Query draw history from database
       _ <- IO(logger.info(s"[Step 3] 查询用户抽卡历史记录"))
@@ -44,7 +42,7 @@ case class GetDrawHistoryMessagePlanner(
         WHERE user_id = ?
         ORDER BY draw_time DESC
         """,
-        List(SqlParameter("String", userId))
+        List(SqlParameter("String", userID))
       )
       _ <- IO(logger.info(s"[Step 3.1] 查询到 ${drawLogs.length} 条抽卡记录"))
 
@@ -59,7 +57,7 @@ case class GetDrawHistoryMessagePlanner(
           // Parse card list JSON - card IDs are stored as strings
           cardList <- IO.fromEither(parser.parse(cardListJson).flatMap(_.as[List[String]]))
             .handleErrorWith(e => 
-              IO(logger.error(s"[Step 4.1] 解析卡牌列表JSON失败: drawId=${drawId}, error=${e.getMessage}"))
+              IO(logger.error(s"[Step 4.1] 解析卡牌列表JSON失败: drawID=${drawID}, error=${e.getMessage}"))
                 >> IO.raiseError(new RuntimeException(s"解析卡牌列表失败: ${e.getMessage}"))
             )
           

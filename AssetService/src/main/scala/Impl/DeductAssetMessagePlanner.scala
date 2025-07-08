@@ -14,7 +14,7 @@ import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class DeductAssetMessagePlanner(
-  userToken: String,
+  userID: String,
   deductAmount: Int,
   override val planContext: PlanContext
 ) extends Planner[String] {
@@ -23,11 +23,6 @@ case class DeductAssetMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: 使用Utils验证用户Token
-      _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 验证用户令牌"))
-      // validation to be completed
-      userID <- IO(userToken) // 假设 userToken 已经解析为 userID
-      _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 用户验证成功，userID=${userID}"))      // Step 2: 检查用户资产是否足够
       _ <- IO(logger.info(s"[DeductAssetMessagePlanner] 检查用户资产是否足够"))
       currentAsset <- AssetStatusService.fetchAssetStatus(userID)
       _ <- IO {
