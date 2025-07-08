@@ -6,10 +6,13 @@ import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import cats.effect.{IO, Resource}
 import cats.syntax.functor._
+import cats.implicits._
 import fs2.Stream
 import org.slf4j.LoggerFactory
 import java.util.UUID
 import scala.concurrent.duration._
+import APIs.UserService.{GetAllUserIDsMessage, GetUserInfoMessage, ModifyUserStatusMessage}
+import io.circe.generic.auto.deriveEncoder
 
 object ScheduledTasks {
   private val logger = LoggerFactory.getLogger(this.getClass.getSimpleName)
@@ -41,36 +44,45 @@ object ScheduledTasks {
       _ <- IO(logger.info(s"[ScheduledTasks] Ban day decrease completed. Affected users: $affectedUsers"))
     } yield ()
   }
-
   private def decreaseBanDays()(using PlanContext): IO[Int] = {
-    val userServiceSchema = "userservice"
-    
-    val countSql = 
-      s"""
-        SELECT COUNT(*) FROM ${userServiceSchema}.user_table 
-        WHERE ban_days > 0
-      """
-    
-    val updateSql = 
-      s"""
-        UPDATE ${userServiceSchema}.user_table 
-        SET ban_days = ban_days - 1 
-        WHERE ban_days > 0
-      """
-
     for {
-      // Get count before update for logging
-      countResult <- Common.DBAPI.readDBString(countSql, List())
-      affectedCount <- IO(countResult.toIntOption.getOrElse(0))
+      _ <- IO(logger.info("[ScheduledTasks] 开始获取所有用户ID"))
       
-      // Perform the update if there are users to update
-      _ <- if (affectedCount > 0) {
-        writeDB(updateSql, List()).void
-      } else {
-        IO(logger.info("[ScheduledTasks] No users with ban_days > 0 found"))
+      // Step 1: 获取所有用户ID
+      allUserIDs <- GetAllUserIDsMessage().send
+      _ <- IO(logger.info(s"[ScheduledTasks] 获取到 ${allUserIDs.length} 个用户ID"))
+      
+      // Step 2: 遍历每个用户，检查封禁天数并减少
+      processedCount <- allUserIDs.foldLeftM(0) { (count, userID) =>
+        processUserBanDays(userID).map(processed => if (processed) count + 1 else count)
       }
       
-      _ <- IO(logger.info(s"[ScheduledTasks] Ban days decreased for $affectedCount users"))
-    } yield affectedCount
+      _ <- IO(logger.info(s"[ScheduledTasks] 封禁天数减少完成，处理了 $processedCount 个用户"))
+    } yield processedCount
+  }
+
+  private def processUserBanDays(userID: String)(using PlanContext): IO[Boolean] = {
+    for {
+      // 获取用户信息
+      userInfo <- GetUserInfoMessage(userID).send.handleErrorWith { error =>
+        IO(logger.warn(s"[ScheduledTasks] 无法获取用户信息: userID=$userID, error=${error.getMessage}")) >>
+        IO.raiseError(error)
+      }
+      
+      // 检查封禁天数
+      processed <- if (userInfo.banDays > 0) {
+        val newBanDays = userInfo.banDays - 1
+        for {
+          _ <- IO(logger.info(s"[ScheduledTasks] 用户 $userID 封禁天数从 ${userInfo.banDays} 减少到 $newBanDays"))
+          _ <- ModifyUserStatusMessage(userID, newBanDays).send
+          _ <- IO(logger.debug(s"[ScheduledTasks] 用户 $userID 封禁天数更新成功"))
+        } yield true
+      } else {
+        IO.pure(false)
+      }
+    } yield processed
+  }.handleErrorWith { error =>
+    IO(logger.error(s"[ScheduledTasks] 处理用户封禁天数时发生错误: userID=$userID, error=${error.getMessage}")) >>
+    IO.pure(false)
   }
 }

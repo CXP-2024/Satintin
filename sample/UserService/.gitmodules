@@ -1,3 +1,0 @@
-[submodule "src/main/scala/Common"]
-	path = src/main/scala/Common
-	url = http://gitlab.qianfang.space:2000/miniprojects/common.git

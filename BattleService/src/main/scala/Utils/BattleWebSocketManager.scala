@@ -23,7 +23,6 @@ import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
 import Common.Object.SqlParameter
 import Utils.gamecore.BattleResolver
 import ch.qos.logback.core.pattern.Converter
-import Objects.BattleService.PlayerStatus  // 保留这个导入用于数据库转换
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -268,135 +267,7 @@ class BattleWebSocketManager(roomId: String) {
         case None =>
           IO(logger.error("Cannot process actions: game state is not initialized"))
       }
-      
-      // Check if game is over
-      _ <- checkGameOver
     } yield ()
-  }
-
-  /**
-   * Update game state after processing actions
-   */
-  private def updateGameStateAfterAction(result: String): IO[Unit] = {
-    implicit val planContext: PlanContext = PlanContext(TraceID(java.util.UUID.randomUUID().toString), 0)
-    
-    // Get updated player status from database after battle processing
-    for {
-      battleStateOpt <- readDBJsonOptional(
-        s"""
-        SELECT current_round, player_one_status, player_two_status
-        FROM ${Common.ServiceUtils.schemaName}.battle_state_table
-        WHERE room_id = ?
-        """,
-        List(Common.Object.SqlParameter("String", roomId))
-      )
-      
-      _ <- battleStateOpt match {
-        case Some(battleStateJson) =>
-          IO {
-            // Parse updated player statuses from database
-            val player1StatusJson = decodeField[String](battleStateJson, "player_one_status")
-            val player2StatusJson = decodeField[String](battleStateJson, "player_two_status")
-            val currentRound = decodeField[Int](battleStateJson, "current_round")
-            
-            val player1Status = decodeType[PlayerStatus](player1StatusJson)
-            val player2Status = decodeType[PlayerStatus](player2StatusJson)
-            
-            // Update game state with new player data
-            gameState.foreach { state =>
-              val updatedState = state.copy(
-                currentRound = currentRound,
-                roundPhase = "action", // 直接进入下一轮行动选择
-                player1 = state.player1.copy(
-                  health = player1Status.health,
-                  energy = player1Status.energy,
-                  currentAction = None, // 清除当前行动
-                  remainingTime = 60, // 重置剩余时间
-                  hasActed = false // 重置行动状态
-                ),
-                player2 = state.player2.copy(
-                  health = player2Status.health,
-                  energy = player2Status.energy,
-                  currentAction = None, // 清除当前行动
-                  remainingTime = 60, // 重置剩余时间
-                  hasActed = false // 重置行动状态
-                )
-              )
-              gameState = Some(updatedState)
-              
-              // Clear previous actions for next round
-              currentActions.clear()
-              
-              // Broadcast updated game state
-              broadcast(WebSocketMessage("game_state", updatedState.asJson))
-              logger.info(s"Updated game state: Player1 H=${player1Status.health} E=${player1Status.energy}, Player2 H=${player2Status.health} E=${player2Status.energy}")
-            }
-          }
-        case None =>
-          IO {
-            // Fallback: just increment round if no database state found
-            logger.warn(s"No battle state found in database for room $roomId, using fallback update")
-            gameState.foreach { state =>
-              val updatedState = state.copy(
-                currentRound = state.currentRound + 1,
-                roundPhase = "action",
-                player1 = state.player1.copy(
-                  health = 666,
-                  energy = 0,
-                  remainingTime = 60, // 重置剩余时间
-                ),
-                player2 = state.player2.copy(
-                  health = 666,
-                  energy = 0,
-                  remainingTime = 60 // 重置剩余时间
-                )
-              )
-              gameState = Some(updatedState)
-              currentActions.clear()
-              broadcast(WebSocketMessage("game_state", updatedState.asJson))
-            }
-          }
-      }
-    } yield ()
-  }
-
-  /**
-   * Check if the game is over
-   */
-  private def checkGameOver: IO[Unit] = {
-    IO {
-      // Check if any player's health is 0
-      gameState.foreach { state =>
-        if (state.player1.health <= 0 || state.player2.health <= 0) {
-          val winnerName = if (state.player1.health <= 0 ) {
-            state.player2.username
-          } else {
-            state.player1.username
-          }
-          val reason = "health_zero"
-
-          val gameOverResult = GameOverResult(
-            winner = winnerName,
-            reason = reason,
-            rewards = Some(Json.obj(
-              "stones" -> Json.fromInt(10),
-              "rankChange" -> Json.fromInt(5)
-            ))
-          )
-          // also update game state to finished
-          val updatedState = state.copy(
-            roundPhase = "finished",
-            winner = Some(winnerName)
-          )
-          gameState = Some(updatedState)
-          // Broadcast game over message
-          logger.info(s"Game over in room $roomId: Winner: ${gameOverResult.winner}, Reason: ${gameOverResult.reason}")
-
-          broadcast(WebSocketMessage("game_state", updatedState.asJson))
-          broadcast(WebSocketMessage("game_over", gameOverResult.asJson))
-        }
-      }
-    }
   }
 
   /**
