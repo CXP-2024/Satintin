@@ -13,16 +13,13 @@ import org.slf4j.LoggerFactory
 import scala.collection.concurrent.TrieMap
 import Common.API.PlanContext
 import Common.API.TraceID
-import Objects.BattleService.{BattleAction, CardEffect, CardState, GameOverResult, GameState, PlayerState, RoundResult}
-import APIs.UserService.FetchUserStatusMessage
-import org.joda.time.DateTime
+import Objects.BattleService.{BattleAction,  CardState, GameState, PlayerState, RoundResult}
 import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration.*
-import Common.DBAPI.{decodeField, decodeType, readDBJsonOptional}
-import Common.Object.SqlParameter
+
 import Utils.gamecore.BattleResolver
-import ch.qos.logback.core.pattern.Converter
+
 
 /**
  * Manages WebSocket connections and game state for a battle room
@@ -270,63 +267,10 @@ class BattleWebSocketManager(roomId: String) {
     } yield ()
   }
 
-  /**
-   * Create a round result message based on actual state changes
-   */
-  private def createRoundResultFromStateChanges(
-    action1: BattleAction, 
-    action2: BattleAction, 
-    stateBeforeBattle: Option[GameState]
-  ): IO[RoundResult] = {
-    IO {
-      val currentState = gameState
-      
-      (stateBeforeBattle, currentState) match {
-        case (Some(beforeState), Some(afterState)) =>
-          // Calculate actual changes
-          val player1HealthChange = afterState.player1.health - beforeState.player1.health
-          val player1EnergyChange = afterState.player1.energy - beforeState.player1.energy
-          val player2HealthChange = afterState.player2.health - beforeState.player2.health
-          val player2EnergyChange = afterState.player2.energy - beforeState.player2.energy
-          
-          RoundResult(
-            round = beforeState.currentRound,
-            player1Action = action1,
-            player2Action = action2,
-            results = Json.obj(
-              "player1" -> Json.obj(
-                "healthChange" -> Json.fromInt(player1HealthChange), 
-                "energyChange" -> Json.fromInt(player1EnergyChange)
-              ),
-              "player2" -> Json.obj(
-                "healthChange" -> Json.fromInt(player2HealthChange), 
-                "energyChange" -> Json.fromInt(player2EnergyChange)
-              )
-            ),
-            cardEffects = List()
-          )
-          
-        case _ =>
-          logger.warn(s"！！！！In CreateRoundResultFromStateChanges: Game state not available for round result creation in room $roomId")
-          // Fallback RoundResult
-          RoundResult(
-            round         = stateBeforeBattle.map(_.currentRound).getOrElse(0),
-            player1Action = action1,
-            player2Action = action2,
-            results       = Json.obj(
-              "player1" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0)),
-              "player2" -> Json.obj("healthChange" -> Json.fromInt(0), "energyChange" -> Json.fromInt(0))
-            ),
-            cardEffects   = List()
-          )
-      }
-    }
-  }
-
   // decide effect chance based on rarity
   private def ChooseEffect(rarity: String): Double = {
     rarity match {
-      case "普通" => 0.05
+      case "普通" => 0.20
       case "稀有" => 0.15
       case "传说" => 0.33
       case _ => 0.1 // Default chance for unknown rarities
