@@ -28,6 +28,7 @@ import { GetAssetTransactionMessage } from "Plugins/AssetService/APIs/GetAssetTr
 import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage";
 import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
+import { LoadBattleDeckMessage } from "Plugins/CardService/APIs/LoadBattleDeckMessage";
 
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
@@ -95,7 +96,36 @@ const GameHomePage: React.FC = () => {
 
     const handleNavigateToBattle = () => {
         playClickSound();
-        navigateWithTransition('/battle', '正在进入战斗...');
+        if (!userID) return;
+        
+        // 先检查战斗卡组配置
+        new LoadBattleDeckMessage(userID).send(
+            (info: any) => {
+                try {
+                    let battleDeck: string[] = [];
+                    if (typeof info === 'string') {
+                        battleDeck = JSON.parse(info);
+                    } else {
+                        battleDeck = info;
+                    }
+                    
+                    if (battleDeck.length < 3) {
+                        window.alert('战斗卡组需配置3个卡牌');
+                        return;
+                    }
+                    
+                    // 卡组检查通过，跳转到战斗页面
+                    navigateWithTransition('/battle', '正在进入战斗...');
+                } catch (e) {
+                    console.error('parse battle deck error:', e);
+                    window.alert('获取战斗卡组失败');
+                }
+            },
+            (error: any) => {
+                console.error('LoadBattleDeckMessage error:', error);
+                window.alert('获取战斗卡组失败');
+            }
+        );
     };
 
     const handleNavigateToCards = () => {
