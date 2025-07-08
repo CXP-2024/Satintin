@@ -15,7 +15,7 @@ export const passiveActions = [
     {
         type: 'Pouch' as BasicObjectName,
         icon: '💰',
-        name: '囊',
+        name: '馕',
         description: '获得2能量，伤害倍率×3',
         color: '#8e44ad',
         requirements: '消耗所有能量'

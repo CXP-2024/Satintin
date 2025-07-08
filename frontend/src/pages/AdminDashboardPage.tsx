@@ -1,246 +1,50 @@
-
-
 import React, { useEffect, useState } from 'react';
 import { usePageTransition } from '../hooks/usePageTransition';
 import PageTransition from '../components/PageTransition';
 import './AdminDashboardPage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { clearUserInfo, useUserInfo, initUserToken, getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { clearUserInfo, useUserInfo, initUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import PlayerManagement from '../components/PlayerManagement';
 import ReportHandling from '../components/ReportHandling';
-import { ViewAllReportsMessage } from 'Plugins/AdminService/APIs/ViewAllReportsMessage';
-import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
-import { GetAllUserIDsMessage } from 'Plugins/UserService/APIs/GetAllUserIDsMessage';
-import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
-import { User } from 'Plugins/UserService/Objects/User';
+import { useAdminUsers } from '../hooks/useAdminUsers';
+import { useAdminReports } from '../hooks/useAdminReports';
+import { AdminTab } from '../types/adminDashboard';
 
 const AdminDashboardPage: React.FC = () => {
   const user = useUserInfo();
   const { navigateWithTransition } = usePageTransition();
-  const [activeTab, setActiveTab] = useState<'players' | 'reports'>('players');
+  const [activeTab, setActiveTab] = useState<AdminTab>('players');
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // 替换 mockReports 为真实数据
-  const [reports, setReports] = useState<CheatingReport[]>([]);
-  const [reportsLoading, setReportsLoading] = useState(false);
-  const [reportsError, setReportsError] = useState<string | null>(null);
-  // 新增：用户信息管理状态
-  const [userList, setUserList] = useState<User[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [usersError, setUsersError] = useState<string | null>(null);
+
+  const {
+    userList,
+    usersLoading,
+    usersError,
+    loadUserAllInfo
+  } = useAdminUsers();
+
+  const {
+    reports,
+    reportsLoading,
+    reportsError,
+    loadReports
+  } = useAdminReports();
 
   // 初始化音效
   useEffect(() => {
     SoundUtils.setClickSoundSource(clickSound);
   }, []);
-  // 加载用户完整信息
-  const loadUserAllInfo = () => {
-    if (!user || user.permissionLevel < 1) return;
-    
-    setUsersLoading(true);
-    setUsersError(null);
-
-    const adminToken = getUserToken();
-    
-    if (!adminToken) {
-      setUsersError('管理员token不存在，请重新登录');
-      setUsersLoading(false);
-      return;
-    }
-
-    console.log('👥 [AdminDashboard] 开始加载用户完整信息');
-    
-    // 第一步：获取所有用户ID
-    new GetAllUserIDsMessage().send(
-      (response: string) => {
-        try {
-          console.log('👥 [AdminDashboard] 获取用户ID响应:', response);
-          
-          let userIDs: string[] = [];
-          try {
-            // 尝试解析响应
-            const parsed = JSON.parse(response);
-            if (typeof parsed === 'string') {
-              userIDs = JSON.parse(parsed);
-            } else {
-              userIDs = parsed;
-            }
-          } catch (e) {
-            console.error('❌ [AdminDashboard] 解析用户ID失败:', e);
-            throw new Error('解析用户ID失败');
-          }
-          
-          if (!Array.isArray(userIDs)) {
-            throw new Error('返回的用户ID不是数组格式');
-          }
-          
-          console.log('👥 [AdminDashboard] 获取到用户ID列表:', userIDs);
-          
-          // 第二步：为每个用户ID获取详细信息
-          const userPromises = userIDs.map((userID: string) => {
-            return new Promise<User>((resolve, reject) => {
-              new GetUserInfoMessage(userID).send(
-                (userResponse: string) => {
-                  try {
-                    console.log(`👤 [AdminDashboard] 获取用户${userID}信息:`, userResponse);
-                    
-                    let userData: any = userResponse;
-                    if (typeof userResponse === 'string') {
-                      userData = JSON.parse(userResponse);
-                      if (typeof userData === 'string') {
-                        userData = JSON.parse(userData);
-                      }
-                    }
-                    
-                    // 创建User对象
-                    const userObj = new User(
-                      userData.userID,
-                      userData.userName,
-                      userData.passwordHash,
-                      userData.email,
-                      userData.phoneNumber,
-                      userData.registerTime,
-                      userData.permissionLevel,
-                      userData.banDays,
-                      userData.isOnline,
-                      userData.matchStatus,
-                      userData.stoneAmount,
-                      userData.cardDrawCount,
-                      userData.rank,
-                      userData.rankPosition,
-                      userData.friendList,
-                      userData.blackList,
-                      userData.messageBox
-                    );
-                    
-                    resolve(userObj);
-                  } catch (error) {
-                    console.error(`❌ [AdminDashboard] 解析用户${userID}信息失败:`, error);
-                    reject(error);
-                  }
-                },
-                (error: any) => {
-                  console.error(`❌ [AdminDashboard] 获取用户${userID}信息失败:`, error);
-                  reject(error);
-                }
-              );
-            });
-          });
-          
-          // 等待所有用户信息加载完成
-          Promise.all(userPromises)
-            .then((users: User[]) => {
-              console.log('👥 [AdminDashboard] 成功加载所有用户信息:', users);
-              setUserList(users);
-              setUsersLoading(false);
-            })
-            .catch((error) => {
-              console.error('❌ [AdminDashboard] 加载用户信息失败:', error);
-              setUsersError('加载用户详细信息失败');
-              setUsersLoading(false);
-            });
-          
-        } catch (error) {
-          console.error('❌ [AdminDashboard] 处理用户ID响应失败:', error);
-          setUsersError('处理用户ID响应失败');
-          setUsersLoading(false);
-        }
-      },
-      (error: any) => {
-        console.error('❌ [AdminDashboard] 获取用户ID失败:', error);
-        setUsersError('获取用户ID失败');
-        setUsersLoading(false);
-      }
-    );
-  };
-
-  // 加载举报数据
-  const loadReports = () => {
-    if (!user || user.permissionLevel < 1) return;
-    
-    setReportsLoading(true);
-    setReportsError(null);
-
-    // 使用管理员token，从多个可能的来源获取
-    const adminToken = getUserToken();
-    
-    if (!adminToken) {
-      setReportsError('管理员token不存在，请重新登录');
-      setReportsLoading(false);
-      return;
-    }
-
-    console.log('📋 [AdminDashboard] 开始加载举报记录，使用token:', adminToken);
-    
-    new ViewAllReportsMessage(adminToken).send(
-      (response: string) => {
-        try {
-          console.log('📋 [AdminDashboard] 原始响应:', response);
-          
-          // 第一次解析
-          let firstParse = JSON.parse(response);
-          console.log('📋 [AdminDashboard] 第一次解析结果:', firstParse);
-          console.log('📋 [AdminDashboard] 第一次解析类型:', typeof firstParse);
-          
-          // 如果第一次解析后还是字符串，再解析一次
-          let reportData = firstParse;
-          if (typeof firstParse === 'string') {
-            reportData = JSON.parse(firstParse);
-            console.log('📋 [AdminDashboard] 第二次解析结果:', reportData);
-          }
-          
-          console.log('📋 [AdminDashboard] 最终数据类型:', typeof reportData);
-          console.log('📋 [AdminDashboard] 是否为数组:', Array.isArray(reportData));
-          
-          if (!Array.isArray(reportData)) {
-            throw new Error(`期望数组，但得到: ${typeof reportData}`);
-          }
-          
-          const reportObjects = reportData.map((data: any) => 
-            new CheatingReport(
-              data.reportID,
-              data.reportingUserID,
-              data.reportedUserID,
-              data.reportReason,
-              data.isResolved,
-              data.reportTime
-            )
-          );
-          
-          console.log('📋 [AdminDashboard] 成功创建举报对象:', reportObjects);
-          setReports(reportObjects);
-          setReportsLoading(false);
-        } catch (error) {
-          console.error('❌ [AdminDashboard] 解析举报数据失败:', error);
-          setReportsError('解析举报数据失败');
-          setReportsLoading(false);
-        }
-      },
-      (error: any) => {
-        console.error('❌ [AdminDashboard] 获取举报记录失败:', error);
-        setReportsError('获取举报记录失败');
-        setReportsLoading(false);
-      }
-    );
-  };
-
-  // 播放按钮点击音效
-  const playClickSound = () => {
-    SoundUtils.playClickSound(0.5);
-  };
 
   // 检查管理员权限并加载数据
   useEffect(() => {
     console.log('🔍 [AdminDashboard] 权限检查 - 用户:', user);
     console.log('🔍 [AdminDashboard] 权限等级:', user?.permissionLevel);
-
     
-    // 如果是管理员，加载所有数据
     if (user && user.permissionLevel >= 1) {
       console.log('✅ [AdminDashboard] 管理员权限验证通过，开始加载数据');
       loadReports();
-      loadUserAllInfo(); // 新增：加载用户信息
+      loadUserAllInfo();
     } else {
       console.log('⏳ [AdminDashboard] 用户信息未加载或权限不足');
     }
@@ -250,18 +54,13 @@ const AdminDashboardPage: React.FC = () => {
     console.log('🚪 [AdminDashboard] 管理员手动退出登录');
     playClickSound();
     
-    // 清除管理员特定的token
     localStorage.removeItem('adminToken');
-    
-    // 清除本地状态
     clearUserInfo();
     initUserToken();
-    
-    // 立即导航到登录页
     navigateWithTransition('/login');
   };
 
-  const handleTabChange = (tab: 'players' | 'reports') => {
+  const handleTabChange = (tab: AdminTab) => {
     playClickSound();
     setActiveTab(tab);
   };
@@ -270,33 +69,11 @@ const AdminDashboardPage: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  // 刷新举报数据 - 传递给子组件使用
-  const refreshReports = () => {
-    console.log('🔄 [AdminDashboard] 手动刷新举报数据');
-    loadReports();
+  const playClickSound = () => {
+    SoundUtils.playClickSound(0.5);
   };
 
-  // 刷新用户数据
-  const refreshUsers = () => {
-    console.log('🔄 [AdminDashboard] 手动刷新用户数据');
-    loadUserAllInfo();
-  };
-
-  // 处理举报状态更新的回调
-  const onReportUpdated = () => {
-    console.log('📝 [AdminDashboard] 举报状态已更新，刷新列表');
-    loadReports(); // 重新加载数据以反映最新状态
-  };
-
-  // 处理用户信息更新的回调
-  const onUserUpdated = () => {
-    console.log('📝 [AdminDashboard] 用户信息已更新，刷新列表');
-    loadUserAllInfo(); // 重新加载用户数据
-  };
-
-  // 计算待处理举报数量
   const pendingReportsCount = reports.filter(report => !report.isResolved).length;
-    // 计算在线用户数量
   const onlineUsersCount = userList.filter(user => user.isOnline).length;
 
   return (
@@ -312,7 +89,8 @@ const AdminDashboardPage: React.FC = () => {
                 <span className="error-indicator">
                   错误: {reportsError || usersError}
                 </span>
-              )}              <span className="stats-indicator">
+              )}
+              <span className="stats-indicator">
                 在线用户: {onlineUsersCount} | 总用户: {userList.length}
               </span>
             </div>
@@ -331,7 +109,8 @@ const AdminDashboardPage: React.FC = () => {
         {/* 主内容区域 */}
         <main className="admin-main">
           {/* 标签页导航 */}
-          <div className="admin-tabs">            <button
+          <div className="admin-tabs">
+            <button
               className={`admin-tab-btn ${activeTab === 'players' ? 'active' : ''}`}
               onClick={() => handleTabChange('players')}
             >
@@ -364,9 +143,9 @@ const AdminDashboardPage: React.FC = () => {
               onClick={() => {
                 playClickSound();
                 if (activeTab === 'players') {
-                  refreshUsers();
+                  loadUserAllInfo();
                 } else {
-                  refreshReports();
+                  loadReports();
                 }
               }}
               disabled={reportsLoading || usersLoading}
@@ -391,26 +170,25 @@ const AdminDashboardPage: React.FC = () => {
 
           {/* 内容区域 */}
           <div className="admin-content">
-            {/* 玩家管理 */}            {activeTab === 'players' && (
+            {activeTab === 'players' && (
               <PlayerManagement 
                 searchTerm={searchTerm}
                 userList={userList}
                 loading={usersLoading}
                 error={usersError}
-                onRefresh={refreshUsers}
-                onUserUpdated={onUserUpdated}
+                onRefresh={loadUserAllInfo}
+                onUserUpdated={loadUserAllInfo}
               />
             )}
 
-            {/* 举报处理 */}
             {activeTab === 'reports' && (
               <ReportHandling 
                 searchTerm={searchTerm}
                 reports={reports}
                 loading={reportsLoading}
                 error={reportsError}
-                onRefresh={refreshReports}
-                onReportUpdated={onReportUpdated}
+                onRefresh={loadReports}
+                onReportUpdated={loadReports}
               />
             )}
           </div>

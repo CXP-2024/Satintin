@@ -4,6 +4,10 @@ import { BanUserMessage } from "Plugins/AdminService/APIs/BanUserMessage";
 import { ManageReportMessage } from "Plugins/AdminService/APIs/ManageReportMessage";
 import { getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { CheatingReport } from 'Plugins/AdminService/Objects/CheatingReport';
+import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
+import { User } from 'Plugins/UserService/Objects/User';
+import ReportModal from './ReportModal';
+import { playClickSound, getAdminToken } from './reportUtils';
 
 // 更新接口定义
 interface ReportHandlingProps {
@@ -13,6 +17,10 @@ interface ReportHandlingProps {
   error: string | null;
   onRefresh: () => void;
   onReportUpdated: () => void;
+}
+
+interface UserNameCache {
+  [key: string]: string;
 }
 
 const ReportHandling: React.FC<ReportHandlingProps> = ({ 
@@ -26,18 +34,94 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   const [selectedReport, setSelectedReport] = useState<CheatingReport | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isReportModalClosing, setIsReportModalClosing] = useState(false);
+  const [userNameCache, setUserNameCache] = useState<UserNameCache>({});
 
   // 分页状态
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10); // 每页显示10条记录
 
-  // 播放按钮点击音效
-  const playClickSound = () => {
-    SoundUtils.playClickSound(0.5);
+  // 获取用户名的函数
+  const fetchUserName = async (userID: string) => {
+    if (userNameCache[userID]) {
+      return userNameCache[userID];
+    }
+
+    return new Promise<string>((resolve) => {
+      new GetUserInfoMessage(userID).send(
+        (response: string) => {
+          try {
+            let userData: any = response;
+            if (typeof response === 'string') {
+              userData = JSON.parse(response);
+              if (typeof userData === 'string') {
+                userData = JSON.parse(userData);
+              }
+            }
+
+            const userObj = new User(
+              userData.userID,
+              userData.userName,
+              userData.passwordHash,
+              userData.email,
+              userData.phoneNumber,
+              userData.registerTime,
+              userData.permissionLevel,
+              userData.banDays,
+              userData.isOnline,
+              userData.matchStatus,
+              userData.stoneAmount,
+              userData.cardDrawCount,
+              userData.rank,
+              userData.rankPosition,
+              userData.friendList,
+              userData.blackList,
+              userData.messageBox
+            );
+
+            setUserNameCache(prev => ({
+              ...prev,
+              [userID]: userObj.userName
+            }));
+            resolve(userObj.userName);
+          } catch (error) {
+            console.error(`❌ [ReportHandling] 解析用户${userID}信息失败:`, error);
+            resolve(userID); // 如果获取失败，显示 userID
+          }
+        },
+        (error: any) => {
+          console.error(`❌ [ReportHandling] 获取用户${userID}信息失败:`, error);
+          resolve(userID); // 如果获取失败，显示 userID
+        }
+      );
+    });
   };
 
+  // 加载当前页面所有用户的用户名
+  useEffect(() => {
+    const loadUserNames = async () => {
+      const currentReports = filteredReports.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+      );
+
+      const userIDs = new Set<string>();
+      currentReports.forEach(report => {
+        userIDs.add(report.reportingUserID);
+        userIDs.add(report.reportedUserID);
+      });
+
+      for (const userID of userIDs) {
+        if (!userNameCache[userID]) {
+          await fetchUserName(userID);
+        }
+      }
+    };
+
+    loadUserNames();
+  }, [currentPage, reports, searchTerm]);
+
   const handleViewReport = (report: CheatingReport) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     setSelectedReport(report);
     setIsReportModalClosing(false);
     setShowReportModal(true);
@@ -52,10 +136,10 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   };
 
   const handleResolveReport = (reportId: string, isResolved: boolean = true) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     console.log(`🛡️ [ReportHandling] 更新举报状态 ${reportId}, isResolved: ${isResolved}`);
     
-    const adminToken = getUserToken() || localStorage.getItem('adminToken') || '';
+    const adminToken = getAdminToken(getUserToken);
     
     if (!adminToken) {
       console.error('❌ [ReportHandling] 管理员token不存在');
@@ -75,10 +159,10 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   };
 
   const handleBanPlayer = (playerId: string, days: number) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     console.log(`🔨 [ReportHandling] 封禁玩家 ${playerId} ${days}天`);
     
-    const adminToken = getUserToken() || localStorage.getItem('adminToken') || '';
+    const adminToken = getAdminToken(getUserToken);
 
     new BanUserMessage(adminToken, playerId, days).send(
       (response: string) => {
@@ -97,12 +181,15 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
     );
   };
 
-  // 过滤举报列表 - 使用正确的属性名
-  const filteredReports = reports.filter(report =>
-    report.reportingUserID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    report.reportedUserID.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    report.reportReason.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 过滤举报列表 - 使用正确的属性名和用户名缓存
+  const filteredReports = reports.filter(report => {
+    const reportingUserName = userNameCache[report.reportingUserID] || report.reportingUserID;
+    const reportedUserName = userNameCache[report.reportedUserID] || report.reportedUserID;
+    
+    return reportingUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           reportedUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           report.reportReason.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   // 计算总页数
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
@@ -124,7 +211,7 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
 
   // 处理页码变化
   const handlePageChange = (pageNumber: number) => {
-    playClickSound();
+    playClickSound(SoundUtils);
     setCurrentPage(pageNumber);
   };
 
@@ -174,8 +261,8 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
             {currentReports.map(report => (
               <tr key={report.reportID}>
                 <td>{report.reportID.substring(0, 8)}...</td>
-                <td>{report.reportingUserID}</td>
-                <td>{report.reportedUserID}</td>
+                <td>{userNameCache[report.reportingUserID] || report.reportingUserID}</td>
+                <td>{userNameCache[report.reportedUserID] || report.reportedUserID}</td>
                 <td>{report.reportReason}</td>
                 <td>{report.getFormattedTime()}</td>
                 <td>
@@ -234,88 +321,14 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
 
       {/* 举报详情模态框 */}
       {showReportModal && selectedReport && (
-        <div className={`admin-modal-overlay ${isReportModalClosing ? 'closing' : ''}`}>
-          <div className="admin-modal-container report-modal">
-            <div className="admin-modal-header">
-              <h3>举报详情</h3>
-              <button className="admin-close-btn" onClick={handleCloseReportModal}>
-                <span>×</span>
-              </button>
-            </div>
-            <div className="admin-modal-content">
-              <div className="report-info">
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报ID:</span>
-                  <span className="admin-info-value">{selectedReport.reportID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报者:</span>
-                  <span className="admin-info-value">{selectedReport.reportingUserID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">被举报者:</span>
-                  <span className="admin-info-value">{selectedReport.reportedUserID}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报原因:</span>
-                  <span className="admin-info-value">{selectedReport.reportReason}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">举报日期:</span>
-                  <span className="admin-info-value">{selectedReport.getFormattedTime()}</span>
-                </div>
-                <div className="admin-info-row">
-                  <span className="admin-info-label">状态:</span>
-                  <span className="admin-info-value" style={{ justifyContent: 'center' }}>
-                    <span className={`admin-status-badge ${selectedReport.isResolved ? 'admin-status-resolved' : 'admin-status-pending'}`}>
-                      {selectedReport.getStatusText()}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div className="admin-actions">
-                <h4>处理决定</h4>
-                <div className="admin-action-buttons">
-                  {!selectedReport.isResolved ? (
-                    <>
-                      <button
-                        className="admin-action-btn admin-resolve-btn"
-                        onClick={() => handleResolveReport(selectedReport.reportID, true)}
-                      >
-                        标记为已处理
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 1)}
-                      >
-                        警告并封禁1天
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 7)}
-                      >
-                        封禁7天
-                      </button>
-                      <button
-                        className="admin-action-btn admin-ban-btn severe"
-                        onClick={() => handleBanPlayer(selectedReport.reportedUserID, 30)}
-                      >
-                        封禁30天
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      className="admin-action-btn admin-reopen-btn"
-                      onClick={() => handleResolveReport(selectedReport.reportID, false)}
-                    >
-                      重新开启举报
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ReportModal
+          selectedReport={selectedReport}
+          isReportModalClosing={isReportModalClosing}
+          handleCloseReportModal={handleCloseReportModal}
+          handleResolveReport={handleResolveReport}
+          handleBanPlayer={handleBanPlayer}
+          userNameCache={userNameCache}
+        />
       )}
     </div>
   );
