@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { usePageTransition } from '../../components/usePageTransition';
 import PageTransition from '../../components/PageTransition';
 import './CardCollectionPage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
 import { GetAllCardTemplatesMessage } from '../../Plugins/CardService/APIs/GetAllCardTemplatesMessage';

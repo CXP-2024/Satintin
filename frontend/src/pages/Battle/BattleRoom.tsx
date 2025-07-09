@@ -11,7 +11,7 @@ import RoundResultModal from '../../components/battle/RoundResultModal';
 import { GameOverModal } from '../../components/battle/GameOverModal';
 import ReportModal from '../../components/battle/ReportModal'; // 导入举报模态框组件
 import './BattleRoom.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 

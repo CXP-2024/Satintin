@@ -12,7 +12,7 @@ import MainActions from '../components/gameHome/MainActions';
 import QuickInfo from '../components/gameHome/QuickInfo';
 import SearchUserModal from '../components/gameHome/SearchUserModal';
 import './GameHomePage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {
     clearUserInfo,
