@@ -4,7 +4,7 @@ import { useUserSearch } from '../components/gameHome/useUserSearch';
 import { useCardCount } from '../components/gameHome/useCardCount';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/gameHome/UserProfile/UserProfile';
-import ChatBox from '../components/battle/ChatBox';
+import ChatBox from '../components/battle/chatbox/ChatBox';
 import { FriendInfo } from '../components/gameHome/UserProfile/UserProfileUtils';
 import RewardModal from '../components/gameHome/RewardModal';
 import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';

@@ -4,9 +4,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Message } from './ChatBoxTypes';
-import { GetChatHistoryMessage } from '../../Plugins/UserService/APIs/GetChatHistoryMessage';
-import { SendMessageMessage } from '../../Plugins/UserService/APIs/SendMessageMessage';
-import { getUserIDSnap, getUserInfo } from '../../Plugins/CommonUtils/Store/UserInfoStore';
+import { GetChatHistoryMessage } from '../../../Plugins/UserService/APIs/GetChatHistoryMessage';
+import { SendMessageMessage } from '../../../Plugins/UserService/APIs/SendMessageMessage';
+import { getUserIDSnap, getUserInfo } from '../../../Plugins/CommonUtils/Store/UserInfoStore';
 
 export const useChatBoxMessages = (friendId: string, friendName: string, isVisible: boolean) => {
 	const [messages, setMessages] = useState<Message[]>([]);
