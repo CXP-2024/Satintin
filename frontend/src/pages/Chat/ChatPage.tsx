@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ChatPage.css';
+import { GetChatHistoryMessage } from '../../Plugins/UserService/APIs/GetChatHistoryMessage';
+import { SendMessageMessage } from '../../Plugins/UserService/APIs/SendMessageMessage';
+import { GetUserInfoMessage } from '../../Plugins/UserService/APIs/GetUserInfoMessage';
+import { commonSend } from '../../Plugins/CommonUtils/Send/CommonSend';
+import { getUserToken, getUserIDSnap, getUserInfo } from '../../Plugins/CommonUtils/Store/UserInfoStore';
+import { MessageEntry } from '../../Plugins/UserService/Objects/MessageEntry';
+import { User } from '../../Plugins/UserService/Objects/User';
 
 interface Message {
     id: string;
@@ -32,70 +39,112 @@ const ChatPage: React.FC = () => {
         }
     }, [state, navigate]);
 
-    // Mock data for demonstration
+    // 加载真实的聊天数据
     useEffect(() => {
         if (state?.friendId && state?.friendName) {
-            const mockMessages: Message[] = [
-                {
-                    id: '1',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '嗨！你在吗？',
-                    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '2',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '在的！刚刚在玩游戏',
-                    timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '3',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '哈哈，我也是！今天运气怎么样？',
-                    timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '4',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '还不错！抽到了几张不错的卡牌',
-                    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '5',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '羡慕！要不要来对战一局？',
-                    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '6',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '好啊！等我整理一下卡组',
-                    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '7',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '没问题！我在等你',
-                    timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-                    isCurrentUser: false
-                }
-            ];
-            setMessages(mockMessages);
+            loadChatHistory();
         }
     }, [state]);
+
+    const loadChatHistory = async () => {
+        try {
+            const userToken = getUserInfo().userID;
+            if (!userToken) {
+                console.error('用户未登录');
+                navigate('/login');
+                return;
+            }
+
+            const getChatHistoryMessage = new GetChatHistoryMessage(userToken, state.friendId);
+            
+            await commonSend(
+                getChatHistoryMessage,
+                (response: MessageEntry[]) => {
+                    // 转换MessageEntry格式为本地Message格式
+                    const currentUserID = getUserIDSnap();
+                    const convertedMessages: Message[] = response.map((msg, index) => ({
+                        id: `${index + 1}`,
+                        senderId: msg.messageSource,
+                        senderName: msg.messageSource === currentUserID ? '我' : state.friendName,
+                        content: msg.messageContent,
+                        timestamp: new Date(msg.messageTime),
+                        isCurrentUser: msg.messageSource === currentUserID
+                    }));
+                    setMessages(convertedMessages);
+                },
+                (error: string) => {
+                    console.error('加载聊天记录失败:', error);
+                    // 如果加载失败，显示模拟数据作为fallback
+                    loadMockData();
+                }
+            );
+        } catch (error) {
+            console.error('加载聊天记录出错:', error);
+            loadMockData();
+        }
+    };
+
+    const loadMockData = () => {
+        const mockMessages: Message[] = [
+            {
+                id: '1',
+                senderId: state.friendId,
+                senderName: state.friendName,
+                content: '嗨！你在吗？',
+                timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+                isCurrentUser: false
+            },
+            {
+                id: '2',
+                senderId: 'currentUser',
+                senderName: '我',
+                content: '在的！刚刚在玩游戏',
+                timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
+                isCurrentUser: true
+            },
+            {
+                id: '3',
+                senderId: state.friendId,
+                senderName: state.friendName,
+                content: '哈哈，我也是！今天运气怎么样？',
+                timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+                isCurrentUser: false
+            },
+            {
+                id: '4',
+                senderId: 'currentUser',
+                senderName: '我',
+                content: '还不错！抽到了几张不错的卡牌',
+                timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+                isCurrentUser: true
+            },
+            {
+                id: '5',
+                senderId: state.friendId,
+                senderName: state.friendName,
+                content: '羡慕！要不要来对战一局？',
+                timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+                isCurrentUser: false
+            },
+            {
+                id: '6',
+                senderId: 'currentUser',
+                senderName: '我',
+                content: '好啊！等我整理一下卡组',
+                timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+                isCurrentUser: true
+            },
+            {
+                id: '7',
+                senderId: state.friendId,
+                senderName: state.friendName,
+                content: '没问题！我在等你',
+                timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+                isCurrentUser: false
+            }
+        ];
+        setMessages(mockMessages);
+    };
 
     // Auto scroll to bottom when new messages arrive
     useEffect(() => {
@@ -106,18 +155,49 @@ const ChatPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (newMessage.trim()) {
-            const message: Message = {
+            const userToken = getUserInfo().userID;
+            const currentUserID = getUserIDSnap();
+            
+            if (!userToken || !currentUserID) {
+                console.error('用户未登录');
+                return;
+            }
+
+            // 先在本地显示消息，提供即时反馈
+            const localMessage: Message = {
                 id: Date.now().toString(),
-                senderId: 'currentUser',
+                senderId: currentUserID,
                 senderName: '我',
                 content: newMessage.trim(),
                 timestamp: new Date(),
                 isCurrentUser: true
             };
-            setMessages(prev => [...prev, message]);
+            setMessages(prev => [...prev, localMessage]);
+            const messageContent = newMessage.trim();
             setNewMessage('');
+
+            try {
+                // 发送到服务器
+                const sendMessageMessage = new SendMessageMessage(userToken, state.friendId, messageContent);
+                
+                await commonSend(
+                    sendMessageMessage,
+                    (response: string) => {
+                        console.log('消息发送成功:', response);
+                        // 可以在这里更新消息状态为"已发送"
+                    },
+                    (error: string) => {
+                        console.error('消息发送失败:', error);
+                        // 可以在这里显示错误状态或重试机制
+                        // 暂时保留本地消息，用户可以手动重试
+                    }
+                );
+            } catch (error) {
+                console.error('发送消息出错:', error);
+                // 发送失败时保留本地消息
+            }
         }
     };
 

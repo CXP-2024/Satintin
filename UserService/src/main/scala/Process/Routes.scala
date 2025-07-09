@@ -30,6 +30,8 @@ import Impl.ReceiveMessagesMessagePlanner
 import Impl.GetUserInfoMessagePlanner
 import Impl.QueryIDByUserNameMessagePlanner  // 添加新的导入
 import Impl.GetAllUserIDsMessagePlanner
+import Impl.SendMessageMessagePlanner
+import Impl.GetChatHistoryMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -148,6 +150,20 @@ object Routes:
         IO(
           decode[GetAllUserIDsMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetAllUserIDsMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "SendMessageMessage" =>
+        IO(
+          decode[SendMessageMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for SendMessageMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "GetChatHistoryMessage" =>
+        IO(
+          decode[GetChatHistoryMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for GetChatHistoryMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 
