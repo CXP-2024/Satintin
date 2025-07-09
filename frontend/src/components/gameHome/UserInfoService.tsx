@@ -12,6 +12,8 @@ export const refreshUserInfo = async (): Promise<void> => {
     }
 
     console.log('🔄 Refreshing user info from server...');
+    console.log('   - Current user ID:', currentUser.userID);
+    console.log('   - Current friend list:', currentUser.friendList);
     
     try {
         const response = await new Promise<string>((resolve, reject) => {
@@ -29,6 +31,9 @@ export const refreshUserInfo = async (): Promise<void> => {
 
         // 解析并更新用户信息
         const userInfo = typeof response === 'string' ? JSON.parse(response) : response;
+        console.log('📝 New user info from server:', userInfo);
+        console.log('   - New friend list:', userInfo.friendList);
+        
         setUserInfo(userInfo);
         console.log('📝 User info updated in store');
     } catch (error) {

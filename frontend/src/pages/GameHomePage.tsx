@@ -4,6 +4,8 @@ import { useUserSearch } from '../components/gameHome/useUserSearch';
 import { useCardCount } from '../components/gameHome/useCardCount';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/gameHome/UserProfile/UserProfile';
+import ChatBox from '../components/gameHome/ChatBox';
+import { FriendInfo } from '../components/gameHome/UserProfile/UserProfileUtils';
 import RewardModal from '../components/gameHome/RewardModal';
 import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';
 import GameHeader from '../components/gameHome/GameHeader';
@@ -44,6 +46,8 @@ const GameHomePage: React.FC = () => {
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showRewardModal, setShowRewardModal] = useState(false);
     const [showAlreadyClaimedModal, setShowAlreadyClaimedModal] = useState(false);
+    const [showChatBox, setShowChatBox] = useState(false);
+    const [chatBoxFriend, setChatBoxFriend] = useState<FriendInfo | null>(null);
 
     console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
     console.log('🔍 [GameHomePage] userID:', userID, 'userToken:', userToken ? '有token' : '无token');
@@ -90,7 +94,7 @@ const GameHomePage: React.FC = () => {
         playClickSound();
         if (!userID) return;
         if (user.banDays > 0) {
-            showWarning('您已被封禁，无法进入对战！', '封禁状态');
+            showWarning(`您已被封禁${user.banDays}天，无法进入对战！`, '封禁状态');
             return;
         }
         // 检查原石数量是否足够
@@ -212,6 +216,7 @@ const GameHomePage: React.FC = () => {
     };
 
     const handleCloseUserProfile = () => {
+        playClickSound();
         setShowUserProfile(false);
     };
 
@@ -227,6 +232,19 @@ const GameHomePage: React.FC = () => {
     const handleSearchUserWithUserID = () => {
         handleSearchUser(userID);
     };
+
+    const handleOpenChatBox = (friend: FriendInfo) => {
+        playClickSound();
+        setChatBoxFriend(friend);
+        setShowChatBox(true);
+    };
+
+    const handleCloseChatBox = () => {
+        playClickSound();
+        setShowChatBox(false);
+        setChatBoxFriend(null);
+    };
+
     return (
         <PageTransition className="game-page">
             <div className="game-home">
@@ -261,7 +279,9 @@ const GameHomePage: React.FC = () => {
                 <UserProfile
                     isOpen={showUserProfile}
                     onClose={handleCloseUserProfile}
-                />                <RewardModal
+                    onOpenChatBox={handleOpenChatBox}
+                />                
+                <RewardModal
                     isOpen={showRewardModal}
                     onClose={handleCloseRewardModal}
                     rewardType="daily"
@@ -288,6 +308,15 @@ const GameHomePage: React.FC = () => {
                     onSearch={handleSearchUserWithUserID}
                     onClose={handleCloseSearchUser}
                 />
+
+                {chatBoxFriend && (
+                    <ChatBox
+                        friendId={chatBoxFriend.id}
+                        friendName={chatBoxFriend.username}
+                        onClose={handleCloseChatBox}
+                        isVisible={showChatBox}
+                    />
+                )}
             </div>
         </PageTransition>
     );

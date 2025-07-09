@@ -52,30 +52,24 @@ const ChatPage: React.FC = () => {
         
         setIsRefreshing(true);
         try {
-            const userToken = getUserInfo().userID;
-            if (!userToken) {
+            const userID = getUserInfo().userID;
+            if (!userID) {
                 console.error('用户未登录');
                 navigate('/login');
                 return;
             }
 
-            const getChatHistoryMessage = new GetChatHistoryMessage(userToken, state.friendId);
-            
-            await commonSend(
-                getChatHistoryMessage,
-                (responseText: string) => {
+            new GetChatHistoryMessage(userID, state.friendId).send(
+                    (responseText: string) => {
                     try {
-                        // 解析 JSON 字符串为对象
                         const response = JSON.parse(responseText);
                         
-                        // 确保 response 是数组
                         if (!Array.isArray(response)) {
                             console.error('响应数据不是数组格式:', response);
                             setMessages([]);
                             return;
                         }
 
-                        // 转换MessageEntry格式为本地Message格式
                         const currentUserID = getUserIDSnap();
                         const convertedMessages: Message[] = response.map((msg: any, index: number) => ({
                             id: `${index + 1}`,
@@ -93,13 +87,11 @@ const ChatPage: React.FC = () => {
                 },
                 (error: string) => {
                     console.error('加载聊天记录失败:', error);
-                    // 设置空数组而不是模拟数据
                     setMessages([]);
                 }
-            );
+            )
         } catch (error) {
             console.error('加载聊天记录出错:', error);
-            // 设置空数组而不是模拟数据
             setMessages([]);
         } finally {
             setIsRefreshing(false);
@@ -123,10 +115,10 @@ const ChatPage: React.FC = () => {
 
     const handleSendMessage = async () => {
         if (newMessage.trim()) {
-            const userToken = getUserInfo().userID;
+            const userID = getUserInfo().userID;
             const currentUserID = getUserIDSnap();
             
-            if (!userToken || !currentUserID) {
+            if (!userID || !currentUserID) {
                 console.error('用户未登录');
                 return;
             }
@@ -145,24 +137,16 @@ const ChatPage: React.FC = () => {
             setNewMessage('');
 
             try {
-                // 发送到服务器
-                const sendMessageMessage = new SendMessageMessage(userToken, state.friendId, messageContent);
-                
-                await commonSend(
-                    sendMessageMessage,
+                new SendMessageMessage(userID, state.friendId, messageContent).send(
                     (response: string) => {
                         console.log('消息发送成功:', response);
-                        // 可以在这里更新消息状态为"已发送"
                     },
                     (error: string) => {
                         console.error('消息发送失败:', error);
-                        // 可以在这里显示错误状态或重试机制
-                        // 暂时保留本地消息，用户可以手动重试
                     }
                 );
             } catch (error) {
                 console.error('发送消息出错:', error);
-                // 发送失败时保留本地消息
             }
         }
     };

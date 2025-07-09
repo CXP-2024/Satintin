@@ -693,6 +693,27 @@
 	transform: scale(1.1);
 }
 
+.friend-action-btn.chatbox {
+	background: rgba(59, 130, 246, 0.8);
+	color: white;
+}
+
+.friend-action-btn.chatbox.blue {
+	background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+	box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.friend-action-btn.chatbox:hover {
+	background: rgba(59, 130, 246, 1);
+	transform: scale(1.1);
+}
+
+.friend-action-btn.chatbox.blue:hover {
+	background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+	transform: scale(1.15);
+}
+
 .friend-action-btn:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;

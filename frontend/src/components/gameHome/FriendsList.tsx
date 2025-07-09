@@ -12,6 +12,7 @@ interface FriendsListProps {
     handleState: UserProfileHandleState;
     onRefreshFriends?: () => void; // Function to refresh friends from database
     isRefreshing?: boolean; // Loading state for refresh
+    onOpenChatBox?: (friend: FriendInfo) => void; // Function to open ChatBox
 }
 
 const FriendsList: React.FC<FriendsListProps> = ({
@@ -22,7 +23,8 @@ const FriendsList: React.FC<FriendsListProps> = ({
     friendsLoadingStatus,
     handleState,
     onRefreshFriends,
-    isRefreshing = false
+    isRefreshing = false,
+    onOpenChatBox
 }) => {
     const navigate = useNavigate();
 
@@ -34,6 +36,13 @@ const FriendsList: React.FC<FriendsListProps> = ({
             }
         });
     };
+
+    const openChatBox = (friend: FriendInfo) => {
+        if (onOpenChatBox) {
+            onOpenChatBox(friend);
+        }
+    };
+
     return (
         <div className="content-panel friends-panel">
             <div className="friends-list">
@@ -115,6 +124,14 @@ const FriendsList: React.FC<FriendsListProps> = ({
                                             title="私聊"
                                         >
                                             💬
+                                        </button>
+                                        <button 
+                                            className="friend-action-btn chatbox blue"
+                                            onClick={() => openChatBox(friend)}
+                                            disabled={loading}
+                                            title="聊天框"
+                                        >
+                                            💭
                                         </button>
                                         <button 
                                             className="friend-action-btn invite"
