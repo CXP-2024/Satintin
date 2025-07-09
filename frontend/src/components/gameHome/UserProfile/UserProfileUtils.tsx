@@ -38,7 +38,7 @@ const validateFriendUsers = async (
 
     if (invalidUserIDs.length > 0) {
         console.warn('Found invalid friend user IDs:', invalidUserIDs);
-        setFriendsLoadingStatus(`发现 ${invalidUserIDs.length} 个无效用户ID，将跳过`);
+        //setFriendsLoadingStatus(`发现 ${invalidUserIDs.length} 个无效用户ID，将跳过`);
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
@@ -51,11 +51,11 @@ const handleLoadingComplete = (
     setFriendsLoadingStatus: (status: string) => void
 ): void => {
     if (invalidUserIDs.length > 0) {
-        setFriendsLoadingStatus(`加载完成，跳过了 ${invalidUserIDs.length} 个无效用户`);
+        //setFriendsLoadingStatus(`加载完成，跳过了 ${invalidUserIDs.length} 个无效用户`);
         // Optional: Clean up invalid friends
         // await cleanInvalidFriends(invalidUserIDs);
     } else {
-        setFriendsLoadingStatus('加载完成');
+        //setFriendsLoadingStatus('加载完成');
     }
 
     // Clear status after a delay
@@ -81,7 +81,7 @@ export const fetchFriendsData = async (state: UserProfileState, forceRefresh = f
     }
 
     setLoading(true);
-    setFriendsLoadingStatus('正在验证好友列表...');
+    //setFriendsLoadingStatus('正在验证好友列表...');
 
     try {
         // 1. 解析好友列表为标准数组格式

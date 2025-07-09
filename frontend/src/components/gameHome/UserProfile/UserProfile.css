@@ -368,6 +368,18 @@
 	justify-content: space-between;
 	align-items: center;
 	width: 100%;
+	gap: 12px;
+}
+
+.list-header-top h3 {
+	margin: 0;
+	flex: 1;
+}
+
+.list-header-buttons {
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 .list-header h3 {
@@ -461,6 +473,89 @@
 	}
 	to {
 		transform: rotate(360deg);
+	}
+}
+
+/* Auto refresh toggle button styles */
+.auto-refresh-toggle-btn {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	border: none;
+	padding: 10px 14px;
+	border-radius: 12px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	white-space: nowrap;
+	position: relative;
+	overflow: hidden;
+	min-width: 90px;
+	justify-content: center;
+	border: 2px solid transparent;
+}
+
+.auto-refresh-toggle-btn.enabled {
+	background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+	color: white;
+	border-color: rgba(16, 185, 129, 0.3);
+	animation: autoRefreshPulse 2s ease-in-out infinite;
+}
+
+.auto-refresh-toggle-btn.disabled {
+	background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+	color: white;
+	border-color: rgba(107, 114, 128, 0.3);
+}
+
+.auto-refresh-toggle-btn:hover.enabled {
+	background: linear-gradient(135deg, #059669 0%, #047857 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.auto-refresh-toggle-btn:hover.disabled {
+	background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
+.auto-refresh-toggle-btn:active {
+	transform: translateY(0);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.auto-refresh-toggle-btn .toggle-icon {
+	font-size: 14px;
+	transition: transform 0.3s ease;
+}
+
+.auto-refresh-toggle-btn.enabled .toggle-icon {
+	animation: autoRefreshIconBounce 1.5s ease-in-out infinite;
+}
+
+.auto-refresh-toggle-btn .toggle-text {
+	font-weight: 500;
+	letter-spacing: 0.3px;
+	font-size: 12px;
+}
+
+@keyframes autoRefreshPulse {
+	0%, 100% {
+		box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+	}
+	50% {
+		box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+	}
+}
+
+@keyframes autoRefreshIconBounce {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
 	}
 }
 
