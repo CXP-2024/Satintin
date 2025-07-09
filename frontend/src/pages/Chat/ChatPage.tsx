@@ -59,91 +59,45 @@ const ChatPage: React.FC = () => {
             
             await commonSend(
                 getChatHistoryMessage,
-                (response: MessageEntry[]) => {
-                    // 转换MessageEntry格式为本地Message格式
-                    const currentUserID = getUserIDSnap();
-                    const convertedMessages: Message[] = response.map((msg, index) => ({
-                        id: `${index + 1}`,
-                        senderId: msg.messageSource,
-                        senderName: msg.messageSource === currentUserID ? '我' : state.friendName,
-                        content: msg.messageContent,
-                        timestamp: new Date(msg.messageTime),
-                        isCurrentUser: msg.messageSource === currentUserID
-                    }));
-                    setMessages(convertedMessages);
+                (responseText: string) => {
+                    try {
+                        // 解析 JSON 字符串为对象
+                        const response = JSON.parse(responseText);
+                        
+                        // 确保 response 是数组
+                        if (!Array.isArray(response)) {
+                            console.error('响应数据不是数组格式:', response);
+                            setMessages([]);
+                            return;
+                        }
+
+                        // 转换MessageEntry格式为本地Message格式
+                        const currentUserID = getUserIDSnap();
+                        const convertedMessages: Message[] = response.map((msg: any, index: number) => ({
+                            id: `${index + 1}`,
+                            senderId: msg.messageSource,
+                            senderName: msg.messageSource === currentUserID ? '我' : state.friendName,
+                            content: msg.messageContent,
+                            timestamp: new Date(msg.messageTime),
+                            isCurrentUser: msg.messageSource === currentUserID
+                        }));
+                        setMessages(convertedMessages);
+                    } catch (parseError) {
+                        console.error('解析聊天记录失败:', parseError, '原始响应:', responseText);
+                        setMessages([]);
+                    }
                 },
                 (error: string) => {
                     console.error('加载聊天记录失败:', error);
-                    // 如果加载失败，显示模拟数据作为fallback
-                    loadMockData();
+                    // 设置空数组而不是模拟数据
+                    setMessages([]);
                 }
             );
         } catch (error) {
             console.error('加载聊天记录出错:', error);
-            loadMockData();
+            // 设置空数组而不是模拟数据
+            setMessages([]);
         }
-    };
-
-    const loadMockData = () => {
-        const mockMessages: Message[] = [
-            {
-                id: '1',
-                senderId: state.friendId,
-                senderName: state.friendName,
-                content: '嗨！你在吗？',
-                timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '2',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '在的！刚刚在玩游戏',
-                timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
-                isCurrentUser: true
-            },
-            {
-                id: '3',
-                senderId: state.friendId,
-                senderName: state.friendName,
-                content: '哈哈，我也是！今天运气怎么样？',
-                timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '4',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '还不错！抽到了几张不错的卡牌',
-                timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-                isCurrentUser: true
-            },
-            {
-                id: '5',
-                senderId: state.friendId,
-                senderName: state.friendName,
-                content: '羡慕！要不要来对战一局？',
-                timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '6',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '好啊！等我整理一下卡组',
-                timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-                isCurrentUser: true
-            },
-            {
-                id: '7',
-                senderId: state.friendId,
-                senderName: state.friendName,
-                content: '没问题！我在等你',
-                timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-                isCurrentUser: false
-            }
-        ];
-        setMessages(mockMessages);
     };
 
     // Auto scroll to bottom when new messages arrive
@@ -267,28 +221,38 @@ const ChatPage: React.FC = () => {
                 </div>
 
                 <div className="chat-page-messages">
-                    {messages.map((message, index) => {
-                        const showDate = index === 0 || 
-                            formatDate(message.timestamp) !== formatDate(messages[index - 1].timestamp);
-                        
-                        return (
-                            <div key={message.id}>
-                                {showDate && (
-                                    <div className="message-date">
-                                        {formatDate(message.timestamp)}
-                                    </div>
-                                )}
-                                <div className={`message ${message.isCurrentUser ? 'message-sent' : 'message-received'}`}>
-                                    <div className="message-content">
-                                        {message.content}
-                                    </div>
-                                    <div className="message-time">
-                                        {formatTime(message.timestamp)}
+                    {messages.length === 0 ? (
+                        <div className="empty-chat-state">
+                            <div className="empty-chat-icon">💬</div>
+                            <div className="empty-chat-text">
+                                <h3>开始对话吧！</h3>
+                                <p>向 {state.friendName} 发送第一条消息</p>
+                            </div>
+                        </div>
+                    ) : (
+                        messages.map((message, index) => {
+                            const showDate = index === 0 || 
+                                formatDate(message.timestamp) !== formatDate(messages[index - 1].timestamp);
+                            
+                            return (
+                                <div key={message.id}>
+                                    {showDate && (
+                                        <div className="message-date">
+                                            {formatDate(message.timestamp)}
+                                        </div>
+                                    )}
+                                    <div className={`message ${message.isCurrentUser ? 'message-sent' : 'message-received'}`}>
+                                        <div className="message-content">
+                                            {message.content}
+                                        </div>
+                                        <div className="message-time">
+                                            {formatTime(message.timestamp)}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 
