@@ -13,7 +13,8 @@ import ReportModal from '../../components/battle/ReportModal'; // 导入举报�
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {SetUserMatchStatusMessage} from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";
 
 const BattleRoom: React.FC = () => {
 	const navigate = useNavigate();
@@ -63,6 +64,9 @@ const BattleRoom: React.FC = () => {
 				console.log('🔌 [BattleRoom] 设置事件监听器');
 				webSocketHandles.setupWebSocketListeners(setRoomStatus);
 				console.log('🎮 [BattleRoom] 事件监听器已设置');
+
+
+
 			} catch (error) {
 				console.error('❌ [BattleRoom] 连接失败:', error);
 				setConnectionStatus(false, '连接失败，请重试');
@@ -84,6 +88,16 @@ const BattleRoom: React.FC = () => {
 		SoundUtils.playClickSound(0.5);
 		webSocketService.disconnect();
 		resetBattle();
+
+
+		new SetUserMatchStatusMessage(getUserToken(), "Idle").send(
+			(info) => {
+				console.log(info);
+			},
+			(error) => {
+				console.log(error);
+			}
+		);
 		navigate('/battle');
 	};
 
