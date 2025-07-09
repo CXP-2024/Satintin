@@ -90,7 +90,7 @@ const GameHomePage: React.FC = () => {
         playClickSound();
         if (!userID) return;
         if (user.banDays > 0) {
-            showWarning('您已被封禁，无法进入对战！', '封禁状态');
+            showWarning(`您已被封禁${user.banDays}天，无法进入对战！`, '封禁状态');
             return;
         }
         // 检查原石数量是否足够
