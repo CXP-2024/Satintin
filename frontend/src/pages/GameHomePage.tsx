@@ -12,7 +12,7 @@ import MainActions from '../components/gameHome/MainActions';
 import QuickInfo from '../components/gameHome/QuickInfo';
 import SearchUserModal from '../components/gameHome/SearchUserModal';
 import './GameHomePage.css';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import clickSound from '../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {
     clearUserInfo,
@@ -89,11 +89,14 @@ const GameHomePage: React.FC = () => {
     const handleNavigateToBattle = () => {
         playClickSound();
         if (!userID) return;
-
+        if (user.banDays > 0) {
+            showWarning('您已被封禁，无法进入对战！', '封禁状态');
+            return;
+        }
         // 检查原石数量是否足够
         const currentStones = user?.stoneAmount || 0;
         if (currentStones < 50) {
-            window.alert('原石数量不足50，无法进入对战！请先获取更多原石。');
+            showWarning('原石数量不足50，无法进入对战！请先获取更多原石。', '原石不足');
             return;
         }
 
@@ -109,7 +112,7 @@ const GameHomePage: React.FC = () => {
                     }
 
                     if (battleDeck.length < 3) {
-                        showWarning('战斗卡组需配置3个卡牌', '卡组配置不完整');
+                        showWarning('战斗卡组需配置3张卡牌', '卡组配置不完整');
                         return;
                     }
 

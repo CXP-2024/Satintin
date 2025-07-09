@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './AlertModal.css';
 import { SoundUtils } from '../../utils/soundUtils';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 
 interface AlertModalProps {
 	isOpen: boolean;

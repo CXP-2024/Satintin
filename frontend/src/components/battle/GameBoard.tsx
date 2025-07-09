@@ -2,23 +2,17 @@ import React from 'react';
 import {ActiveAction, GameState, PassiveAction, PlayerState} from '../../services/WebSocketService';
 import { getCardImage } from 'utils/cardImageMap';
 import './GameBoard.css';
+import {getActionDisplay} from "./RoundResultModalUtils";
 
 interface GameBoardProps {
 	gameState: GameState;
 	currentPlayer: PlayerState | null;
 	opponent: PlayerState | null;
+	isActionSubmitted?: boolean;
+	lastRoundSelectedAction?: PassiveAction | ActiveAction;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponent }) => {
-	// 获取行动的显示文本和图标
-	const getActionDisplay = (action?: PassiveAction | ActiveAction) => {
-		switch (action) {
-			// will be processed later
-			default:
-				return { icon: '❓', text: '等待', color: '#95a5a6' };
-		}
-	};
-
+const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponent, isActionSubmitted, lastRoundSelectedAction }) => {
 	// 获取卡牌效果显示
 	const getCardEffectText = (card: any) => {
 		const effectMap = {
@@ -171,13 +165,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 				</div>
 
 				<div className="player-action">
-					{currentPlayer.currentAction ? (
+					{isActionSubmitted ? (
 						<div className="action-display submitted">
 							<span className="action-icon">
-								{getActionDisplay(currentPlayer.currentAction.type).icon}
+								{getActionDisplay(lastRoundSelectedAction).icon}
 							</span>
 							<span className="action-text">
-								{getActionDisplay(currentPlayer.currentAction.type).text}
+								{getActionDisplay(lastRoundSelectedAction).text}
 							</span>
 							<div className="submitted-label">已提交</div>
 						</div>

@@ -19,61 +19,86 @@ interface ChatBoxProps {
 const ChatBox: React.FC<ChatBoxProps> = ({ friendId, friendName, onClose }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Function to load messages from database
+    const loadMessagesFromDatabase = async () => {
+        setIsRefreshing(true);
+        try {
+            // TODO: Replace with actual API call to load messages from database
+            // For now, simulating database load with mock data
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+            
+            const mockMessages: Message[] = [
+                {
+                    id: '1',
+                    senderId: friendId,
+                    senderName: friendName,
+                    content: '嗨！你在吗？',
+                    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+                    isCurrentUser: false
+                },
+                {
+                    id: '2',
+                    senderId: 'currentUser',
+                    senderName: '我',
+                    content: '在的！刚刚在玩游戏',
+                    timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
+                    isCurrentUser: true
+                },
+                {
+                    id: '3',
+                    senderId: friendId,
+                    senderName: friendName,
+                    content: '哈哈，我也是！今天运气怎么样？',
+                    timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+                    isCurrentUser: false
+                },
+                {
+                    id: '4',
+                    senderId: 'currentUser',
+                    senderName: '我',
+                    content: '还不错！抽到了几张不错的卡牌',
+                    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+                    isCurrentUser: true
+                },
+                {
+                    id: '5',
+                    senderId: friendId,
+                    senderName: friendName,
+                    content: '羡慕！要不要来对战一局？',
+                    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
+                    isCurrentUser: false
+                },
+                {
+                    id: '6',
+                    senderId: 'currentUser',
+                    senderName: '我',
+                    content: '好啊！等我整理一下卡组',
+                    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+                    isCurrentUser: true
+                },
+                {
+                    id: '7',
+                    senderId: friendId,
+                    senderName: friendName,
+                    content: `刷新时间: ${new Date().toLocaleTimeString()}`,
+                    timestamp: new Date(),
+                    isCurrentUser: false
+                }
+            ];
+            setMessages(mockMessages);
+        } catch (error) {
+            console.error('Failed to load messages from database:', error);
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
 
     // Mock data for demonstration
     useEffect(() => {
-        const mockMessages: Message[] = [
-            {
-                id: '1',
-                senderId: friendId,
-                senderName: friendName,
-                content: '嗨！你在吗？',
-                timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '2',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '在的！刚刚在玩游戏',
-                timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
-                isCurrentUser: true
-            },
-            {
-                id: '3',
-                senderId: friendId,
-                senderName: friendName,
-                content: '哈哈，我也是！今天运气怎么样？',
-                timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '4',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '还不错！抽到了几张不错的卡牌',
-                timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-                isCurrentUser: true
-            },
-            {
-                id: '5',
-                senderId: friendId,
-                senderName: friendName,
-                content: '羡慕！要不要来对战一局？',
-                timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-                isCurrentUser: false
-            },
-            {
-                id: '6',
-                senderId: 'currentUser',
-                senderName: '我',
-                content: '好啊！等我整理一下卡组',
-                timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-                isCurrentUser: true
-            }
-        ];
-        setMessages(mockMessages);
+        loadMessagesFromDatabase();
     }, [friendId, friendName]);
 
     // Auto scroll to bottom when new messages arrive
@@ -141,9 +166,29 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, friendName, onClose }) => {
                             <span className="online-status">在线</span>
                         </div>
                     </div>
-                    <button className="chatbox-close-btn" onClick={onClose}>
-                        ✕
-                    </button>
+                    <div className="chatbox-header-actions">
+                        <button 
+                            className={`chatbox-refresh-btn ${isRefreshing ? 'loading' : ''}`}
+                            onClick={loadMessagesFromDatabase}
+                            disabled={isRefreshing}
+                            title="刷新消息"
+                        >
+                            <svg 
+                                className="refresh-icon" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2"
+                            >
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                            </svg>
+                        </button>
+                        <button className="chatbox-close-btn" onClick={onClose}>
+                            ✕
+                        </button>
+                    </div>
                 </div>
 
                 <div className="chatbox-messages">

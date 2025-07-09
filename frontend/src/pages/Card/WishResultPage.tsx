@@ -6,7 +6,11 @@ import SingleCardResult from '../../components/wishResult/SingleCardResult';
 import AllCardsOverview from '../../components/wishResult/AllCardsOverview';
 import { useWishResultLogic } from '../../components/wishResult/useWishResultLogic';
 import './WishResultPage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
+import nailongSound from '../../assets/sound/nailong.mp3';
+import gaiyaSound from '../../assets/sound/gaiya.mp3';
+import sakichanSound from '../../assets/sound/sakichan.mp3';
+import jiegeSound from '../../assets/sound/jiege.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 
 const WishResultPage: React.FC = () => {
@@ -22,6 +26,18 @@ const WishResultPage: React.FC = () => {
 	// 当前显示的卡牌
 	const currentWishResult = wishResults[currentCardIndex];
 
+	// 当前播放的角色音频
+	const [currentCharacterSound, setCurrentCharacterSound] = useState<HTMLAudioElement | null>(null);
+
+	// 停止所有音频播放
+	const stopAllSounds = useCallback(() => {
+		// 停止当前角色音频
+		if (currentCharacterSound) {
+			currentCharacterSound.pause();
+			currentCharacterSound.currentTime = 0;
+		}
+	}, [currentCharacterSound]);
+
 	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
@@ -32,12 +48,39 @@ const WishResultPage: React.FC = () => {
 		SoundUtils.playClickSound(0.5);
 	}, []);
 
-	// 当结果显示时播放闪光音效
+	// 当结果显示时播放闪光音效和角色语音
 	useEffect(() => {
 		if (showResult && currentWishResult) {
 			// 延迟播放音效，配合动画时机
 			const timer = setTimeout(() => {
-				SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
+				// 如果是金卡，根据卡牌ID播放对应角色语音
+				if (currentWishResult.rarity === 5) {
+					let characterSound;
+					switch (currentWishResult.image) {
+						case 'template-dragon-nai':
+							characterSound = new Audio(nailongSound);
+							characterSound.volume = 0.4;
+							break;
+						case 'template-go':
+							characterSound = new Audio(sakichanSound);
+							characterSound.volume = 0.8;
+							break;
+						case 'template-jie':
+							characterSound = new Audio(jiegeSound);
+							characterSound.volume = 0.8;
+							break;
+						case 'template-gaia':
+							characterSound = new Audio(gaiyaSound);
+							characterSound.volume = 0.15;
+							break;
+						default:
+							return;
+					} 
+					setCurrentCharacterSound(characterSound);
+					characterSound.play().catch(console.error);
+				} else {
+					SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
+				}
 			}, 500); // 0.5秒后播放，让卡牌动画先开始
 
 			return () => clearTimeout(timer);
@@ -52,13 +95,15 @@ const WishResultPage: React.FC = () => {
 
 	// 跳过视频
 	const handleSkipVideo = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		setShowVideo(false);
 		setShowResult(true);
-	}, [playClickSound]);
+	}, [playClickSound, stopAllSounds]);
 
 	// 继续按钮
 	const handleContinue = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 
 		if (isTenWish) {
@@ -78,20 +123,23 @@ const WishResultPage: React.FC = () => {
 			// 单抽直接返回
 			navigateQuick('/wish');
 		}
-	}, [playClickSound, isTenWish, currentCardIndex, wishResults.length, navigateQuick]);
+	}, [playClickSound, isTenWish, currentCardIndex, wishResults.length, navigateQuick, stopAllSounds]);
 
 	// 跳过到总览
 	const handleSkipToAll = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		// 直接跳转到十连总览页面
 		setShowAllCards(true);
-	}, [playClickSound]);
+	}, [playClickSound, stopAllSounds]);
 
 	// 返回祈愿页面
 	const handleBackToWish = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		navigateQuick('/wish');
-	}, [playClickSound, navigateQuick]);
+	}, [playClickSound, navigateQuick, stopAllSounds]);
+
 	return (
 		<PageTransition className="card-page">
 			<div className="wish-result-page">

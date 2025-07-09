@@ -30,6 +30,7 @@ const ChatPage: React.FC = () => {
     
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // 如果没有传递好友信息，返回主页
@@ -47,6 +48,9 @@ const ChatPage: React.FC = () => {
     }, [state]);
 
     const loadChatHistory = async () => {
+        if (isRefreshing) return; // Prevent multiple simultaneous requests
+        
+        setIsRefreshing(true);
         try {
             const userToken = getUserInfo().userID;
             if (!userToken) {
@@ -97,7 +101,15 @@ const ChatPage: React.FC = () => {
             console.error('加载聊天记录出错:', error);
             // 设置空数组而不是模拟数据
             setMessages([]);
+        } finally {
+            setIsRefreshing(false);
         }
+    };
+
+    // 手动刷新聊天记录
+    const handleRefreshChat = async () => {
+        console.log('🔄 Refreshing chat history...');
+        await loadChatHistory();
     };
 
     // Auto scroll to bottom when new messages arrive
@@ -208,6 +220,24 @@ const ChatPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="chat-actions">
+                        <button 
+                            className={`action-btn refresh-chat ${isRefreshing ? 'loading' : ''}`}
+                            onClick={handleRefreshChat}
+                            disabled={isRefreshing}
+                            title="刷新聊天记录"
+                        >
+                            <svg 
+                                className="refresh-icon" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2"
+                            >
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                            </svg>
+                        </button>
                         <button className="action-btn video-call" title="视频通话">
                             📹
                         </button>
