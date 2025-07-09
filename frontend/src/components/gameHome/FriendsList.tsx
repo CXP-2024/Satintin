@@ -10,6 +10,8 @@ interface FriendsListProps {
     setAddFriendID: (id: string) => void;
     friendsLoadingStatus: string;
     handleState: UserProfileHandleState;
+    onRefreshFriends?: () => void; // Function to refresh friends from database
+    isRefreshing?: boolean; // Loading state for refresh
 }
 
 const FriendsList: React.FC<FriendsListProps> = ({
@@ -18,7 +20,9 @@ const FriendsList: React.FC<FriendsListProps> = ({
     addFriendID,
     setAddFriendID,
     friendsLoadingStatus,
-    handleState
+    handleState,
+    onRefreshFriends,
+    isRefreshing = false
 }) => {
     const navigate = useNavigate();
 
@@ -34,7 +38,32 @@ const FriendsList: React.FC<FriendsListProps> = ({
         <div className="content-panel friends-panel">
             <div className="friends-list">
                 <div className="list-header">
-                    <h3>好友列表 ({friendsData.length})</h3>
+                    <div className="list-header-top">
+                        <h3>好友列表 ({friendsData.length})</h3>
+                        {onRefreshFriends && (
+                            <button 
+                                className={`friends-refresh-btn ${isRefreshing ? 'loading' : ''}`}
+                                onClick={onRefreshFriends}
+                                disabled={isRefreshing || loading}
+                                title="刷新好友列表"
+                            >
+                                <svg 
+                                    className="refresh-icon" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2"
+                                >
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                                </svg>
+                                <span className="refresh-text">
+                                    {isRefreshing ? '刷新中...' : '刷新'}
+                                </span>
+                            </button>
+                        )}
+                    </div>
                     {friendsLoadingStatus && (
                         <div className="loading-status" style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
                             {friendsLoadingStatus}

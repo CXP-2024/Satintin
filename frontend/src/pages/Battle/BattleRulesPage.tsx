@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { usePageTransition } from '../../components/usePageTransition';
 import PageTransition from '../../components/PageTransition';
 import './BattleRulesPage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 
 const BattleRulesPage: React.FC = () => {

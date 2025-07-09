@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './UserProfile.css';
-import clickSound from '../../../assets/sound/yingxiao.mp3';
+import clickSound from '../../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, getUserToken, getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {
@@ -35,6 +35,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 	const [loading, setLoading] = useState(false);
 	const [addFriendID, setAddFriendID] = useState('');
 	const [friendsLoadingStatus, setFriendsLoadingStatus] = useState<string>('');
+	const [isRefreshingFriends, setIsRefreshingFriends] = useState(false);
 
 	// 创建刷新用户信息的函数
 	const handleRefreshUserInfo = async () => {
@@ -56,6 +57,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 			}
 		} catch (error) {
 			console.error('Failed to refresh user info in UserProfile:', error);
+		}
+	};
+
+	// 刷新好友列表的函数
+	const handleRefreshFriends = async () => {
+		if (isRefreshingFriends) return;
+		
+		setIsRefreshingFriends(true);
+		try {
+			// 清除缓存并重新获取好友数据
+			const updatedUser = getUserInfo();
+			if (updatedUser.userID) {
+				const userProfileState: UserProfileState = {
+					user: updatedUser,
+					setFriendsData,
+					setBlockedData,
+					setLoading,
+					setFriendsLoadingStatus,
+					refreshUserInfo: handleRefreshUserInfo
+				};
+				await fetchFriendsData(userProfileState);
+			}
+		} catch (error) {
+			console.error('Failed to refresh friends list:', error);
+		} finally {
+			setIsRefreshingFriends(false);
 		}
 	};
 
@@ -211,6 +238,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 								setAddFriendID={setAddFriendID}
 								friendsLoadingStatus={friendsLoadingStatus}
 								handleState={handleState}
+								onRefreshFriends={handleRefreshFriends}
+								isRefreshing={isRefreshingFriends}
 							/>
 
 							{/* 黑名单页面 */}

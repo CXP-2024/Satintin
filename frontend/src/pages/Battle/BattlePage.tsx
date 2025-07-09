@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { usePageTransition } from '../../components/usePageTransition';
 import PageTransition from '../../components/PageTransition';
 import './BattlePage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {getUserInfo, getUserToken, setUserInfo, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
 import {SetUserMatchStatusMessage} from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";

@@ -6,7 +6,11 @@ import SingleCardResult from '../../components/wishResult/SingleCardResult';
 import AllCardsOverview from '../../components/wishResult/AllCardsOverview';
 import { useWishResultLogic } from '../../components/wishResult/useWishResultLogic';
 import './WishResultPage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
+import nailongSound from '../../assets/sound/nailong.mp3';
+import gaiyaSound from '../../assets/sound/gaiya.mp3';
+import sakichanSound from '../../assets/sound/sakichan.mp3';
+import jiegeSound from '../../assets/sound/jiege.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 
 const WishResultPage: React.FC = () => {
@@ -32,12 +36,36 @@ const WishResultPage: React.FC = () => {
 		SoundUtils.playClickSound(0.5);
 	}, []);
 
-	// 当结果显示时播放闪光音效
+	// 当结果显示时播放闪光音效和角色语音
 	useEffect(() => {
 		if (showResult && currentWishResult) {
 			// 延迟播放音效，配合动画时机
 			const timer = setTimeout(() => {
-				SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
+				// 如果是金卡，根据卡牌ID播放对应角色语音
+				if (currentWishResult.rarity === 5) {
+					let characterSound;
+					switch (currentWishResult.image) {
+						case 'template-dragon-nai':
+							characterSound = new Audio(nailongSound);
+							break;
+						case 'template-gaia':
+							characterSound = new Audio(gaiyaSound);
+							break;
+						case 'template-go':
+							characterSound = new Audio(sakichanSound);
+							break;
+						case 'template-jie':
+							characterSound = new Audio(jiegeSound);
+							break;
+						default:
+							return;
+					} 
+					// 设置音量并播放
+					characterSound.volume = 0.8;
+					characterSound.play().catch(console.error);
+				} else {
+					SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
+				}
 			}, 500); // 0.5秒后播放，让卡牌动画先开始
 
 			return () => clearTimeout(timer);

@@ -1,7 +1,7 @@
 /* 聊天页面样式 */
 .chat-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -18,12 +18,12 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    border: 3px solid rgba(102, 126, 234, 0.2);
+    border: 3px solid rgba(149, 165, 166, 0.2);
 }
 
 /* 页面头部 */
 .chat-page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: white;
     padding: 24px 30px;
     display: flex;
@@ -115,12 +115,66 @@
     transform: scale(1.05);
 }
 
+/* Refresh button specific styles */
+.action-btn.refresh-chat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn.refresh-chat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.action-btn.refresh-chat:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.action-btn.refresh-chat:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.action-btn.refresh-chat .refresh-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    color: white;
+}
+
+.action-btn.refresh-chat.loading .refresh-icon {
+    animation: chatSpin 1s linear infinite;
+}
+
+.action-btn.refresh-chat:hover:not(:disabled) .refresh-icon {
+    transform: rotate(15deg);
+}
+
+@keyframes chatSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* 消息区域 */
 .chat-page-messages {
     flex: 1;
     padding: 30px;
     overflow-y: auto;
-    background: #f8fafc;
+    background: #ecf0f1;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -161,16 +215,16 @@
 }
 
 .chat-page-messages::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #d5dbdb;
 }
 
 .chat-page-messages::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: #95a5a6;
     border-radius: 4px;
 }
 
 .chat-page-messages::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: #7f8c8d;
 }
 
 .message-date {
@@ -188,7 +242,7 @@
     top: 50%;
     width: 35%;
     height: 1px;
-    background: #e2e8f0;
+    background: #bdc3c7;
 }
 
 .message-date::before {
@@ -235,15 +289,15 @@
 }
 
 .message-sent .message-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #02c7f8 0%, #2c3e50 100%);
     color: white;
     border-bottom-right-radius: 8px;
 }
 
 .message-received .message-content {
-    background: white;
-    color: #1e293b;
-    border: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #ecf0f1 0%, #d5dbdb 100%);
+    color: #2c3e50;
+    border: 1px solid #bdc3c7;
     border-bottom-left-radius: 8px;
 }
 
@@ -261,7 +315,7 @@
 /* 输入区域 */
 .chat-page-input {
     background: white;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #bdc3c7;
     padding: 25px 30px;
 }
 
@@ -269,15 +323,15 @@
     display: flex;
     gap: 16px;
     align-items: flex-end;
-    background: #f8fafc;
+    background: #bdc3c7;
     border-radius: 24px;
     padding: 12px 16px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #95a5a6;
     transition: border-color 0.2s ease;
 }
 
 .input-wrapper:focus-within {
-    border-color: #667eea;
+    border-color: #95a5a6;
 }
 
 .emoji-btn,
@@ -293,7 +347,7 @@
 
 .emoji-btn:hover,
 .attachment-btn:hover {
-    background: #e2e8f0;
+    background: #95a5a6;
 }
 
 .message-input {
@@ -314,7 +368,7 @@
 }
 
 .send-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -324,17 +378,17 @@
     font-size: 16px;
     transition: all 0.3s ease;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(44, 62, 80, 0.3);
 }
 
 .send-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 16px rgba(44, 62, 80, 0.4);
 }
 
 .send-btn:disabled {
-    background: #e2e8f0;
-    color: #94a3b8;
+    background: #95a5a6;
+    color: #7f8c8d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
