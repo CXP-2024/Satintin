@@ -53,7 +53,7 @@ case object UserRegistrationProcess {
           isOnline = userInput.isOnline,
           matchStatus = userInput.matchStatus,
           stoneAmount = userInput.stoneAmount,
-          cardDrawCount = userInput.cardDrawCount,
+          credits = userInput.credits,
           rank = userInput.rank,
           rankPosition = userInput.rankPosition,
           friendList = userInput.friendList,
@@ -91,14 +91,13 @@ case object UserRegistrationProcess {
       _ <- IO(logger.info("[Step 2.4] 开始写入用户资产信息到数据库"))
       assetResult <- writeDB(
         s"""
-        INSERT INTO ${schemaName}.user_asset_table
-        (user_id, stone_amount, card_draw_count, rank, rank_position)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO ${schemaName}.user_rank_table
+        (user_id, credits, rank, rank_position)
+        VALUES (?, ?, ?, ?)
         """.stripMargin,
         List(
           SqlParameter("String", userRecord.userID),
-          SqlParameter("Int", userRecord.stoneAmount.toString),
-          SqlParameter("Int", userRecord.cardDrawCount.toString),
+          SqlParameter("Int", userRecord.credits.toString),
           SqlParameter("String", userRecord.rank),
           SqlParameter("Int", userRecord.rankPosition.toString)
         )

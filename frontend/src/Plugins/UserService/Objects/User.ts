@@ -12,7 +12,7 @@
  * @param isOnline: Boolean (用户是否在线)
  * @param matchStatus: String (用户当前的匹配状态)
  * @param stoneAmount: Int (用户拥有的石头数量)
- * @param cardDrawCount: Int (用户已进行的抽卡次数)
+ * @param credits: Int (用户的信用点数)
  * @param rank: String (用户的段位)
  * @param rankPosition: Int (用户在段位中的排名)
  * @param friendList: FriendEntry (用户的好友列表)
@@ -39,7 +39,7 @@ export class User extends Serializable {
         public  isOnline: boolean,
         public  matchStatus: string,
         public  stoneAmount: number,
-        public  cardDrawCount: number,
+        public  credits: number,
         public  rank: string,
         public  rankPosition: number,
         public  friendList: FriendEntry[],

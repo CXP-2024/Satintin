@@ -48,9 +48,14 @@ case class GetUserInfoMessagePlanner(
       _ <- IO(logger.info(s"[Step 5] 开始从UserSocialTable查询用户的社交信息 for userID: ${userID}"))
       userSocial <- fetchUserSocial(userID)
 
-      // Step 6: 整合信息
-      _ <- IO(logger.info(s"[Step 6] 整合信息生成User对象"))
-      user <- IO(combineUserInfo(userInfo, stoneAmount, drawCount, userSocial))
+      // Step 6: 获取段位信息
+
+      _ <- IO(logger.info(s"[Step 6] 开始从UserRankTable查询用户的段位信息 for userID: ${userID}"))
+      userRank <- fetchUserRank(userID)
+
+      // Step 7: 整合信息
+      _ <- IO(logger.info(s"[Step 7] 整合信息生成User对象"))
+      user <- IO(combineUserInfo(userInfo, stoneAmount, drawCount, userSocial, userRank))
     } yield user
   }
   private def verifyUserExists(userID: String)(using PlanContext): IO[Unit] = {
@@ -107,29 +112,27 @@ case class GetUserInfoMessagePlanner(
       )
     }
   }
-  private def fetchUserAssets(actualUserID: String)(using PlanContext): IO[(Int, Int, String, Int)] = {
+  private def fetchUserRank(userID: String)(using PlanContext): IO[(Int, String, Int)] = {
     val sql =
       s"""
-         |SELECT stone_amount, card_draw_count, COALESCE(rank, '') as rank, COALESCE(rank_position, 0) as rank_position
-         |FROM ${schemaName}.user_asset_table
-         |WHERE user_id = ?;
+         |SELECT credits, rank, rank_position
+         |FROM ${schemaName}.user_rank_table
+          |WHERE user_id = ?;
       """.stripMargin
-    readDBJsonOptional(sql, List(SqlParameter("String", actualUserID))).map { jsonOpt =>
+    readDBJsonOptional(sql, List(SqlParameter("String", userID))).map { jsonOpt =>
       jsonOpt match {
         case Some(json) =>
-          (
-            decodeField[Int](json, "stone_amount"),
-            decodeField[Int](json, "card_draw_count"),
-            decodeField[String](json, "rank"),
-            decodeField[Int](json, "rank_position")
-          )
+          val credits = decodeField[Int](json, "credits")
+          val rank = decodeField[String](json, "rank")
+          val rankPosition = decodeField[Int](json, "rank_position")
+          (credits, rank, rankPosition)
         case None =>
-          // Return default values if no asset record exists
-          logger.info(s"[fetchUserAssets] No asset record found for userID: ${userID}, using default values")
-          (0, 0, "Bronze", 0) // Default values: 0 stones, 0 card draws, Bronze rank, position 0
+          // 如果没有找到用户的排名信息，返回默认值
+          logger.info(s"[fetchUserRank] No rank record found for userID: ${userID}, using default values")
+          (0, "", 0)
       }
     }
-  }
+  } 
   private def fetchUserSocial(userID: String)(using PlanContext): IO[(List[FriendEntry], List[BlackEntry], List[MessageEntry])] = {
     val sql =
       s"""
@@ -163,10 +166,12 @@ case class GetUserInfoMessagePlanner(
       userInfo: (String, String, String, String, String, DateTime, Int, Int, Boolean, String),
       stoneAmount: Int,
       drawCount: Int,
-      userSocial: (List[FriendEntry], List[BlackEntry], List[MessageEntry])
+      userSocial: (List[FriendEntry], List[BlackEntry], List[MessageEntry]),
+      userRank: (Int, String, Int)
   ): User = {
     val (userID, userName, passwordHash, email, phoneNumber, registerTime, permissionLevel, banDays, isOnline, matchStatus) = userInfo
     val (friendList, blackList, messageBox) = userSocial
+    val (credits, rank, rankPosition) = userRank
 
     User(
       userID = userID,
@@ -180,9 +185,9 @@ case class GetUserInfoMessagePlanner(
       isOnline = isOnline,
       matchStatus = matchStatus,
       stoneAmount = stoneAmount,
-      cardDrawCount = drawCount,
-      rank = "", // 设为空值
-      rankPosition = 0, // 设为空值
+      credits = credits, // 使用从UserRankTable获取的credits
+      rank = rank, // 使用从UserRankTable获取的rank
+      rankPosition = rankPosition, // 使用从UserRankTable获取的rankPosition
       friendList = friendList,
       blackList = blackList,
       messageBox = messageBox
