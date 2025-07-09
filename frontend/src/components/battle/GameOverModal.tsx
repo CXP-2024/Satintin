@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { GameOverResult } from '../../services/WebSocketService';
-import { getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { getUserInfo, setUserInfoField } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { RewardAssetMessage } from 'Plugins/AssetService/APIs/RewardAssetMessage';
+import { DeductAssetMessage } from 'Plugins/AssetService/APIs/DeductAssetMessage';
+import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 
 interface GameOverModalProps {
 	open: boolean;
@@ -73,16 +76,68 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 	onRestart,
 	onViewLastRound
 }) => {
+	const userInfo = getUserInfo();
+	const userName = userInfo.userName;
+	const userToken = userInfo.userID;
+	const REWARD_AMOUNT = 50; // 奖惩金额设为50原石
+
+	// 更新原石数量的函数
+	const updateStoneAmount = () => {
+		if (!userToken) return;
+		
+		new QueryAssetStatusMessage(userToken).send(
+			(res: string) => {
+				try {
+					const amt = typeof res === 'string' ? parseInt(JSON.parse(res)) : res;
+					setUserInfoField('stoneAmount', amt);
+					console.log('✅ [GameOverModal] 更新原石数量成功:', amt);
+				} catch (e) {
+					console.error('❌ [GameOverModal] 解析原石数量失败:', e);
+				}
+			},
+			(err: any) => console.error('❌ [GameOverModal] 查询原石数量失败:', err)
+		);
+	};
+
+	useEffect(() => {
+		if (open && gameOverResult && userToken) {
+			const isWinner = (gameOverResult.winner === userName);
+
+			if (isWinner) {
+				// 胜利者获得奖励
+				new RewardAssetMessage(userToken, REWARD_AMOUNT).send(
+					(response) => {
+						console.log('✅ [GameOverModal] 胜利奖励发放成功:', response);
+						updateStoneAmount(); // 查询最新原石数量
+					},
+					(error) => {
+						console.error('❌ [GameOverModal] 胜利奖励发放失败:', error);
+					}
+				);
+			} else {
+				// 失败者扣除原石
+				new DeductAssetMessage(userToken, REWARD_AMOUNT).send(
+					(response) => {
+						console.log('✅ [GameOverModal] 失败扣除原石成功:', response);
+						updateStoneAmount(); // 查询最新原石数量
+					},
+					(error) => {
+						console.error('❌ [GameOverModal] 失败扣除原石失败:', error);
+					}
+				);
+			}
+		}
+	}, [open, gameOverResult, userName, userToken]);
+
 	if (!gameOverResult) return null;
 
-	const userName = getUserInfo().userName
-	console.log('Current Player UserName: ', userName)
-	console.log('Winner: ', gameOverResult.winner)
+	console.log('Current Player UserName: ', userName);
+	console.log('Winner: ', gameOverResult.winner);
 	const isWinner = (gameOverResult.winner === userName);
 	const winnerTitle = isWinner ? '🎉 你获胜了！' : '💔 你失败了！';
 	const winnerDescription = isWinner ?
 		'恭喜你在这场激烈的对战中获得胜利！' :
-		'虽然失败了，但这是成长的机会，继续努力吧！ 哈！';
+		'虽然失败了，但这是成长的机会，继续努力！';
 
 	const getReasonText = (reason: string) => {
 		switch (reason) {
@@ -90,6 +145,81 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 			case 'timeout': return '超时';
 			case 'surrender': return '投降';
 			default: return reason;
+		}
+	};
+
+	// 渲染奖惩信息
+	const renderRewards = () => {
+		if (isWinner) {
+			// 胜利奖励显示
+			return (
+				<RewardBox>
+					<Typography variant="h6" sx={{ mb: 1, color: '#FFD700' }}>
+						🎁 胜利奖励
+					</Typography>
+					<Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+						<Box sx={{ textAlign: 'center' }}>
+							<Typography variant="h4" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
+								+{REWARD_AMOUNT}
+							</Typography>
+							<Typography variant="body2">
+								💎 原石
+							</Typography>
+						</Box>
+						{gameOverResult.rewards?.rankChange && (
+							<Box sx={{ textAlign: 'center' }}>
+								<Typography
+									variant="h4"
+									sx={{
+										color: gameOverResult.rewards.rankChange > 0 ? '#4CAF50' : '#F44336',
+										fontWeight: 'bold'
+									}}
+								>
+									{gameOverResult.rewards.rankChange > 0 ? '+' : ''}{gameOverResult.rewards.rankChange}
+								</Typography>
+								<Typography variant="body2">
+									📈 排名变化
+								</Typography>
+							</Box>
+						)}
+					</Box>
+				</RewardBox>
+			);
+		} else {
+			// 失败惩罚显示
+			return (
+				<RewardBox sx={{ background: 'rgba(244,67,54,0.1)', border: '1px solid rgba(244,67,54,0.3)' }}>
+					<Typography variant="h6" sx={{ mb: 1, color: '#F44336' }}>
+						⚠️ 失败惩罚
+					</Typography>
+					<Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
+						<Box sx={{ textAlign: 'center' }}>
+							<Typography variant="h4" sx={{ color: '#F44336', fontWeight: 'bold' }}>
+								-{REWARD_AMOUNT}
+							</Typography>
+							<Typography variant="body2">
+								💎 原石
+							</Typography>
+						</Box>
+						{gameOverResult.rewards?.rankChange && (
+							<Box sx={{ textAlign: 'center' }}>
+								<Typography
+									variant="h4"
+									sx={{
+										color: '#F44336',
+										fontWeight: 'bold'
+									}}
+								>
+									{gameOverResult.rewards.rankChange}
+								</Typography>
+								<Typography variant="body2">
+									📉 排名变化
+								</Typography>
+							</Box>
+						)}
+					</Box>
+				</RewardBox>
+			);
 		}
 	};
 
@@ -147,41 +277,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 					</CardContent>
 				</WinnerCard>
 
-				{gameOverResult.rewards && (
-					<RewardBox>
-						<Typography variant="h6" sx={{ mb: 1, color: '#FFD700' }}>
-							🎁 奖励获得
-						</Typography>
-						<Box sx={{ display: 'flex', justifyContent: 'center', gap: 3 }}>
-							{gameOverResult.rewards.stones && (
-								<Box sx={{ textAlign: 'center' }}>
-									<Typography variant="h4" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
-										{gameOverResult.rewards.stones}
-									</Typography>
-									<Typography variant="body2">
-										💎 石头
-									</Typography>
-								</Box>
-							)}
-							{gameOverResult.rewards.rankChange && (
-								<Box sx={{ textAlign: 'center' }}>
-									<Typography
-										variant="h4"
-										sx={{
-											color: gameOverResult.rewards.rankChange > 0 ? '#4CAF50' : '#F44336',
-											fontWeight: 'bold'
-										}}
-									>
-										{gameOverResult.rewards.rankChange > 0 ? '+' : ''}{gameOverResult.rewards.rankChange}
-									</Typography>
-									<Typography variant="body2">
-										📈 排名变化
-									</Typography>
-								</Box>
-							)}
-						</Box>
-					</RewardBox>
-				)}
+				{renderRewards()}
 
 				<Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 4 }}>
 					{onViewLastRound && (

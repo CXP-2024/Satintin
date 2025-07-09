@@ -98,6 +98,13 @@ const GameHomePage: React.FC = () => {
         playClickSound();
         if (!userID) return;
         
+        // 检查原石数量是否足够
+        const currentStones = user?.stoneAmount || 0;
+        if (currentStones < 50) {
+            window.alert('原石数量不足50，无法进入对战！请先获取更多原石。');
+            return;
+        }
+
         // 先检查战斗卡组配置
         new LoadBattleDeckMessage(userID).send(
             (info: any) => {
