@@ -156,12 +156,12 @@ export const fetchFriendsDetailedInfo = async (
     setFriendsLoadingStatus: (status: string) => void
 ): Promise<FriendInfo[]> => {
     const fetchStartTime = performance.now();
-    setFriendsLoadingStatus('正在获取好友详细信息...');
+    //setFriendsLoadingStatus('正在获取好友详细信息...');
     const validFriends: FriendInfo[] = [];
 
     for (let i = 0; i < validUserIDs.length; i++) {
         const friendID = validUserIDs[i];
-        setFriendsLoadingStatus(`正在加载好友 ${i + 1}/${validUserIDs.length}...`);
+        //setFriendsLoadingStatus(`正在加载好友 ${i + 1}/${validUserIDs.length}...`);
         console.log(`Fetching detailed info for valid user ${i}:`, friendID);
 
         try {

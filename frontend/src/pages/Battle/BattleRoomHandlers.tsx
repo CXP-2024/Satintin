@@ -55,30 +55,59 @@ export const useBattleRoomHandlers = (
 	const initializeConnection = async () => {
 		try {
 			// 设置为连接中状态
+			console.log('🎮 [BattleRoom] 用户匹配状态:', user.matchStatus);
 			setIsConnecting(true);
 			
-			// 使用同步方式获取房间ID
-			GetBattleRoomIdSync(user, async (battleRoomId) => {
-				setRoomId(battleRoomId);
-				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
-
-				// 连接WebSocket
-				await webSocketService.connect(battleRoomId, user.userID, user.userName);
-				setConnectionStatus(true);
-				setIsConnecting(false);
-				setRoomStatus('waiting');
-				setLastRoundResult(null); // 清除上次回合结果
-
-				// 设置事件监听器
-				console.log('🔌 [BattleRoom] 设置事件监听器');
-				webSocketHandles.setupWebSocketListeners(setRoomStatus);
-				console.log('🎮 [BattleRoom] 事件监听器已设置');
-			});
+			// 根据匹配状态处理不同的连接逻辑
+			switch (user.matchStatus) {
+				case 'quick':
+				case 'ranked':
+					// 使用同步方式获取房间ID
+					GetBattleRoomIdSync(user, async (battleRoomId) => {
+						await connectToRoom(battleRoomId);
+					});
+					break;
+					
+				case 'custom':
+					// 自定义房间模式：使用URL参数中的roomId或创建新房间
+					const battleRoomId = new URLSearchParams(window.location.search).get('roomId') ||
+						`room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+					await connectToRoom(battleRoomId);
+					break;
+					
+				default:
+					// 未知匹配状态：使用URL参数中的roomId或创建新房间
+					console.warn('⚠️ [BattleRoom] 未知的匹配状态:', user.matchStatus);
+					const fallbackRoomId = new URLSearchParams(window.location.search).get('roomId') ||
+						`room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+					await connectToRoom(fallbackRoomId);
+					break;
+			}
 		} catch (error) {
 			console.error('❌ [BattleRoom] 连接失败:', error);
 			setConnectionStatus(false, '连接失败，请重试');
 			setIsConnecting(false);
 		}
+	};
+	
+	/**
+	 * 连接到指定房间
+	 */
+	const connectToRoom = async (battleRoomId: string) => {
+		setRoomId(battleRoomId);
+		console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
+
+		// 连接WebSocket
+		await webSocketService.connect(battleRoomId, user.userID, user.userName);
+		setConnectionStatus(true);
+		setIsConnecting(false);
+		setRoomStatus('waiting');
+		setLastRoundResult(null); // 清除上次回合结果
+
+		// 设置事件监听器
+		console.log('🔌 [BattleRoom] 设置事件监听器');
+		webSocketHandles.setupWebSocketListeners(setRoomStatus);
+		console.log('🎮 [BattleRoom] 事件监听器已设置');
 	};
 
 	/**

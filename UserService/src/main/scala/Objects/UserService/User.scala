@@ -32,7 +32,7 @@ import Objects.UserService.MessageEntry
  * @param isOnline: Boolean (用户是否在线)
  * @param matchStatus: String (用户当前的匹配状态)
  * @param stoneAmount: Int (用户拥有的石头数量)
- * @param cardDrawCount: Int (用户已进行的抽卡次数)
+ * @param credits: Int (用户的积分数量)
  * @param rank: String (用户的段位)
  * @param rankPosition: Int (用户在段位中的排名)
  * @param friendList: FriendEntry (用户的好友列表)
@@ -52,7 +52,7 @@ case class User(
   isOnline: Boolean,
   matchStatus: String,
   stoneAmount: Int,
-  cardDrawCount: Int,
+  credits: Int,
   rank: String,
   rankPosition: Int,
   friendList: List[FriendEntry],
