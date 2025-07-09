@@ -363,6 +363,27 @@
     min-height: 24px;
 }
 
+.message-input::-webkit-scrollbar {
+    width: 8px;
+}
+
+.message-input::-webkit-scrollbar-track {
+    background: #d5dbdb;
+}
+
+.message-input::-webkit-scrollbar-thumb {
+    background: #95a5a6;
+    border-radius: 4px;
+}
+
+.message-input::-webkit-scrollbar-thumb:hover {
+    background: #7f8c8d;
+}
+
+.message-input::-webkit-scrollbar-button {
+    display: none;
+}
+
 .message-input::placeholder {
     color: #94a3b8;
 }
