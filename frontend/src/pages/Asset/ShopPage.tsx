@@ -4,7 +4,7 @@ import PageTransition from '../../components/PageTransition';
 import PaymentModal from '../../components/shop/PaymentModal';
 import './ShopPage.css';
 import primogemIcon from '../../assets/images/primogem-icon.png';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
 import { ChargeAssetMessage } from 'Plugins/AssetService/APIs/ChargeAssetMessage';

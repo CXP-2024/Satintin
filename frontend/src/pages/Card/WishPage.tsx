@@ -10,9 +10,10 @@ import { useWishLogic } from '../../components/wish/useWishLogic';
 import { bannerConfig } from '../../components/wish/bannerConfig';
 import './WishPage.css';
 import primogemIcon from '../../assets/images/primogem-icon.png';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { UpdateCardDrawCountMessage } from 'Plugins/AssetService/APIs/UpdateCardDrawCountMessage';
 
 
 const WishPage: React.FC = () => {
@@ -53,7 +54,26 @@ const WishPage: React.FC = () => {
 	const handleNavigateToShop = () => {
 		playClickSound();		
 		navigateQuick('/shop');
-	}	// 卡池切换处理函数
+	};
+
+	// 测试按钮：设置当前卡池抽卡次数为89
+	const handleSetDrawCount = () => {
+		if (!userID) return;
+		playClickSound();
+
+		new UpdateCardDrawCountMessage(userID, selectedBanner, 89).send(
+			(response: any) => {
+				console.log('✅ [WishPage] 设置抽卡次数成功:', response);
+				// 刷新显示的抽卡次数
+				fetchCardDrawCount(selectedBanner);
+			},
+			(error: any) => {
+				console.error('❌ [WishPage] 设置抽卡次数失败:', error);
+			}
+		);
+	};
+
+	// 卡池切换处理函数
 	const handleBannerSwitch = (newBanner: 'standard' | 'featured') => {
 		if (newBanner === selectedBanner || isAnimating) return;
 
@@ -184,6 +204,9 @@ const WishPage: React.FC = () => {
 						</button>
 						<button className="rules-btn" onClick={handleShowRules}>
 							📋 祈愿规则
+						</button>
+						<button className="test-btn" onClick={handleSetDrawCount}>
+							🎲 测试抽数89
 						</button>
 					</div>
 				</header>

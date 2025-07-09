@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useGlobalLoading } from '../../store/globalLoadingStore';
 import PageTransition from '../../components/PageTransition';
 import './LoginPage.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {
 	LoginHeader,

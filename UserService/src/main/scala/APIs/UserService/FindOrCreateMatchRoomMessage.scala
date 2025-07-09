@@ -21,13 +21,13 @@ import java.util.UUID
 /**
  * FindOrCreateMatchRoomMessage
  * desc: 查找或创建匹配房间。
- * @param userToken: String (用户的登录令牌，用于标识当前用户。)
+ * @param userID: String (用户ID，用于标识当前用户。)
  * @param matchType: String (匹配类型，例如'quick'或'ranked')
- * @return roomInfo: Json (房间信息，包含room_id等)
+ * @return roomID: String (房间ID)
  */
 
 case class FindOrCreateMatchRoomMessage(
-  userToken: String,
+  userID: String,
   matchType: String
 ) extends API[Json](UserServiceCode)
 
@@ -60,6 +60,5 @@ case object FindOrCreateMatchRoomMessage{
   given findOrCreateMatchRoomMessageDecoder: Decoder[FindOrCreateMatchRoomMessage] = Decoder.instance { cursor =>
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
-
 
 } 

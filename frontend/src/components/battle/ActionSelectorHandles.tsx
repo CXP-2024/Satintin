@@ -22,6 +22,7 @@ export const useActionSelectorHandles = () => {
         selectedActiveActions,
         selectedObjectDefenseTarget,
         isActionSubmitted,
+        lastRoundSelectedAction,
         selectPassiveAction,
         selectActiveAction,
         removeActiveAction,
@@ -31,6 +32,15 @@ export const useActionSelectorHandles = () => {
         hideActionSelectorTemporarily,
         actionSelectorExiting
     } = useBattleStore();
+
+    // 如果已提交行动，使用lastRoundSelectedAction来显示内容
+    const displayAction = isActionSubmitted && lastRoundSelectedAction ? lastRoundSelectedAction : selectedAction;
+    const displayActiveActions = isActionSubmitted && lastRoundSelectedAction?.actionCategory === 'active'
+        ? (lastRoundSelectedAction as ActiveAction).actions || []
+        : selectedActiveActions;
+    const displayObjectDefenseTarget = isActionSubmitted && lastRoundSelectedAction?.actionCategory === 'passive'
+        ? (lastRoundSelectedAction as PassiveAction).targetObject || null
+        : selectedObjectDefenseTarget;
 
     // 检查行动是否被禁用
     const isActionDisabled = (actionType: 'passive' | 'active' | 'special') => {
@@ -62,7 +72,7 @@ export const useActionSelectorHandles = () => {
 
     // 获取某个行动的选择次数
     const getActionCount = (actionType: AttackObjectName) => {
-        return selectedActiveActions.filter(action => action === actionType).length;
+        return displayActiveActions.filter(action => action === actionType).length;
     };
 
     // 检查是否可以提交
@@ -185,9 +195,9 @@ export const useActionSelectorHandles = () => {
         gameState,
         showActionSelector,
         actionSelectorExiting,
-        selectedAction,
-        selectedActiveActions,
-        selectedObjectDefenseTarget,
+        selectedAction: displayAction,
+        selectedActiveActions: displayActiveActions,
+        selectedObjectDefenseTarget: displayObjectDefenseTarget,
         isActionSubmitted,
 
         // 处理函数

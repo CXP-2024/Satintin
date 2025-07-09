@@ -9,17 +9,17 @@ import RoundResultModal from '../../components/battle/RoundResultModal';
 import { GameOverModal } from '../../components/battle/GameOverModal';
 import ReportModal from '../../components/battle/ReportModal'; // 导入举报模态框组件
 import './BattleRoom.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {getUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
-import {SetUserMatchStatusMessage} from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";
+import { getUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { SetUserMatchStatusMessage } from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";
 
 const BattleRoom: React.FC = () => {
 	const user = useUserInfo();
 	const {
 		roomId, gameState, isConnected, connectionError, currentPlayer, opponent,
 		showActionSelector, actionSelectorTemporarilyHidden,
-		showRoundResult, currentRoundResult, lastRoundResult,
+		showRoundResult, currentRoundResult, lastRoundResult, isActionSubmitted, lastRoundSelectedAction,
 		showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
 		setRoomId, setConnectionStatus,
 		hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult,
@@ -213,10 +213,12 @@ const BattleRoom: React.FC = () => {
 								gameState={gameState}
 								currentPlayer={currentPlayer}
 								opponent={opponent}
+								isActionSubmitted={isActionSubmitted}
+								lastRoundSelectedAction={lastRoundSelectedAction}
 							/>
 
 							{/* 游戏控制按钮 */}
-							{gameState.roundPhase === 'action' && actionSelectorTemporarilyHidden && !currentPlayer?.currentAction && (
+							{gameState.roundPhase === 'action' && actionSelectorTemporarilyHidden && (
 								<div className="game-controls">
 									<button
 										className="show-action-selector-btn"
