@@ -1,6 +1,6 @@
 // 黑名单用户服务
 
-import { BlockedUserInfo, FriendInfo, UserProfileState } from "./UserProfileTypes";
+import { BlockedUserInfo, FriendInfo, UserProfileState } from "./UserProfile/UserProfileTypes";
 import { fetchFriendInfo } from "./FriendService";
 
 // 获取黑名单数据

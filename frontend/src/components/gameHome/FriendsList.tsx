@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FriendInfo } from './UserProfileUtils';
-import { UserProfileHandleState, handleAddFriend, handleRemoveFriend, handleBlockUser, getStatusInfo, getRankColor } from './UserProfileHandles';
+import { FriendInfo } from './UserProfile/UserProfileUtils';
+import { UserProfileHandleState, handleAddFriend, handleRemoveFriend, handleBlockUser, getStatusInfo, getRankColor } from './UserProfile/UserProfileHandles';
 
 interface FriendsListProps {
     friendsData: FriendInfo[];

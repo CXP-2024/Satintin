@@ -3,7 +3,7 @@ import { usePageTransition } from '../components/usePageTransition';
 import { useUserSearch } from '../components/gameHome/useUserSearch';
 import { useCardCount } from '../components/gameHome/useCardCount';
 import PageTransition from '../components/PageTransition';
-import UserProfile from '../components/gameHome/UserProfile';
+import UserProfile from '../components/gameHome/UserProfile/UserProfile';
 import RewardModal from '../components/gameHome/RewardModal';
 import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';
 import GameHeader from '../components/gameHome/GameHeader';
