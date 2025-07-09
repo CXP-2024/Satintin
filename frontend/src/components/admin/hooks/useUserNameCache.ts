@@ -35,7 +35,7 @@ export const useUserNameCache = () => {
               userData.isOnline,
               userData.matchStatus,
               userData.stoneAmount,
-              userData.cardDrawCount,
+              userData.credits,
               userData.rank,
               userData.rankPosition,
               userData.friendList,

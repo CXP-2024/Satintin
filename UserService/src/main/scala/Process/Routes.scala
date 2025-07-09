@@ -28,12 +28,13 @@ import Impl.BlockUserMessagePlanner
 import Impl.LogoutUserMessagePlanner
 import Impl.ReceiveMessagesMessagePlanner
 import Impl.GetUserInfoMessagePlanner
-import Impl.QueryIDByUserNameMessagePlanner  // 添加新的导入
+import Impl.QueryIDByUserNameMessagePlanner
 import Impl.GetAllUserIDsMessagePlanner
 import Impl.Battle.SetUserMatchStatusMessagePlanner
 import Impl.Battle.FindOrCreateMatchRoomMessagePlanner
 import Impl.SendMessageMessagePlanner
 import Impl.GetChatHistoryMessagePlanner
+import Impl.ModifyUserCreditsMessagePlanner
 import Common.API.TraceID
 import org.joda.time.DateTime
 import org.http4s.circe.*
@@ -180,6 +181,13 @@ object Routes:
         IO(
           decode[FindOrCreateMatchRoomMessagePlanner](str) match
             case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for FindOrCreateMatchRoomMessage[${err.getMessage}]")
+            case Right(value) => value.fullPlan.map(_.asJson.toString)
+        ).flatten
+
+      case "ModifyUserCreditsMessage" =>
+        IO(
+          decode[ModifyUserCreditsMessagePlanner](str) match
+            case Left(err) => err.printStackTrace(); throw new Exception(s"Invalid JSON for ModifyUserCreditsMessage[${err.getMessage}]")
             case Right(value) => value.fullPlan.map(_.asJson.toString)
         ).flatten
 

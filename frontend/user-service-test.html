@@ -35,6 +35,13 @@
   <button id="registerBtn">Register</button>
   <h3>Response:</h3><pre id="registerOutput"></pre>
 
+  <!-- Modify User Credits -->
+  <h2>Modify User Credits</h2>
+  <input id="creditUserID" placeholder="User ID"/><br/>
+  <input id="targetCredits" type="number" placeholder="Target Credits" min="0"/><br/>
+  <button id="modifyCreditsBtn">Modify Credits</button>
+  <h3>Response:</h3><pre id="creditsOutput"></pre>
+
   <script>
     const apiBase = 'http://localhost:10010';
 
@@ -128,9 +135,58 @@
       }
     }
 
+    async function modifyUserCredits() {
+      const userID = document.getElementById('creditUserID').value;
+      const targetCredits = parseInt(document.getElementById('targetCredits').value);
+      const out = document.getElementById('creditsOutput');
+      out.textContent = '';
+
+      if (!userID) {
+        out.textContent = 'Error: User ID is required';
+        return;
+      }
+
+      if (isNaN(targetCredits) || targetCredits < 0) {
+        out.textContent = 'Error: Target credits must be a non-negative number';
+        return;
+      }
+
+      const planContext = {
+        traceID: crypto.randomUUID(),
+        transactionLevel: 0
+      };
+
+      try {
+        const resp = await fetch(`${apiBase}/api/ModifyUserCreditsMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userID,
+            targetCredits,
+            planContext
+          })
+        });
+        if (!resp.ok) {
+          const err = await resp.text();
+          out.textContent = `Error ${resp.status}: ${err}`;
+          return;
+        }
+        const data = await resp.json();
+        out.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        out.textContent = `Fetch error: ${e.message}`;
+      }
+    }
+
     document.getElementById('loginBtn').onclick    = doLogin;
     document.getElementById('infoBtn').onclick     = getUserInfo;
     document.getElementById('registerBtn').onclick = doRegister;
+    document.getElementById('modifyCreditsBtn').onclick = modifyUserCredits;
+
+    // 自动填充用户ID
+    document.getElementById('token').addEventListener('change', function() {
+      document.getElementById('creditUserID').value = this.value;
+    });
   </script>
 </body>
 </html>

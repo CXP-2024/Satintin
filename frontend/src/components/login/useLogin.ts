@@ -12,7 +12,8 @@ import { LoginUserMessage } from "Plugins/UserService/APIs/LoginUserMessage";
 import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 import { LoginAdminMessage } from "Plugins/AdminService/APIs/LoginAdminMessage";
-import { LoginFormData, UserInfo } from './loginTypes';
+import { LoginFormData } from './loginTypes';
+import { UserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 export const useLogin = () => {
     const { navigateWithTransition } = usePageTransition();
@@ -35,7 +36,7 @@ export const useLogin = () => {
         isOnline: false,
         matchStatus: 'offline',
         stoneAmount: 50000,
-        cardDrawCount: 200,
+        credits: 200,
         rank: '王者',
         rankPosition: 100,
         friendList: [],
@@ -57,7 +58,7 @@ export const useLogin = () => {
         isOnline: false,
         matchStatus: 'offline',
         stoneAmount: 999999,
-        cardDrawCount: 999,
+        credits : 999,
         rank: '管理员',
         rankPosition: 0,
         friendList: [],
