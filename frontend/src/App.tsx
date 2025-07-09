@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import AppRouter from './components/AppRouter';
 import GlobalLoadingOverlay from './components/GlobalLoadingOverlay';
+import { AlertProvider } from './components/common/AlertProvider';
 import { useUserInfo, getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { autoLogoutManager } from './utils/autoLogout';
 import './App.css';
@@ -30,8 +31,10 @@ function App() {
 
   return (
     <div className="App">
-      <AppRouter />
-      <GlobalLoadingOverlay />
+      <AlertProvider enableWindowAlertOverride={true}>
+        <AppRouter />
+        <GlobalLoadingOverlay />
+      </AlertProvider>
     </div>
   );
 }

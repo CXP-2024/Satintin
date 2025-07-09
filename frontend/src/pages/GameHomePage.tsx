@@ -15,13 +15,13 @@ import './GameHomePage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import {
-	clearUserInfo,
-	useUserInfo,
-	initUserToken,
-	getUserInfo,
-	useUserToken,
-	getUserToken,
-	setUserInfoField
+    clearUserInfo,
+    useUserInfo,
+    initUserToken,
+    getUserInfo,
+    useUserToken,
+    getUserToken,
+    setUserInfoField
 } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { autoLogoutManager } from 'utils/autoLogout';
 import { GetAssetTransactionMessage } from "Plugins/AssetService/APIs/GetAssetTransactionMessage";
@@ -29,6 +29,7 @@ import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage
 import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 import { LoadBattleDeckMessage } from "Plugins/CardService/APIs/LoadBattleDeckMessage";
+import { useAlert } from '../components/common/AlertProvider';
 
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
@@ -37,22 +38,13 @@ const GameHomePage: React.FC = () => {
     const DailyRewardAmount = 200; // 每日奖励数量
     const { navigateWithTransition } = usePageTransition();
     const { cardCount } = useCardCount(userToken, userID);
-    const {
-        searchUsername,
-        setSearchUsername,
-        searchedUser,
-        searchLoading,
-        searchError,
-        showSearchUser,
-        handleSearchUser,
-        handleShowSearchUser,
-        handleCloseSearchUser
-    } = useUserSearch();
-    
+    const { showError, showWarning } = useAlert();
+    const { searchUsername, setSearchUsername, searchedUser, searchLoading, searchError, showSearchUser, handleSearchUser, handleShowSearchUser, handleCloseSearchUser } = useUserSearch();
+
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showRewardModal, setShowRewardModal] = useState(false);
     const [showAlreadyClaimedModal, setShowAlreadyClaimedModal] = useState(false);
-    
+
     console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
     console.log('🔍 [GameHomePage] userID:', userID, 'userToken:', userToken ? '有token' : '无token');
 
@@ -73,12 +65,12 @@ const GameHomePage: React.FC = () => {
         // 先清除本地状态
         clearUserInfo();
         initUserToken();
-        
+
         // 使用保存的token执行服务器logout
         if (currentUserToken) {
             autoLogoutManager.manualLogout('普通用户手动退出登录', currentUserToken).catch(console.error);
         }
-        
+
         // 立即导航到登录页
         navigateWithTransition('/login');
     }
@@ -115,22 +107,22 @@ const GameHomePage: React.FC = () => {
                     } else {
                         battleDeck = info;
                     }
-                    
+
                     if (battleDeck.length < 3) {
-                        window.alert('战斗卡组需配置3个卡牌');
+                        showWarning('战斗卡组需配置3个卡牌', '卡组配置不完整');
                         return;
                     }
-                    
+
                     // 卡组检查通过，跳转到战斗页面
                     navigateWithTransition('/battle', '正在进入战斗...');
                 } catch (e) {
                     console.error('parse battle deck error:', e);
-                    window.alert('获取战斗卡组失败');
+                    showError('获取战斗卡组失败', '网络错误');
                 }
             },
             (error: any) => {
                 console.error('LoadBattleDeckMessage error:', error);
-                window.alert('获取战斗卡组失败');
+                showError('获取战斗卡组失败', '服务器连接失败');
             }
         );
     };
@@ -162,12 +154,9 @@ const GameHomePage: React.FC = () => {
                         if (typeof parsed === 'string') parsed = JSON.parse(parsed);
                     }
                     const transactionData = (parsed as any[]).map(item => new AssetTransaction(
-                        item.transactionID,
-                        item.userID,
-                        item.transactionType,
-                        item.changeAmount,
-                        item.changeReason,
-                        item.timestamp
+                        item.transactionID, item.userID, item.transactionType,
+                        item.changeAmount, item.changeReason, item.timestamp
+
                     ));
                     const rewardTxs = transactionData.filter(tx => tx.transactionType.toUpperCase() === 'REWARD' && tx.changeAmount === DailyRewardAmount);
                     if (rewardTxs.length > 0) {
@@ -277,7 +266,7 @@ const GameHomePage: React.FC = () => {
                     rewardTitle="每日奖励"
                     rewardDescription="恭喜您获得每日登录奖励！"
                 />
-                
+
                 <AlreadyClaimedModal
                     isOpen={showAlreadyClaimedModal}
                     onClose={() => setShowAlreadyClaimedModal(false)}

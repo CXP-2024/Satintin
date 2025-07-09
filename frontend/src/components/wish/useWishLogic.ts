@@ -5,6 +5,7 @@ import { QueryCardDrawCountMessage } from 'Plugins/AssetService/APIs/QueryCardDr
 import { GetDrawHistoryMessage, DrawHistoryEntry } from 'Plugins/CardService/APIs/GetDrawHistoryMessage';
 import { setUserInfoField } from 'Plugins/CommonUtils/Store/UserInfoStore';
 import { WishHistory, CardDrawCounts } from '../../types/wish';
+import { showError } from '../../utils/alertUtils';
 
 export const useWishLogic = (userID: string | undefined) => {
 	const [wishHistory, setWishHistory] = useState<WishHistory>({
@@ -19,7 +20,7 @@ export const useWishLogic = (userID: string | undefined) => {
 	// 刷新用户资产状态
 	const refreshUserAssets = useCallback(async () => {
 		if (!userID) return;
-		
+
 		try {
 			const response: any = await new Promise((resolve, reject) => {
 				new QueryAssetStatusMessage(userID).send(
@@ -199,7 +200,7 @@ export const useWishLogic = (userID: string | undefined) => {
 	};	// 抽卡成功后刷新数据
 	const refreshDataAfterDraw = useCallback(async () => {
 		if (!userID) return;
-		
+
 		// 刷新抽卡历史和抽卡次数
 		await Promise.all([
 			loadDrawHistory(),
@@ -219,13 +220,13 @@ export const useWishLogic = (userID: string | undefined) => {
 			});
 
 			localStorage.setItem('drawResult', JSON.stringify(resultData));
-			
+
 			// 抽卡成功后刷新数据
 			await refreshDataAfterDraw();
-			
+
 			navigateQuick('/wish-result');
 		} catch (error) {
-			alert(error);
+			showError(`单次抽卡失败: ${error}`, '抽卡错误');
 		}
 	};
 
@@ -241,13 +242,13 @@ export const useWishLogic = (userID: string | undefined) => {
 			});
 
 			localStorage.setItem('drawResult', JSON.stringify(resultData));
-			
+
 			// 抽卡成功后刷新数据
 			await refreshDataAfterDraw();
-			
+
 			navigateQuick('/wish-result');
 		} catch (error) {
-			alert(error);
+			showError(`十连抽卡失败: ${error}`, '抽卡错误');
 		}
 	};
 
