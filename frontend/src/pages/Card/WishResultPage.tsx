@@ -26,6 +26,18 @@ const WishResultPage: React.FC = () => {
 	// 当前显示的卡牌
 	const currentWishResult = wishResults[currentCardIndex];
 
+	// 当前播放的角色音频
+	const [currentCharacterSound, setCurrentCharacterSound] = useState<HTMLAudioElement | null>(null);
+
+	// 停止所有音频播放
+	const stopAllSounds = useCallback(() => {
+		// 停止当前角色音频
+		if (currentCharacterSound) {
+			currentCharacterSound.pause();
+			currentCharacterSound.currentTime = 0;
+		}
+	}, [currentCharacterSound]);
+
 	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
@@ -47,21 +59,24 @@ const WishResultPage: React.FC = () => {
 					switch (currentWishResult.image) {
 						case 'template-dragon-nai':
 							characterSound = new Audio(nailongSound);
-							break;
-						case 'template-gaia':
-							characterSound = new Audio(gaiyaSound);
+							characterSound.volume = 0.4;
 							break;
 						case 'template-go':
 							characterSound = new Audio(sakichanSound);
+							characterSound.volume = 0.8;
 							break;
 						case 'template-jie':
 							characterSound = new Audio(jiegeSound);
+							characterSound.volume = 0.8;
+							break;
+						case 'template-gaia':
+							characterSound = new Audio(gaiyaSound);
+							characterSound.volume = 0.15;
 							break;
 						default:
 							return;
 					} 
-					// 设置音量并播放
-					characterSound.volume = 0.8;
+					setCurrentCharacterSound(characterSound);
 					characterSound.play().catch(console.error);
 				} else {
 					SoundUtils.playSparkleSound(currentWishResult.rarity, 0.8);
@@ -80,13 +95,15 @@ const WishResultPage: React.FC = () => {
 
 	// 跳过视频
 	const handleSkipVideo = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		setShowVideo(false);
 		setShowResult(true);
-	}, [playClickSound]);
+	}, [playClickSound, stopAllSounds]);
 
 	// 继续按钮
 	const handleContinue = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 
 		if (isTenWish) {
@@ -106,20 +123,23 @@ const WishResultPage: React.FC = () => {
 			// 单抽直接返回
 			navigateQuick('/wish');
 		}
-	}, [playClickSound, isTenWish, currentCardIndex, wishResults.length, navigateQuick]);
+	}, [playClickSound, isTenWish, currentCardIndex, wishResults.length, navigateQuick, stopAllSounds]);
 
 	// 跳过到总览
 	const handleSkipToAll = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		// 直接跳转到十连总览页面
 		setShowAllCards(true);
-	}, [playClickSound]);
+	}, [playClickSound, stopAllSounds]);
 
 	// 返回祈愿页面
 	const handleBackToWish = useCallback(() => {
+		stopAllSounds();
 		playClickSound();
 		navigateQuick('/wish');
-	}, [playClickSound, navigateQuick]);
+	}, [playClickSound, navigateQuick, stopAllSounds]);
+
 	return (
 		<PageTransition className="card-page">
 			<div className="wish-result-page">
