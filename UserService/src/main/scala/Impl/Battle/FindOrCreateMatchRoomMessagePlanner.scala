@@ -42,7 +42,9 @@ case class FindOrCreateMatchRoomMessagePlanner(
           for {
             _ <- IO(logger.info(s"[Step 3] 找到可用的匹配房间: ${roomInfo.asJson.noSpaces}"))
             // 匹配成功后删除房间
-            roomId = roomInfo.hcursor.downField("room_id").as[String].getOrElse("")
+            // 根据日志分析，字段名为"roomID"
+            roomId = roomInfo.hcursor.downField("roomID").as[String].getOrElse("")
+            _ <- IO(logger.info(s"[Step 3] 找到的房间ID: ${roomId}"))
             _ <- deleteRoom(roomId)
             result <- IO.pure(roomInfo)
           } yield result
@@ -50,6 +52,7 @@ case class FindOrCreateMatchRoomMessagePlanner(
           for {
             _ <- IO(logger.info(s"[Step 3] 未找到可用的匹配房间，创建新房间"))
             newRoom <- createNewRoom(userID, trimmedMatchType)
+            _ <- IO(logger.info(s"[Step 3] 创建的新房间: ${newRoom.asJson.noSpaces}"))
           } yield newRoom
       }
 
@@ -58,8 +61,20 @@ case class FindOrCreateMatchRoomMessagePlanner(
       _ <- updateUserMatchStatus(userID, trimmedMatchType)
       _ <- IO(logger.info(s"[Step 4] 用户匹配状态更新成功"))
 
+      // 从日志分析，确定字段名为"roomID"
+      roomId = roomInfo.hcursor.downField("roomID").as[String] match {
+        case Right(id) if id.nonEmpty => 
+          id
+        case _ => 
+          // 如果从JSON中获取失败，记录错误并返回一个新生成的ID
+          val fallbackId = UUID.randomUUID().toString
+          logger.error(s"[ERROR] 无法从roomInfo中获取roomID: ${roomInfo.asJson.noSpaces}，使用备用ID: ${fallbackId}")
+          fallbackId
+      }
+      
+      _ <- IO(logger.info(s"[FINAL] 返回的房间ID: ${roomId}"))
+      
       // 构建返回结果，总是返回roomID
-      roomId = roomInfo.hcursor.downField("room_id").as[String].getOrElse("")
       result = Json.obj(
         "room_id" -> Json.fromString(roomId)
       )
@@ -81,8 +96,10 @@ case class FindOrCreateMatchRoomMessagePlanner(
   private def findAvailableRoom(matchType: String)(using PlanContext): IO[Option[Json]] = {
     // 查找状态为open且匹配类型相同的房间
     // 不考虑段位匹配
+    // 使用别名确保返回的字段名一致
     val sql = s"""
-      SELECT room_id, owner_id, match_type, create_time, status, expire_time
+      SELECT room_id as "roomID", owner_id as "ownerID", match_type as "matchType", 
+             create_time as "createTime", status, expire_time as "expireTime"
       FROM ${schemaName}.match_room_table
       WHERE status = 'open' AND match_type = ? AND expire_time > NOW()
       ORDER BY create_time ASC LIMIT 1
@@ -120,14 +137,18 @@ case class FindOrCreateMatchRoomMessagePlanner(
     )
     
     writeDB(sql, params).map { _ =>
+      // 记录日志，确保roomID被正确生成
+      logger.info(s"[CreateNewRoom] 成功创建房间，ID: ${roomID}")
+      
+      // 确保创建的JSON对象使用与数据库返回相同的字段名
       Json.obj(
-        "room_id" -> Json.fromString(roomID),
-        "owner_id" -> Json.fromString(userID),
-        "match_type" -> Json.fromString(matchType),
-        "owner_rank" -> Json.fromInt(defaultRank),
-        "create_time" -> Json.fromString(createTimeStr),
+        "roomID" -> Json.fromString(roomID),
+        "ownerID" -> Json.fromString(userID),
+        "matchType" -> Json.fromString(matchType),
+        "ownerRank" -> Json.fromInt(defaultRank),
+        "createTime" -> Json.fromString(createTimeStr),
         "status" -> Json.fromString("open"),
-        "expire_time" -> Json.fromString(expireTimeStr),
+        "expireTime" -> Json.fromString(expireTimeStr),
         "is_new_room" -> Json.fromBoolean(true)
       )
     }
