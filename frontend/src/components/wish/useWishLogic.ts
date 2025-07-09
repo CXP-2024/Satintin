@@ -226,7 +226,8 @@ export const useWishLogic = (userID: string | undefined) => {
 
 			navigateQuick('/wish-result');
 		} catch (error) {
-			showError(`单次抽卡失败: ${error}`, '抽卡错误');
+			showError(`你可能需要充值`, '抽卡失败');
+			console.log(error);
 		}
 	};
 
@@ -248,7 +249,8 @@ export const useWishLogic = (userID: string | undefined) => {
 
 			navigateQuick('/wish-result');
 		} catch (error) {
-			showError(`十连抽卡失败: ${error}`, '抽卡错误');
+			showError(`你可能需要充值`, '抽卡失败');
+			console.log(error);
 		}
 	};
 
