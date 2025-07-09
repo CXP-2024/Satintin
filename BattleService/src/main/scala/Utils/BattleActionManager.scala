@@ -122,24 +122,27 @@ private def parseBattleAction(json: Json)(using PlanContext): IO[BattleAction] =
             targetActionNames <- IO.fromEither(json.hcursor.downField("targetAction").as[Option[List[String]]]
               .left.map(err => new Exception(s"解析targetAction失败: ${err.message}")))
               
-            // 创建所有AttackObject
-            targetObjects <- targetActionNames match {
-              case Some(names) if names.nonEmpty => ActiveObjectManager.createActiveObjectsFromDB(names)
-              case _ => IO.pure(List(Left(ObjectCreationError.MissingRequiredFieldError("PassiveAction", "targetAction"))))
+            // 验证列表非空
+            _ <- targetActionNames match {
+              case Some(names) if names.isEmpty => IO.raiseError(new Exception("ActionDefense目标行动列表不能为空"))
+              case None => IO.raiseError(new Exception("ActionDefense缺少targetAction字段"))
+              case _ => IO.unit
             }
             
-            // 检查是否有创建错误
-            _ <- if (targetObjects.exists(_.isLeft)) {
-              val errors = targetObjects.collect { case Left(e) => e }
-              IO.raiseError(new Exception(s"创建ActionDefense目标对象失败: ${errors.headOption.getOrElse("Unknown error")}"))
-            } else IO.unit
+            // 计算每个对象名称的出现次数（保留叠加次数）
+            // 与ActiveAction完全相同的方法
+            attackObjectsMap = targetActionNames.getOrElse(List()).groupBy(identity).map { 
+              case (name, occurrences) => name -> occurrences.size 
+            }
             
-            // 收集所有成功的对象并创建ActiveAction
-            successObjects = targetObjects.collect { case Right(obj) => obj }
-            attackObjectsMap = successObjects.map(obj => obj -> 1).toMap
-            targetAction = if (attackObjectsMap.nonEmpty) {
-              Some(ActiveAction.create(attackObjectsMap))
-            } else None
+            // 使用ActiveObjectManager.createActiveAction创建主动行动
+            activeActionResult <- ActiveObjectManager.createActiveAction(attackObjectsMap)
+            
+            // 处理返回结果
+            targetAction <- activeActionResult match {
+              case Right(action) => IO.pure(Some(action))
+              case Left(error) => IO.raiseError(new Exception(s"创建ActionDefense目标行动失败: $error"))
+            }
             
             // 创建ActionDefense
             action <- PassiveObjectManager.createPassiveObjectSmart(
