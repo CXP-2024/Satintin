@@ -1,9 +1,10 @@
-import {getUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { AddFriendMessage } from "Plugins/UserService/APIs/AddFriendMessage";
 import { RemoveFriendMessage } from "Plugins/UserService/APIs/RemoveFriendMessage";
 import { BlockUserMessage } from "Plugins/UserService/APIs/BlockUserMessage";
 import { SoundUtils } from 'utils/soundUtils';
-import { FriendInfo, BlockedUserInfo, refreshUserInfo, clearFriendValidationCache} from './UserProfileUtils';
+import { FriendInfo, BlockedUserInfo, refreshUserInfo, clearFriendValidationCache } from './UserProfileUtils';
+import { showSuccess, showError, showInfo } from '../../../utils/alertUtils';
 
 // 定义 UserProfile 处理函数所需的状态类型
 export interface UserProfileHandleState {
@@ -27,7 +28,7 @@ export interface UserProfileHandleState {
 // 添加好友
 export const handleAddFriend = async (state: UserProfileHandleState) => {
     const { user, addFriendID, setLoading, setAddFriendID, refreshUserInfo } = state;
-    
+
     if (!addFriendID.trim()) return;
 
     setLoading(true);
@@ -40,18 +41,18 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
         });
 
         setAddFriendID('');
-        
+
         // 刷新用户信息以获取最新的好友列表
         if (refreshUserInfo) {
             console.log('🔄 Refreshing user info after adding friend...');
             await refreshUserInfo();
             clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
         }
-        
-        alert('好友添加成功！');
+
+        showSuccess('好友添加成功！', '操作成功');
     } catch (error) {
         console.error('Failed to add friend:', error);
-        alert('添加好友失败');
+        showError('添加好友失败', '操作失败');
     } finally {
         setLoading(false);
     }
@@ -61,7 +62,7 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
 export const handleRemoveFriend = async (friendID: string, state: UserProfileHandleState) => {
     const { setLoading, setFriendsData, refreshUserInfo } = state;
     const user = getUserInfo()
-    
+
     setLoading(true);
     try {
         await new Promise<string>((resolve, reject) => {
@@ -73,17 +74,17 @@ export const handleRemoveFriend = async (friendID: string, state: UserProfileHan
 
         // 先从本地状态中移除好友（即时反馈）
         setFriendsData(prev => prev.filter(friend => friend.id !== friendID));
-        
+
         // 然后刷新用户信息以确保数据一致性
         if (refreshUserInfo) {
             console.log('🔄 Refreshing user info after removing friend...');
             await refreshUserInfo();
             clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
         }
-        
+        showSuccess('好友移除成功！', '操作成功');
     } catch (error) {
         console.error('Failed to remove friend:', error);
-        alert('移除好友失败');
+        showError('移除好友失败', '操作失败');
     } finally {
         setLoading(false);
     }
@@ -92,7 +93,7 @@ export const handleRemoveFriend = async (friendID: string, state: UserProfileHan
 // 拉黑用户
 export const handleBlockUser = async (userID: string, state: UserProfileHandleState) => {
     const { setLoading, friendsData, setFriendsData, setBlockedData, refreshUserInfo } = state;
-    
+
     setLoading(true);
     try {
         await new Promise<string>((resolve, reject) => {
@@ -113,17 +114,17 @@ export const handleBlockUser = async (userID: string, state: UserProfileHandleSt
                 blockedDate: new Date().toISOString().split('T')[0]
             }]);
         }
-        
+
         // 刷新用户信息以确保数据一致性
         if (refreshUserInfo) {
             console.log('🔄 Refreshing user info after blocking user...');
             await refreshUserInfo();
             clearFriendValidationCache(); // 清除验证缓存，确保下次加载时获取最新数据
         }
-        
+        showSuccess('用户已拉黑！', '哈哈');
     } catch (error) {
         console.error('Failed to block user:', error);
-        alert('拉黑用户失败');
+        showError('拉黑用户失败', '操作失败');
     } finally {
         setLoading(false);
     }
@@ -132,7 +133,7 @@ export const handleBlockUser = async (userID: string, state: UserProfileHandleSt
 // 解除拉黑 (暂时没有API)
 export const handleUnblockUser = async (userID: string) => {
     // TODO: 实现解除拉黑API
-    alert('解除拉黑功能暂未实现');
+    showInfo('解除拉黑功能暂未实现', '功能提示');
 };
 
 // 播放按钮点击音效
@@ -143,7 +144,7 @@ export const playClickSound = () => {
 // 处理关闭
 export const handleClose = (state: UserProfileHandleState) => {
     const { setIsClosing, onClose } = state;
-    
+
     playClickSound();
     setIsClosing(true);
     // 等待动画完成后再隐藏模态框
@@ -170,7 +171,7 @@ export const handleOverlayClick = (e: React.MouseEvent, state: UserProfileHandle
 // 处理选项卡切换
 export const handleTabSwitch = (tab: 'friends' | 'blocked', state: UserProfileHandleState) => {
     const { activeTab, setActiveTab } = state;
-    
+
     if (tab === activeTab) return;
     playClickSound();
     setActiveTab(tab);

@@ -9,6 +9,7 @@ import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
 import { ChargeAssetMessage } from 'Plugins/AssetService/APIs/ChargeAssetMessage';
 import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetStatusMessage';
+import { showSuccess } from 'utils/alertUtils';
 
 const ShopPage: React.FC = () => {
     const user = useUserInfo();
@@ -103,7 +104,7 @@ const ShopPage: React.FC = () => {
             setCurrentPayment(null);
             
             // 显示成功消息
-            alert(`充值成功！获得 ${currentPayment.crystals} 原石`);
+            showSuccess(`充值成功！获得 ${currentPayment.crystals} 原石`, '充值成功');
             
         } catch (error) {
             console.error('充值失败:', error);
