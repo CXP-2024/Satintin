@@ -13,132 +13,110 @@ import io.circe.generic.auto._
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 import java.util.UUID
 
 case class FindOrCreateMatchRoomMessagePlanner(
-  userToken: String,
+  userID: String,
   matchType: String,
   override val planContext: PlanContext
 ) extends Planner[Json] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
+  // 去除matchType两端的空格
+  private val trimmedMatchType = matchType.trim()
 
   override def plan(using planContext: PlanContext): IO[Json] = {
     for {
-      // Step 1: 验证用户令牌并获取用户信息
-      _ <- IO(logger.info(s"[Step 1] 开始验证用户令牌: ${userToken}"))
-      userInfo <- validateUserToken()
-      userID = userInfo._1
-      userRank = userInfo._2
-      _ <- IO(logger.info(s"[Step 1] 用户令牌验证通过，用户ID: ${userID}, 段位: ${userRank.getOrElse("无段位")}"))
-
-      // Step 2: 验证匹配类型是否有效
-      _ <- IO(logger.info(s"[Step 2] 验证匹配类型: ${matchType}"))
+      // Step 1: 验证匹配类型是否有效
+      _ <- IO(logger.info(s"[Step 1] 验证匹配类型: ${trimmedMatchType}"))
       _ <- validateMatchType()
-      _ <- IO(logger.info(s"[Step 2] 匹配类型验证通过"))
+      _ <- IO(logger.info(s"[Step 1] 匹配类型验证通过"))
 
-      // Step 3: 查找可用的匹配房间
-      _ <- IO(logger.info(s"[Step 3] 开始查找可用的匹配房间，类型: ${matchType}"))
-      existingRoomOpt <- findAvailableRoom(matchType, userRank)
+      // Step 2: 查找可用的匹配房间
+      _ <- IO(logger.info(s"[Step 2] 开始查找可用的匹配房间，类型: ${trimmedMatchType}"))
+      existingRoomOpt <- findAvailableRoom(trimmedMatchType)
       
-      // Step 4: 如果没有找到可用房间，则创建新房间
+      // Step 3: 如果没有找到可用房间，则创建新房间
       roomInfo <- existingRoomOpt match {
         case Some(roomInfo) => 
-          _ <- IO(logger.info(s"[Step 4] 找到可用的匹配房间: ${roomInfo.asJson.noSpaces}"))
-          // 更新房间状态为matched
-          _ <- updateRoomStatus(roomInfo("room_id").as[String], "matched")
-          IO.pure(roomInfo)
+          for {
+            _ <- IO(logger.info(s"[Step 3] 找到可用的匹配房间: ${roomInfo.asJson.noSpaces}"))
+            // 匹配成功后删除房间
+            roomId = roomInfo.hcursor.downField("room_id").as[String].getOrElse("")
+            _ <- deleteRoom(roomId)
+            result <- IO.pure(roomInfo)
+          } yield result
         case None =>
-          _ <- IO(logger.info(s"[Step 4] 未找到可用的匹配房间，创建新房间"))
-          createNewRoom(userID, matchType, userRank)
+          for {
+            _ <- IO(logger.info(s"[Step 3] 未找到可用的匹配房间，创建新房间"))
+            newRoom <- createNewRoom(userID, trimmedMatchType)
+          } yield newRoom
       }
 
-      // Step 5: 更新用户的match_status
-      _ <- IO(logger.info(s"[Step 5] 更新用户的匹配状态"))
-      _ <- updateUserMatchStatus(userID, matchType)
-      _ <- IO(logger.info(s"[Step 5] 用户匹配状态更新成功"))
+      // Step 4: 更新用户的match_status
+      _ <- IO(logger.info(s"[Step 4] 更新用户的匹配状态"))
+      _ <- updateUserMatchStatus(userID, trimmedMatchType)
+      _ <- IO(logger.info(s"[Step 4] 用户匹配状态更新成功"))
 
-    } yield roomInfo
-  }
+      // 构建返回结果，总是返回roomID
+      roomId = roomInfo.hcursor.downField("room_id").as[String].getOrElse("")
+      result = Json.obj(
+        "room_id" -> Json.fromString(roomId)
+      )
 
-  private def validateUserToken()(using PlanContext): IO[(String, Option[String])] = {
-    val sql = s"""
-      SELECT u.user_id, a.rank
-      FROM ${schemaName}.user_table u
-      LEFT JOIN ${schemaName}.user_asset_table a ON u.user_id = a.user_id
-      WHERE u.usertoken = ? AND u.is_online = true;
-    """
-
-    readDBJsonOptional(sql, List(SqlParameter("String", userToken))).flatMap {
-      case Some(json) =>
-        // 解析用户ID和段位
-        val userID = decodeField[String](json, "user_id")
-        val rank = if (json.hcursor.downField("rank").succeeded) {
-          Some(decodeField[String](json, "rank"))
-        } else {
-          None
-        }
-        IO.pure((userID, rank))
-      case None =>
-        IO.raiseError(new IllegalArgumentException("无效的用户令牌或用户未登录"))
-    }
+    } yield result
   }
 
   private def validateMatchType()(using PlanContext): IO[Unit] = {
     // 验证匹配类型是否合法
     val validMatchTypes = Set("quick", "ranked")
     
-    if (!validMatchTypes.contains(matchType)) {
-      IO.raiseError(new IllegalArgumentException(s"无效的匹配类型: ${matchType}，有效值为: ${validMatchTypes.mkString(", ")}"))
+    if (!validMatchTypes.contains(trimmedMatchType)) {
+      IO.raiseError(new IllegalArgumentException(s"无效的匹配类型: ${trimmedMatchType}，有效值为: ${validMatchTypes.mkString(", ")}"))
     } else {
       IO.unit
     }
   }
 
-  private def findAvailableRoom(matchType: String, userRank: Option[String])(using PlanContext): IO[Option[Json]] = {
+  private def findAvailableRoom(matchType: String)(using PlanContext): IO[Option[Json]] = {
     // 查找状态为open且匹配类型相同的房间
-    // 如果是ranked模式，尽量匹配相近段位的玩家
-    val baseSQL = s"""
-      SELECT room_id, owner_id, match_type, owner_rank, create_time, status, expire_time
+    // 不考虑段位匹配
+    val sql = s"""
+      SELECT room_id, owner_id, match_type, create_time, status, expire_time
       FROM ${schemaName}.match_room_table
       WHERE status = 'open' AND match_type = ? AND expire_time > NOW()
+      ORDER BY create_time ASC LIMIT 1
     """
     
-    val (sql, params) = if (matchType == "ranked" && userRank.isDefined) {
-      // 对于ranked模式，优先匹配相同段位的房间
-      (
-        baseSQL + " AND owner_rank = ? ORDER BY create_time ASC LIMIT 1",
-        List(SqlParameter("String", matchType), SqlParameter("String", userRank.get))
-      )
-    } else {
-      // 对于quick模式或没有段位的用户，直接按创建时间排序
-      (
-        baseSQL + " ORDER BY create_time ASC LIMIT 1",
-        List(SqlParameter("String", matchType))
-      )
-    }
-
-    readDBJsonOptional(sql, params)
+    readDBJsonOptional(sql, List(SqlParameter("String", matchType)))
   }
 
-  private def createNewRoom(userID: String, matchType: String, userRank: Option[String])(using PlanContext): IO[Json] = {
+  private def createNewRoom(userID: String, matchType: String)(using PlanContext): IO[Json] = {
     val roomID = UUID.randomUUID().toString
     val createTime = new DateTime()
-    // 设置过期时间为5分钟后
-    val expireTime = createTime.plusMinutes(5)
+    // 设置过期时间为30分钟后
+    val expireTime = createTime.plusMinutes(30)
+    // 默认段位为0，Int类型
+    val defaultRank = 0
+    
+    // 使用PostgreSQL兼容的时间戳格式
+    val formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS")
+    val createTimeStr = formatter.print(createTime)
+    val expireTimeStr = formatter.print(expireTime)
     
     val sql = s"""
       INSERT INTO ${schemaName}.match_room_table 
       (room_id, owner_id, match_type, owner_rank, create_time, status, expire_time)
-      VALUES (?, ?, ?, ?, ?, 'open', ?);
+      VALUES (?, ?, ?, ?, ?::timestamp, 'open', ?::timestamp);
     """
     
     val params = List(
       SqlParameter("String", roomID),
       SqlParameter("String", userID),
       SqlParameter("String", matchType),
-      SqlParameter("String", userRank.getOrElse(null)),
-      SqlParameter("DateTime", createTime),
-      SqlParameter("DateTime", expireTime)
+      SqlParameter("Int", defaultRank.toString),
+      SqlParameter("String", createTimeStr),
+      SqlParameter("String", expireTimeStr)
     )
     
     writeDB(sql, params).map { _ =>
@@ -146,24 +124,22 @@ case class FindOrCreateMatchRoomMessagePlanner(
         "room_id" -> Json.fromString(roomID),
         "owner_id" -> Json.fromString(userID),
         "match_type" -> Json.fromString(matchType),
-        "owner_rank" -> userRank.fold(Json.Null)(Json.fromString),
-        "create_time" -> Json.fromString(createTime.toString),
+        "owner_rank" -> Json.fromInt(defaultRank),
+        "create_time" -> Json.fromString(createTimeStr),
         "status" -> Json.fromString("open"),
-        "expire_time" -> Json.fromString(expireTime.toString),
+        "expire_time" -> Json.fromString(expireTimeStr),
         "is_new_room" -> Json.fromBoolean(true)
       )
     }
   }
 
-  private def updateRoomStatus(roomID: String, status: String)(using PlanContext): IO[Unit] = {
+  private def deleteRoom(roomID: String)(using PlanContext): IO[Unit] = {
     val sql = s"""
-      UPDATE ${schemaName}.match_room_table
-      SET status = ?
+      DELETE FROM ${schemaName}.match_room_table
       WHERE room_id = ?;
     """
 
     writeDB(sql, List(
-      SqlParameter("String", status),
       SqlParameter("String", roomID)
     )).map(_ => ())
   }
@@ -180,4 +156,4 @@ case class FindOrCreateMatchRoomMessagePlanner(
       SqlParameter("String", userID)
     )).map(_ => ())
   }
-} 
+}

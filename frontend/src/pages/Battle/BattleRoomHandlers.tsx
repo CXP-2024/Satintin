@@ -20,6 +20,7 @@ import { webSocketHandles } from '../../services/WebsocketHandles';
 import { SoundUtils } from 'utils/soundUtils';
 import { setUserInfoField } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
+import { GetBattleRoomIdSync } from '../../components/battle/GetBattleRoomId';
 
 /**
  * BattleRoom 业务逻辑处理钩子
@@ -53,23 +54,26 @@ export const useBattleRoomHandlers = (
 	 */
 	const initializeConnection = async () => {
 		try {
-			// 生成或获取房间ID（实际应用中可能从路由参数获取）
-			const battleRoomId = new URLSearchParams(window.location.search).get('roomId') ||
-				`room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-			setRoomId(battleRoomId);
-			console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
+			// 设置为连接中状态
+			setIsConnecting(true);
+			
+			// 使用同步方式获取房间ID
+			GetBattleRoomIdSync(user, async (battleRoomId) => {
+				setRoomId(battleRoomId);
+				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
 
-			// 连接WebSocket
-			await webSocketService.connect(battleRoomId, user.userID, user.userName);
-			setConnectionStatus(true);
-			setIsConnecting(false);
-			setRoomStatus('waiting');
-			setLastRoundResult(null); // 清除上次回合结果
+				// 连接WebSocket
+				await webSocketService.connect(battleRoomId, user.userID, user.userName);
+				setConnectionStatus(true);
+				setIsConnecting(false);
+				setRoomStatus('waiting');
+				setLastRoundResult(null); // 清除上次回合结果
 
-			// 设置事件监听器
-			console.log('🔌 [BattleRoom] 设置事件监听器');
-			webSocketHandles.setupWebSocketListeners(setRoomStatus);
-			console.log('🎮 [BattleRoom] 事件监听器已设置');
+				// 设置事件监听器
+				console.log('🔌 [BattleRoom] 设置事件监听器');
+				webSocketHandles.setupWebSocketListeners(setRoomStatus);
+				console.log('🎮 [BattleRoom] 事件监听器已设置');
+			});
 		} catch (error) {
 			console.error('❌ [BattleRoom] 连接失败:', error);
 			setConnectionStatus(false, '连接失败，请重试');
