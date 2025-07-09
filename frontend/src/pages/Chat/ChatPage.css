@@ -115,6 +115,60 @@
     transform: scale(1.05);
 }
 
+/* Refresh button specific styles */
+.action-btn.refresh-chat {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn.refresh-chat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.action-btn.refresh-chat:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.action-btn.refresh-chat:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.action-btn.refresh-chat .refresh-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+    color: white;
+}
+
+.action-btn.refresh-chat.loading .refresh-icon {
+    animation: chatSpin 1s linear infinite;
+}
+
+.action-btn.refresh-chat:hover:not(:disabled) .refresh-icon {
+    transform: rotate(15deg);
+}
+
+@keyframes chatSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* 消息区域 */
 .chat-page-messages {
     flex: 1;
