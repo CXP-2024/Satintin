@@ -29,7 +29,7 @@ import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage
 import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 import { LoadBattleDeckMessage } from "Plugins/CardService/APIs/LoadBattleDeckMessage";
-import { useAlert } from '../components/common/AlertProvider';
+import { useAlert } from '../components/alert/AlertProvider';
 
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
@@ -89,7 +89,7 @@ const GameHomePage: React.FC = () => {
     const handleNavigateToBattle = () => {
         playClickSound();
         if (!userID) return;
-        
+
         // 检查原石数量是否足够
         const currentStones = user?.stoneAmount || 0;
         if (currentStones < 50) {

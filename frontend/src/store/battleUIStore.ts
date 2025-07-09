@@ -20,6 +20,7 @@ export interface BattleUIState {
 	currentGameOverResult: GameOverResult | null;
 
 	// Actions
+	setLastRoundResult: (result: RoundResult) => void; // 设置上一回合结果
 	showRoundResultModal: (result: RoundResult) => void;
 	hideRoundResultModal: () => void;
 	hideRoundResultTemporarily: () => void; // 暂时隐藏回合结果
@@ -49,6 +50,14 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 	currentGameOverResult: null,
 
 	// Actions
+	setLastRoundResult: (result: RoundResult) => {
+		console.log('📝 [BattleUIStore] 设置上一回合结果:', result);
+		set({ lastRoundResult: result });
+		if (!get().currentRoundResult) {
+			set({ currentRoundResult: result }); // 如果当前没有回合结果，则设置为上一回合结果
+		}
+	},
+
 	showRoundResultModal: (result: RoundResult) => {
 		console.log('📝 [BattleUIStore] 显示回合结果:', result);
 		setTimeout(() => {
