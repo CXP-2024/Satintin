@@ -112,6 +112,25 @@
     font-size: 8px;
 }
 
+.chatbox-auto-refresh-indicator {
+    color: #22c55e !important;
+    font-size: 12px !important;
+    margin-left: 4px !important;
+    animation: chatboxAutoRefreshBlink 1.5s ease-in-out infinite !important;
+}
+
+@keyframes chatboxAutoRefreshBlink {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
 .chatbox-floating-actions {
     display: flex;
     gap: 6px;
@@ -195,6 +214,48 @@
 
 .chatbox-battle-refresh-btn:hover:not(:disabled) .refresh-icon {
     transform: rotate(15deg) !important;
+}
+
+/* Auto refresh button styles */
+.chatbox-battle-auto-refresh-btn {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.chatbox-battle-auto-refresh-btn.active {
+    background: rgba(34, 197, 94, 0.3) !important;
+    color: #22c55e !important;
+}
+
+.chatbox-battle-auto-refresh-btn.active::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(45deg, transparent 30%, rgba(34, 197, 94, 0.2) 50%, transparent 70%) !important;
+    animation: chatboxAutoRefreshPulse 2s ease-in-out infinite !important;
+}
+
+.chatbox-battle-auto-refresh-btn:hover {
+    background: rgba(34, 197, 94, 0.4) !important;
+}
+
+.chatbox-battle-auto-refresh-btn:not(.active):hover {
+    background: rgba(239, 68, 68, 0.3) !important;
+}
+
+@keyframes chatboxAutoRefreshPulse {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
 }
 
 @keyframes chatboxFloatingSpin {

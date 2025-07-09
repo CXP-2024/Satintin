@@ -12,7 +12,10 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [newMessage, setNewMessage] = useState('');
 	const [isRefreshing, setIsRefreshing] = useState(false);
+	const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+	const [lastMessageCount, setLastMessageCount] = useState(0);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const autoRefreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 	// 加载真实的聊天数据
 	useEffect(() => {
@@ -20,6 +23,39 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 			loadChatHistory();
 		}
 	}, [isVisible, friendId, friendName]);
+
+	// 自动刷新定时器
+	useEffect(() => {
+		if (isVisible && autoRefreshEnabled && friendId && friendName) {
+			// 启动定时器
+			autoRefreshIntervalRef.current = setInterval(() => {
+				loadChatHistoryQuietly();
+			}, 1000); // 每1秒刷新一次
+
+			return () => {
+				// 清理定时器
+				if (autoRefreshIntervalRef.current) {
+					clearInterval(autoRefreshIntervalRef.current);
+					autoRefreshIntervalRef.current = null;
+				}
+			};
+		} else {
+			// 停止定时器
+			if (autoRefreshIntervalRef.current) {
+				clearInterval(autoRefreshIntervalRef.current);
+				autoRefreshIntervalRef.current = null;
+			}
+		}
+	}, [isVisible, autoRefreshEnabled, friendId, friendName]);
+
+	// 组件卸载时清理定时器
+	useEffect(() => {
+		return () => {
+			if (autoRefreshIntervalRef.current) {
+				clearInterval(autoRefreshIntervalRef.current);
+			}
+		};
+	}, []);
 
 	// 加载聊天历史记录
 	const loadChatHistory = async () => {
@@ -42,8 +78,24 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 		}
 	};
 
+	// 静默加载聊天历史记录（不显示加载状态）
+	const loadChatHistoryQuietly = async () => {
+		if (isRefreshing) return; // 如果正在手动刷新，跳过自动刷新
+
+		try {
+			const userID = getUserInfo().userID;
+			if (!userID) {
+				return;
+			}
+
+			await loadChatHistoryFromAPI(userID, true);
+		} catch (error) {
+			console.error('自动刷新聊天记录出错:', error);
+		}
+	};
+
 	// 从API加载聊天历史记录
-	const loadChatHistoryFromAPI = async (userID: string) => {
+	const loadChatHistoryFromAPI = async (userID: string, isQuiet: boolean = false) => {
 		return new Promise<void>((resolve, reject) => {
 			new GetChatHistoryMessage(userID, friendId).send(
 				(responseText: string) => {
@@ -51,7 +103,9 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 						const response = JSON.parse(responseText);
 
 						if (!Array.isArray(response)) {
-							console.error('响应数据不是数组格式:', response);
+							if (!isQuiet) {
+								console.error('响应数据不是数组格式:', response);
+							}
 							setMessages([]);
 							resolve();
 							return;
@@ -66,16 +120,30 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 							timestamp: new Date(msg.messageTime),
 							isCurrentUser: msg.messageSource === currentUserID
 						}));
+
+						// 检查是否有新消息
+						if (isQuiet && convertedMessages.length > lastMessageCount) {
+							// 只在有新消息时才滚动到底部
+							setTimeout(() => {
+								messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+							}, 100);
+						}
+
 						setMessages(convertedMessages);
+						setLastMessageCount(convertedMessages.length);
 						resolve();
 					} catch (parseError) {
-						console.error('解析聊天记录失败:', parseError, '原始响应:', responseText);
+						if (!isQuiet) {
+							console.error('解析聊天记录失败:', parseError, '原始响应:', responseText);
+						}
 						setMessages([]);
 						reject(parseError);
 					}
 				},
 				(error: string) => {
-					console.error('加载聊天记录失败:', error);
+					if (!isQuiet) {
+						console.error('加载聊天记录失败:', error);
+					}
 					setMessages([]);
 					reject(error);
 				}
@@ -152,15 +220,34 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 		}
 	};
 
+	// 切换自动刷新状态
+	const toggleAutoRefresh = () => {
+		setAutoRefreshEnabled(prev => !prev);
+	};
+
+	// 启用自动刷新
+	const enableAutoRefresh = () => {
+		setAutoRefreshEnabled(true);
+	};
+
+	// 禁用自动刷新
+	const disableAutoRefresh = () => {
+		setAutoRefreshEnabled(false);
+	};
+
 	return {
 		messages,
 		newMessage,
 		setNewMessage,
 		isRefreshing,
+		autoRefreshEnabled,
 		messagesEndRef,
 		handleRefreshChat,
 		scrollToBottom,
 		handleSendMessage,
-		handleKeyPress
+		handleKeyPress,
+		toggleAutoRefresh,
+		enableAutoRefresh,
+		disableAutoRefresh
 	};
 };

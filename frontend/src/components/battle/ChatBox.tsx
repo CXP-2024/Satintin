@@ -29,11 +29,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, friendName, onClose, isVisi
         newMessage,
         setNewMessage,
         isRefreshing,
+        autoRefreshEnabled,
         messagesEndRef,
         handleRefreshChat,
         scrollToBottom,
         handleSendMessage,
-        handleKeyPress
+        handleKeyPress,
+        toggleAutoRefresh,
+        enableAutoRefresh,
+        disableAutoRefresh
     } = useChatBoxMessages(friendId, friendName, isVisible);
 
     // 滚动到底部
@@ -73,15 +77,29 @@ const ChatBox: React.FC<ChatBoxProps> = ({ friendId, friendName, onClose, isVisi
                         </div>
                         <div className="chatbox-floating-friend-details">
                             <h4>{friendName}</h4>
-                            <span className="chatbox-floating-online-status">在线</span>
+                            <span className="chatbox-floating-online-status">
+                                在线
+                                {autoRefreshEnabled && (
+                                    <span className="chatbox-auto-refresh-indicator" title="自动刷新已启用">
+                                        •
+                                    </span>
+                                )}
+                            </span>
                         </div>
                     </div>
                     <div className="chatbox-floating-actions">
                         <button
+                            className={`chatbox-battle-action-btn chatbox-battle-auto-refresh-btn ${autoRefreshEnabled ? 'active' : ''}`}
+                            onClick={toggleAutoRefresh}
+                            title={autoRefreshEnabled ? '关闭自动刷新' : '开启自动刷新'}
+                        >
+                            {autoRefreshEnabled ? '🔄' : '⏸️'}
+                        </button>
+                        <button
                             className={`chatbox-battle-action-btn chatbox-battle-refresh-btn ${isRefreshing ? 'loading' : ''}`}
                             onClick={handleRefreshChat}
                             disabled={isRefreshing}
-                            title="刷新聊天记录"
+                            title="手动刷新聊天记录"
                         >
                             <svg
                                 className="refresh-icon"

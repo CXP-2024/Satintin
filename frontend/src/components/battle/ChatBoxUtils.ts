@@ -62,3 +62,33 @@ export const truncateMessage = (content: string, maxLength: number = 100): strin
 export const getMessagePreview = (content: string): string => {
 	return truncateMessage(content.replace(/\n/g, ' '), 50);
 };
+
+/**
+ * 检查消息是否需要通知
+ */
+export const shouldNotifyNewMessage = (newCount: number, oldCount: number): boolean => {
+	return newCount > oldCount && oldCount > 0;
+};
+
+/**
+ * 格式化自动刷新状态文本
+ */
+export const getAutoRefreshStatusText = (enabled: boolean): string => {
+	return enabled ? '自动刷新已启用' : '自动刷新已禁用';
+};
+
+/**
+ * 获取距离上次刷新的时间
+ */
+export const getTimeSinceLastRefresh = (lastRefreshTime: Date): string => {
+	const now = new Date();
+	const diffInSeconds = Math.floor((now.getTime() - lastRefreshTime.getTime()) / 1000);
+
+	if (diffInSeconds < 60) {
+		return `${diffInSeconds}秒前`;
+	} else if (diffInSeconds < 3600) {
+		return `${Math.floor(diffInSeconds / 60)}分钟前`;
+	} else {
+		return `${Math.floor(diffInSeconds / 3600)}小时前`;
+	}
+};
