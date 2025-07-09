@@ -6,6 +6,7 @@
  */
 
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 export class ValidateUserTokenMessage extends TongWenMessage {
     constructor(
@@ -15,6 +16,6 @@ export class ValidateUserTokenMessage extends TongWenMessage {
     }
 
    getAddress(): string {
-        return "127.0.0.1:10010"
+       return ServiceConfig.getCardServiceAddress()
     }
 }

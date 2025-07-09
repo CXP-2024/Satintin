@@ -5,6 +5,7 @@
  * @return userID: String (用户的唯一标识ID，如果用户不存在则抛出异常)
  */
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
+import {ServiceConfig} from "Globals/ServiceConfig";
 
 
 
@@ -15,6 +16,6 @@ export class QueryIDByUserNameMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return "127.0.0.1:10010"
+        return ServiceConfig.getCardServiceAddress()
     }
 }
