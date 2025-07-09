@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './UserProfile.css';
-import clickSound from '../../assets/sound/yingxiao.mp3';
+import clickSound from '../../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, getUserToken, getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import {
@@ -18,8 +18,8 @@ import {
 	handleTabSwitch,
 	getRankColor
 } from './UserProfileHandles';
-import FriendsList from './FriendsList';
-import BlockedList from './BlockedList';
+import FriendsList from '../FriendsList';
+import BlockedList from '../BlockedList';
 
 interface UserProfileProps {
 	isOpen: boolean;

@@ -13,6 +13,8 @@ import ShopPage from "../pages/Asset/ShopPage";
 import AdminDashboardPage from "../pages/Admin/AdminDashboardPage";
 import AdminRegisterPage from "../pages/Admin/AdminRegisterPage";
 import { useUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import ChatBox from './gameHome/ChatBox';
+import ChatPage from 'pages/Chat/ChatPage';
 
 // 内部路由组件，用于监听路由变化
 const RouterContent: React.FC = () => {
@@ -171,6 +173,20 @@ const RouterContent: React.FC = () => {
 					isAuthenticated ? (
 						(() => {
 							return <ShopPage />;
+						})()
+					) : (
+						(() => {
+							return <Navigate to="/login" replace />;
+						})()
+					)
+				}
+			/>
+			<Route
+				path="/chat"
+				element={
+					isAuthenticated ? (
+						(() => {
+							return <ChatPage />;
 						})()
 					) : (
 						(() => {

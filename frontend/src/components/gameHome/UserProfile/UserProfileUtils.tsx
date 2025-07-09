@@ -1,11 +1,11 @@
 // 主要的用户资料工具函数 - 重构后的协调器
 
 import { UserProfileState, FriendEntry } from "./UserProfileTypes";
-import { refreshUserInfo } from "./UserInfoService";
-import { shouldSkipValidationCheck, updateValidationCache, clearFriendValidationCache } from "./CacheService";
-import { validateMultipleUsersExist } from "./UserValidationService";
-import { parseFriendListToArray, filterValidFriendEntries, fetchFriendsDetailedInfo } from "./FriendService";
-import { fetchBlockedData } from "./BlockedUserService";
+import { refreshUserInfo } from "../UserInfoService";
+import { shouldSkipValidationCheck, updateValidationCache, clearFriendValidationCache } from "../CacheService";
+import { validateMultipleUsersExist } from "../UserValidationService";
+import { parseFriendListToArray, filterValidFriendEntries, fetchFriendsDetailedInfo } from "../FriendService";
+import { fetchBlockedData } from "../BlockedUserService";
 
 // 重新导出常用函数和类型
 export { refreshUserInfo, clearFriendValidationCache, fetchBlockedData };

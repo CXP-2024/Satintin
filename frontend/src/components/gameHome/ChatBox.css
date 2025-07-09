@@ -1,0 +1,412 @@
+/* 聊天框样式 */
+.chatbox-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.chatbox-container {
+    width: 800px;
+    height: 850px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+    border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 聊天框头部 */
+.chatbox-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 24px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+}
+
+.chatbox-friend-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chatbox-avatar {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 22px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.chatbox-friend-details h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.online-status {
+    font-size: 14px;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.online-status::before {
+    content: '●';
+    color: #4ade80;
+    font-size: 10px;
+}
+
+.chatbox-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chatbox-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* 消息区域 */
+.chatbox-messages {
+    flex: 1;
+    padding: 25px;
+    overflow-y: auto;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.chatbox-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chatbox-messages::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.chatbox-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.chatbox-messages::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.message-date {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    margin: 16px 0 8px 0;
+    position: relative;
+}
+
+.message-date::before,
+.message-date::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: #e2e8f0;
+}
+
+.message-date::before {
+    left: 0;
+}
+
+.message-date::after {
+    right: 0;
+}
+
+.message {
+    max-width: 80%;
+    margin-bottom: 8px;
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.message-sent {
+    align-self: flex-end;
+}
+
+.message-received {
+    align-self: flex-start;
+}
+
+.message-content {
+    padding: 16px 20px;
+    border-radius: 20px;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.message-sent .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 6px;
+}
+
+.message-received .message-content {
+    background: white;
+    color: #1e293b;
+    border: 1px solid #e2e8f0;
+    border-bottom-left-radius: 6px;
+}
+
+.message-time {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 6px;
+    text-align: right;
+}
+
+.message-received .message-time {
+    text-align: left;
+}
+
+/* 输入区域 */
+.chatbox-input {
+    background: white;
+    border-top: 1px solid #e2e8f0;
+    padding: 25px;
+}
+
+.input-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.message-input {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid #e2e8f0;
+    border-radius: 24px;
+    resize: none;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.6;
+    outline: none;
+    transition: border-color 0.2s ease;
+    max-height: 140px;
+}
+
+.message-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.message-input::placeholder {
+    color: #94a3b8;
+}
+
+.send-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 16px 28px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.send-btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    .chatbox-container {
+        width: 700px;
+        height: 800px;
+    }
+}
+
+@media (max-width: 900px) {
+    .chatbox-container {
+        width: 90vw;
+        height: 85vh;
+        max-width: 600px;
+    }
+    
+    .chatbox-header {
+        padding: 20px 24px;
+    }
+    
+    .chatbox-messages {
+        padding: 20px;
+    }
+    
+    .chatbox-input {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chatbox-container {
+        width: 95vw;
+        height: 90vh;
+        margin: 5vh 2.5vw;
+    }
+    
+    .chatbox-header {
+        padding: 16px 20px;
+    }
+    
+    .chatbox-messages {
+        padding: 16px;
+    }
+    
+    .chatbox-input {
+        padding: 16px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+}
+
+@media (max-width: 480px) {
+    .chatbox-container {
+        width: 95vw;
+        height: 90vh;
+        margin: 5vh 2.5vw;
+    }
+    
+    .chatbox-header {
+        padding: 12px 16px;
+    }
+    
+    .chatbox-messages {
+        padding: 12px;
+    }
+    
+    .chatbox-input {
+        padding: 12px;
+    }
+    
+    .message {
+        max-width: 85%;
+    }
+    
+    .chatbox-avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .chatbox-friend-details h3 {
+        font-size: 16px;
+    }
+}
+
+/* 暗黑模式支持 */
+@media (prefers-color-scheme: dark) {
+    .chatbox-container {
+        background: #1e293b;
+        color: #f1f5f9;
+    }
+    
+    .chatbox-messages {
+        background: #0f172a;
+    }
+    
+    .message-received .message-content {
+        background: #334155;
+        color: #f1f5f9;
+        border-color: #475569;
+    }
+    
+    .chatbox-input {
+        background: #1e293b;
+        border-top-color: #475569;
+    }
+    
+    .message-input {
+        background: #334155;
+        color: #f1f5f9;
+        border-color: #475569;
+    }
+    
+    .message-input::placeholder {
+        color: #64748b;
+    }
+}

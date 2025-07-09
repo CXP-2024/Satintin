@@ -1,7 +1,7 @@
 // 好友服务
 
 import { GetUserInfoMessage } from "Plugins/UserService/APIs/GetUserInfoMessage";
-import { FriendInfo, FriendEntry } from "./UserProfileTypes";
+import { FriendInfo, FriendEntry } from "./UserProfile/UserProfileTypes";
 
 // 获取好友详细信息（假设用户已经通过轻量级验证存在）
 export const fetchFriendInfo = async (friendID: string): Promise<FriendInfo | null> => {
