@@ -37,11 +37,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 	const [addFriendID, setAddFriendID] = useState('');
 	const [friendsLoadingStatus, setFriendsLoadingStatus] = useState<string>('');
 	const [isRefreshingFriends, setIsRefreshingFriends] = useState(false);
+	const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
 	// 创建刷新用户信息的函数
-	const handleRefreshUserInfo = async () => {
+	const handleRefreshUserInfo = async (quiet = false) => {
 		try {
-			await refreshUserInfo();
+			await refreshUserInfo(quiet);
 			// 刷新后重新获取好友和黑名单数据
 			const updatedUser = getUserInfo();
 			if (updatedUser.userID) {
@@ -51,7 +52,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 					setBlockedData,
 					setLoading,
 					setFriendsLoadingStatus,
-					refreshUserInfo: handleRefreshUserInfo
+					refreshUserInfo: () => handleRefreshUserInfo(quiet)
 				};
 				fetchFriendsData(userProfileState);
 				fetchBlockedData(userProfileState);
@@ -63,7 +64,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 
 	// 刷新好友列表的函数
 	const handleRefreshFriends = async () => {
-		if (isRefreshingFriends) return;
+		if (isRefreshingFriends) {
+			console.log('🔄 Refresh already in progress, skipping...');
+			return;
+		}
 		
 		setIsRefreshingFriends(true);
 		try {
@@ -98,6 +102,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 		} catch (error) {
 			console.error('❌ Failed to refresh friends list:', error);
 			setFriendsLoadingStatus('刷新失败，请重试');
+			// 清除错误状态
+			setTimeout(() => setFriendsLoadingStatus(''), 3000);
 		} finally {
 			setIsRefreshingFriends(false);
 		}
@@ -161,6 +167,31 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
+
+	// 自动刷新定时器
+	useEffect(() => {
+		if (!isOpen || !autoRefreshEnabled) {
+			return;
+		}
+
+		console.log('🔄 Starting auto-refresh timer (every 1 second)');
+		
+		const intervalId = setInterval(async () => {
+			// 只在好友列表标签页且没有正在刷新时才自动刷新
+			if (activeTab === 'friends' && !isRefreshingFriends && !loading) {
+				console.log('⏰ Auto-refreshing friends list...');
+				const currentTime = new Date().toLocaleTimeString();
+				setFriendsLoadingStatus(`🔄 自动刷新 ${currentTime}`);
+				await handleRefreshFriends();
+			}
+		}, 1000); // 每1秒刷新一次
+
+		// 清理定时器
+		return () => {
+			console.log('🛑 Clearing auto-refresh timer');
+			clearInterval(intervalId);
+		};
+	}, [isOpen, autoRefreshEnabled, activeTab, isRefreshingFriends, loading]);
 
 	if (!isOpen) return null;
 
@@ -258,6 +289,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 								onRefreshFriends={handleRefreshFriends}
 								isRefreshing={isRefreshingFriends}
 								onOpenChatBox={onOpenChatBox}
+								autoRefreshEnabled={autoRefreshEnabled}
+								setAutoRefreshEnabled={setAutoRefreshEnabled}
 							/>
 
 							{/* 黑名单页面 */}
