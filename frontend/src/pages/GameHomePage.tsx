@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import { useUserSearch } from '../hooks/useUserSearch';
-import { useCardCount } from '../hooks/useCardCount';
+import { usePageTransition } from '../components/usePageTransition';
+import { useUserSearch } from '../components/gameHome/useUserSearch';
+import { useCardCount } from '../components/gameHome/useCardCount';
 import PageTransition from '../components/PageTransition';
 import UserProfile from '../components/gameHome/UserProfile';
 import RewardModal from '../components/gameHome/RewardModal';
 import AlreadyClaimedModal from '../components/gameHome/AlreadyClaimedModal';
 import GameHeader from '../components/gameHome/GameHeader';
 import UserStats from '../components/gameHome/UserStats';
-import MainActions from '../components/MainActions';
-import QuickInfo from '../components/QuickInfo';
-import SearchUserModal from '../components/SearchUserModal';
+import MainActions from '../components/gameHome/MainActions';
+import QuickInfo from '../components/gameHome/QuickInfo';
+import SearchUserModal from '../components/gameHome/SearchUserModal';
 import './GameHomePage.css';
 import clickSound from '../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -23,7 +23,7 @@ import {
 	getUserToken,
 	setUserInfoField
 } from "Plugins/CommonUtils/Store/UserInfoStore";
-import { autoLogoutManager } from '../utils/autoLogout';
+import { autoLogoutManager } from 'utils/autoLogout';
 import { GetAssetTransactionMessage } from "Plugins/AssetService/APIs/GetAssetTransactionMessage";
 import { RewardAssetMessage } from "Plugins/AssetService/APIs/RewardAssetMessage";
 import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction";

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import PageTransition from '../components/PageTransition';
-import { RegisterFormData } from '../types/User';
+import PageTransition from '../../components/PageTransition';
+import { RegisterFormData } from '../../types/User';
 import './RegisterPage.css';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";

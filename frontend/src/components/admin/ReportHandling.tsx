@@ -8,20 +8,10 @@ import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage'
 import { User } from 'Plugins/UserService/Objects/User';
 import ReportModal from './ReportModal';
 import { playClickSound, getAdminToken } from './reportUtils';
-
-// 更新接口定义
-interface ReportHandlingProps {
-  searchTerm: string;
-  reports: CheatingReport[];
-  loading: boolean;
-  error: string | null;
-  onRefresh: () => void;
-  onReportUpdated: () => void;
-}
-
-interface UserNameCache {
-  [key: string]: string;
-}
+import { ReportHandlingProps } from './types';
+import { useUserNameCache } from './hooks/useUserNameCache';
+import { usePagination } from './hooks/usePagination';
+import { handleResolveReport, handleBanPlayer } from './utils/reportHandlingUtils';
 
 const ReportHandling: React.FC<ReportHandlingProps> = ({ 
   searchTerm, 
@@ -34,76 +24,22 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
   const [selectedReport, setSelectedReport] = useState<CheatingReport | null>(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isReportModalClosing, setIsReportModalClosing] = useState(false);
-  const [userNameCache, setUserNameCache] = useState<UserNameCache>({});
-
-  // 分页状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10); // 每页显示10条记录
-
-  // 获取用户名的函数
-  const fetchUserName = async (userID: string) => {
-    if (userNameCache[userID]) {
-      return userNameCache[userID];
-    }
-
-    return new Promise<string>((resolve) => {
-      new GetUserInfoMessage(userID).send(
-        (response: string) => {
-          try {
-            let userData: any = response;
-            if (typeof response === 'string') {
-              userData = JSON.parse(response);
-              if (typeof userData === 'string') {
-                userData = JSON.parse(userData);
-              }
-            }
-
-            const userObj = new User(
-              userData.userID,
-              userData.userName,
-              userData.passwordHash,
-              userData.email,
-              userData.phoneNumber,
-              userData.registerTime,
-              userData.permissionLevel,
-              userData.banDays,
-              userData.isOnline,
-              userData.matchStatus,
-              userData.stoneAmount,
-              userData.cardDrawCount,
-              userData.rank,
-              userData.rankPosition,
-              userData.friendList,
-              userData.blackList,
-              userData.messageBox
-            );
-
-            setUserNameCache(prev => ({
-              ...prev,
-              [userID]: userObj.userName
-            }));
-            resolve(userObj.userName);
-          } catch (error) {
-            console.error(`❌ [ReportHandling] 解析用户${userID}信息失败:`, error);
-            resolve(userID); // 如果获取失败，显示 userID
-          }
-        },
-        (error: any) => {
-          console.error(`❌ [ReportHandling] 获取用户${userID}信息失败:`, error);
-          resolve(userID); // 如果获取失败，显示 userID
-        }
-      );
-    });
-  };
+  
+  const { userNameCache, fetchUserName } = useUserNameCache();
+  const { 
+    currentPage, 
+    setCurrentPage, 
+    totalPages, 
+    currentReports 
+  } = usePagination({ 
+    reports, 
+    searchTerm, 
+    userNameCache 
+  });
 
   // 加载当前页面所有用户的用户名
   useEffect(() => {
     const loadUserNames = async () => {
-      const currentReports = filteredReports.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      );
-
       const userIDs = new Set<string>();
       currentReports.forEach(report => {
         userIDs.add(report.reportingUserID);
@@ -135,79 +71,30 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
     }, 300); // 动画持续时间
   };
 
-  const handleResolveReport = (reportId: string, isResolved: boolean = true) => {
-    playClickSound(SoundUtils);
-    console.log(`🛡️ [ReportHandling] 更新举报状态 ${reportId}, isResolved: ${isResolved}`);
-    
-    const adminToken = getAdminToken(getUserToken);
-    
-    if (!adminToken) {
-      console.error('❌ [ReportHandling] 管理员token不存在');
-      return;
-    }
-
-    new ManageReportMessage(adminToken, reportId, isResolved).send(
-      (response: string) => {
-        console.log('✅ [ReportHandling] 举报状态更新成功:', response);
+  const handleResolveReportClick = (reportId: string, isResolved: boolean = true) => {
+    handleResolveReport(
+      reportId, 
+      isResolved, 
+      () => {
         handleCloseReportModal();
-        onReportUpdated(); // 通知父组件刷新数据
-      },
-      (error: any) => {
-        console.error('❌ [ReportHandling] 举报状态更新失败:', error);
+        onReportUpdated();
       }
     );
   };
 
-  const handleBanPlayer = (playerId: string, days: number) => {
-    playClickSound(SoundUtils);
-    console.log(`🔨 [ReportHandling] 封禁玩家 ${playerId} ${days}天`);
-    
-    const adminToken = getAdminToken(getUserToken);
-
-    new BanUserMessage(adminToken, playerId, days).send(
-      (response: string) => {
-        console.log('✅ [ReportHandling] 玩家封禁成功:', response);
-        
-        // 封禁成功后，自动将相关举报标记为已处理
+  const handleBanPlayerClick = (playerId: string, days: number) => {
+    handleBanPlayer(
+      playerId, 
+      days, 
+      () => {
         if (selectedReport) {
-          handleResolveReport(selectedReport.reportID, true);
+          handleResolveReportClick(selectedReport.reportID, true);
         } else {
           handleCloseReportModal();
         }
-      },
-      (error: any) => {
-        console.error('❌ [ReportHandling] 玩家封禁失败:', error);
       }
     );
   };
-
-  // 过滤举报列表 - 使用正确的属性名和用户名缓存
-  const filteredReports = reports.filter(report => {
-    const reportingUserName = userNameCache[report.reportingUserID] || report.reportingUserID;
-    const reportedUserName = userNameCache[report.reportedUserID] || report.reportedUserID;
-    
-    return reportingUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           reportedUserName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           report.reportReason.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  // 计算总页数
-  const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
-
-  // 确保当前页码在有效范围内
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    } else if (currentPage < 1) {
-      setCurrentPage(1);
-    }
-  }, [currentPage, totalPages]);
-
-  // 获取当前页的数据
-  const currentReports = filteredReports.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   // 处理页码变化
   const handlePageChange = (pageNumber: number) => {
@@ -280,8 +167,7 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
                 </td>
               </tr>
             ))}
-            {/* 如果当前页不足10条数据，添加空行保持表格高度一致 */}
-            {currentReports.length < itemsPerPage && Array(itemsPerPage - currentReports.length).fill(0).map((_, index) => (
+            {currentReports.length < 10 && Array(10 - currentReports.length).fill(0).map((_, index) => (
               <tr key={`empty-${index}`} style={{ height: '60px' }}>
                 <td colSpan={7}></td>
               </tr>
@@ -325,8 +211,8 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
           selectedReport={selectedReport}
           isReportModalClosing={isReportModalClosing}
           handleCloseReportModal={handleCloseReportModal}
-          handleResolveReport={handleResolveReport}
-          handleBanPlayer={handleBanPlayer}
+          handleResolveReport={handleResolveReportClick}
+          handleBanPlayer={handleBanPlayerClick}
           userNameCache={userNameCache}
         />
       )}

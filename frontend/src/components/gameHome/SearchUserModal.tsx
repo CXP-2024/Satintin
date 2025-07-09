@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './SearchUserModal.css';
-import UserReportModal from './UserReportModal';
+import UserReportModal from '../battle/UserReportModal';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 

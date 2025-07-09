@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { usePageTransition } from '../hooks/usePageTransition';
-import PageTransition from '../components/PageTransition';
-import BannerSelector from '../components/wish/BannerSelector';
-import CharacterShowcase from '../components/wish/CharacterShowcase';
-import WishInfoPanel from '../components/wish/WishInfoPanel';
-import HistoryModal from '../components/wish/HistoryModal';
-import RulesModal from '../components/wish/RulesModal';
-import { useWishLogic } from '../hooks/useWishLogic';
-import { bannerConfig } from '../config/bannerConfig';
+import { usePageTransition } from '../../components/usePageTransition';
+import PageTransition from '../../components/PageTransition';
+import BannerSelector from '../../components/wish/BannerSelector';
+import CharacterShowcase from '../../components/wish/CharacterShowcase';
+import WishInfoPanel from '../../components/wish/WishInfoPanel';
+import HistoryModal from '../../components/wish/HistoryModal';
+import RulesModal from '../../components/wish/RulesModal';
+import { useWishLogic } from '../../components/wish/useWishLogic';
+import { bannerConfig } from '../../components/wish/bannerConfig';
 import './WishPage.css';
-import primogemIcon from '../assets/images/primogem-icon.png';
-import clickSound from '../assets/sound/yingxiao.mp3';
+import primogemIcon from '../../assets/images/primogem-icon.png';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 

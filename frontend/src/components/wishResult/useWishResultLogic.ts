@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { WishResult, DrawResultData, BackendCardEntry } from '../types/wishResult';
-import danziVideo from '../assets/videos/danzi.mp4';
-import danlanVideo from '../assets/videos/danlan.mp4';
-import danjinVideo from '../assets/videos/danjin.mp4';
-import shiziVideo from '../assets/videos/shizi.mp4';
-import shijinVideo from '../assets/videos/shijin.mp4';
+import { WishResult, DrawResultData, BackendCardEntry } from '../../types/wishResult';
+import danziVideo from '../../assets/videos/danzi.mp4';
+import danlanVideo from '../../assets/videos/danlan.mp4';
+import danjinVideo from '../../assets/videos/danjin.mp4';
+import shiziVideo from '../../assets/videos/shizi.mp4';
+import shijinVideo from '../../assets/videos/shijin.mp4';
 
 export const useWishResultLogic = () => {
 	const [wishResults, setWishResults] = useState<WishResult[]>([]);

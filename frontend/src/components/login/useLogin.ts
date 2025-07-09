@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useGlobalLoading } from '../../store/globalLoadingStore';
-import { usePageTransition } from '../../hooks/usePageTransition';
+import { usePageTransition } from '../usePageTransition';
 import { SoundUtils } from 'utils/soundUtils';
 import {
     getUserInfo,
