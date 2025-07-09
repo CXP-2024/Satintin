@@ -39,6 +39,7 @@ const BattleRoom: React.FC = () => {
 
 	const [isConnecting, setIsConnecting] = useState(true);
 	const [roomStatus, setRoomStatus] = useState<'connecting' | 'waiting' | 'ready' | 'playing'>('connecting');
+	const [hasCopied, setHasCopied] = useState(false);
 
 	// 初始化音效
 	useEffect(() => {
@@ -204,6 +205,9 @@ const BattleRoom: React.FC = () => {
 											navigator.clipboard.writeText(roomId || '')
 												.then(() => {
 													SoundUtils.playClickSound(0.5);
+													setHasCopied(true);
+													// 3秒后重置状态
+													setTimeout(() => setHasCopied(false), 3000);
 												})
 												.catch(err => {
 													console.error('❌ [BattleRoom] 复制房间ID失败:', err);
@@ -211,7 +215,7 @@ const BattleRoom: React.FC = () => {
 												});
 										}}
 									>
-										复制房间ID
+										{hasCopied ? '已复制 ✓' : '复制房间ID'}
 									</button>
 								</div>
 							</div>
