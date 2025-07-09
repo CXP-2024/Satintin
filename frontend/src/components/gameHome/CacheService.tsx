@@ -19,9 +19,15 @@ export const updateValidationCache = (): void => {
 
 // 强制清除验证缓存的函数（供外部调用）
 export const clearFriendValidationCache = (): void => {
+    const wasSkipping = shouldSkipValidation;
+    const timeSinceLastValidation = Date.now() - lastValidationTime;
+    
     shouldSkipValidation = false;
     lastValidationTime = 0;
+    
     console.log('🧹 Friend validation cache cleared');
+    console.log(`   - Was using cache: ${wasSkipping}`);
+    console.log(`   - Time since last validation: ${timeSinceLastValidation}ms`);
 };
 
 // 获取缓存持续时间

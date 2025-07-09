@@ -24,9 +24,10 @@ import BlockedList from '../BlockedList';
 interface UserProfileProps {
 	isOpen: boolean;
 	onClose: () => void;
+	onOpenChatBox?: (friend: FriendInfo) => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBox }) => {
 	const user = useUserInfo();
 	const [activeTab, setActiveTab] = useState<'friends' | 'blocked'>('friends');
 	const [isClosing, setIsClosing] = useState(false);
@@ -66,8 +67,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 		
 		setIsRefreshingFriends(true);
 		try {
-			// 清除缓存并重新获取好友数据
+			console.log('🔄 Starting friends refresh...');
+			
+			// 1. 首先清除验证缓存，确保重新验证
+			const { clearFriendValidationCache } = await import('./UserProfileUtils');
+			clearFriendValidationCache();
+			
+			// 2. 重新获取最新的用户信息（包括好友列表）
+			await handleRefreshUserInfo();
+			
+			// 3. 获取更新后的用户信息
 			const updatedUser = getUserInfo();
+			console.log('📝 Updated user info:', updatedUser);
+			console.log('📝 Updated friend list:', updatedUser.friendList);
+			
 			if (updatedUser.userID) {
 				const userProfileState: UserProfileState = {
 					user: updatedUser,
@@ -77,10 +90,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 					setFriendsLoadingStatus,
 					refreshUserInfo: handleRefreshUserInfo
 				};
-				await fetchFriendsData(userProfileState);
+				// 4. 重新获取好友数据（强制刷新）
+				await fetchFriendsData(userProfileState, true);
 			}
+			
+			console.log('✅ Friends refresh completed');
 		} catch (error) {
-			console.error('Failed to refresh friends list:', error);
+			console.error('❌ Failed to refresh friends list:', error);
+			setFriendsLoadingStatus('刷新失败，请重试');
 		} finally {
 			setIsRefreshingFriends(false);
 		}
@@ -240,6 +257,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 								handleState={handleState}
 								onRefreshFriends={handleRefreshFriends}
 								isRefreshing={isRefreshingFriends}
+								onOpenChatBox={onOpenChatBox}
 							/>
 
 							{/* 黑名单页面 */}

@@ -4,27 +4,6 @@ export interface LoginFormData {
 	password: string;
 }
 
-// 用户信息接口
-export interface UserInfo {
-	userID: string;
-	userName: string;
-	email: string;
-	phoneNumber: string;
-	registerTime: string;
-	permissionLevel: number;
-	banDays: number;
-	isOnline: boolean;
-	matchStatus: string;
-	stoneAmount: number;
-	cardDrawCount: number;
-	rank: string;
-	rankPosition: number;
-	friendList: any[];
-	blackList: any[];
-	messageBox: any[];
-	avatar: string;
-	realName: string;
-}
 
 // 登录响应接口
 export interface LoginResponse {

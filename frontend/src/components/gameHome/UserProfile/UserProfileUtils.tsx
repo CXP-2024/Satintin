@@ -14,10 +14,11 @@ export type { UserProfileState, FriendEntry, FriendInfo, BlockedUserInfo } from 
 // 批量验证用户存在性（带缓存控制）
 const validateFriendUsers = async (
     validEntries: FriendEntry[], 
-    setFriendsLoadingStatus: (status: string) => void
+    setFriendsLoadingStatus: (status: string) => void,
+    forceRefresh = false
 ): Promise<{ validUserIDs: string[], invalidUserIDs: string[] }> => {
     // 检查是否需要跳过验证（当最近刚验证过时）
-    if (shouldSkipValidationCheck()) {
+    if (!forceRefresh && shouldSkipValidationCheck()) {
         console.log('🚀 Skipping friend validation due to recent cache');
         setFriendsLoadingStatus('使用缓存的验证结果...');
         const allFriendIDs = validEntries.map(entry => entry.friendID);
@@ -62,9 +63,15 @@ const handleLoadingComplete = (
 };
 
 // 获取好友列表数据（重构版：分解为多个职责明确的函数）
-export const fetchFriendsData = async (state: UserProfileState): Promise<void> => {
+export const fetchFriendsData = async (state: UserProfileState, forceRefresh = false): Promise<void> => {
     const { user, setFriendsData, setLoading, setFriendsLoadingStatus } = state;
     const startTime = performance.now();
+
+    // 如果强制刷新，先清除缓存
+    if (forceRefresh) {
+        clearFriendValidationCache();
+        console.log('🧹 Force refresh: cache cleared');
+    }
 
     // 检查用户是否有好友列表
     if (!user?.friendList) {
@@ -97,7 +104,7 @@ export const fetchFriendsData = async (state: UserProfileState): Promise<void> =
         }
 
         // 3. 批量验证用户存在性（带缓存控制）
-        const { validUserIDs, invalidUserIDs } = await validateFriendUsers(validEntries, setFriendsLoadingStatus);
+        const { validUserIDs, invalidUserIDs } = await validateFriendUsers(validEntries, setFriendsLoadingStatus, forceRefresh);
 
         // 4. 获取有效用户的详细信息
         const validFriends = await fetchFriendsDetailedInfo(validUserIDs, setFriendsLoadingStatus);

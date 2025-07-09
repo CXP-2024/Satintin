@@ -5,6 +5,7 @@ import { BlockUserMessage } from "Plugins/UserService/APIs/BlockUserMessage";
 import { SoundUtils } from 'utils/soundUtils';
 import { FriendInfo, BlockedUserInfo, refreshUserInfo, clearFriendValidationCache } from './UserProfileUtils';
 import { showSuccess, showError, showInfo } from '../../../utils/alertUtils';
+import { checkUserExistsLightweight } from '../UserValidationService';
 
 // 定义 UserProfile 处理函数所需的状态类型
 export interface UserProfileHandleState {
@@ -33,6 +34,17 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
 
     setLoading(true);
     try {
+        // 首先检查要添加的用户是否存在
+        console.log('🔍 Checking if user exists before adding friend:', addFriendID.trim());
+        const userExists = await checkUserExistsLightweight(addFriendID.trim());
+        
+        if (!userExists) {
+            showError('用户不存在');
+            return;
+        }
+
+        console.log('✅ User exists, proceeding to add friend');
+
         await new Promise<string>((resolve, reject) => {
             new AddFriendMessage(user.userID, addFriendID.trim()).send(
                 (result) => resolve(result),
