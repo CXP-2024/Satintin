@@ -552,9 +552,20 @@
 	color: white;
 }
 
+.friend-action-btn.chat.green {
+	background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+	box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
 .friend-action-btn.chat:hover {
 	background: rgba(76, 175, 80, 1);
 	transform: scale(1.1);
+}
+
+.friend-action-btn.chat.green:hover {
+	background: linear-gradient(135deg, #43a047 0%, #5cb85c 100%);
+	box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+	transform: scale(1.15);
 }
 
 .friend-action-btn.invite {

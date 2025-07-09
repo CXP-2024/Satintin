@@ -13,6 +13,7 @@ import BattleRoom from '../pages/Battle/BattleRoom';
 import ShopPage from "../pages/ShopPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
 import AdminRegisterPage from "../pages/AdminRegisterPage";
+import ChatPage from "../pages/ChatPage";
 import { useUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 
 // 内部路由组件，用于监听路由变化
@@ -186,6 +187,20 @@ const RouterContent: React.FC = () => {
 					isAuthenticated ? (
 						(() => {
 							return <ShopPage />;
+						})()
+					) : (
+						(() => {
+							return <Navigate to="/login" replace />;
+						})()
+					)
+				}
+			/>
+			<Route
+				path="/chat"
+				element={
+					isAuthenticated ? (
+						(() => {
+							return <ChatPage />;
 						})()
 					) : (
 						(() => {

@@ -23,7 +23,7 @@ case class CreateCardTemplateMessagePlanner(
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[String] = {
-    for {、
+    for {
       // Step 2: Validate input parameters
       _ <- IO(logger.info("[Step 2] 验证输入参数"))
       _ <- validateInputs(cardName, rarity, description, cardType)

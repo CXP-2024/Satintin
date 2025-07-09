@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FriendInfo } from './UserProfileUtils';
 import { UserProfileHandleState, handleAddFriend, handleRemoveFriend, handleBlockUser, getStatusInfo, getRankColor } from './UserProfileHandles';
 
@@ -19,6 +20,16 @@ const FriendsList: React.FC<FriendsListProps> = ({
     friendsLoadingStatus,
     handleState
 }) => {
+    const navigate = useNavigate();
+
+    const openChat = (friend: FriendInfo) => {
+        navigate('/chat', {
+            state: {
+                friendId: friend.id,
+                friendName: friend.username
+            }
+        });
+    };
     return (
         <div className="content-panel friends-panel">
             <div className="friends-list">
@@ -69,9 +80,10 @@ const FriendsList: React.FC<FriendsListProps> = ({
                                     </div>
                                     <div className="friend-actions">
                                         <button 
-                                            className="friend-action-btn chat"
+                                            className="friend-action-btn chat green"
+                                            onClick={() => openChat(friend)}
                                             disabled={loading}
-                                            title="私聊功能暂未开放"
+                                            title="私聊"
                                         >
                                             💬
                                         </button>
