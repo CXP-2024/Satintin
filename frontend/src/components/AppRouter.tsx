@@ -8,7 +8,6 @@ import CardCollectionPage from '../pages/Card/CardCollectionPage';
 import WishPage from '../pages/Card/WishPage';
 import WishResultPage from '../pages/Card/WishResultPage';
 import BattleRulesPage from '../pages/Battle/BattleRulesPage';
-import BattleTestPage from '../pages/Battle/BattleTestPage';
 import BattleRoom from '../pages/Battle/BattleRoom';
 import ShopPage from "../pages/Asset/ShopPage";
 import AdminDashboardPage from "../pages/Admin/AdminDashboardPage";
@@ -144,20 +143,6 @@ const RouterContent: React.FC = () => {
 					isAuthenticated ? (
 						(() => {
 							return <BattleRoom />;
-						})()
-					) : (
-						(() => {
-							return <Navigate to="/login" replace />;
-						})()
-					)
-				}
-			/>
-			<Route
-				path="/battle-test"
-				element={
-					isAuthenticated ? (
-						(() => {
-							return <BattleTestPage />;
 						})()
 					) : (
 						(() => {
