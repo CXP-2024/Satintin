@@ -8,6 +8,7 @@ import ActionSelector from '../../components/battle/ActionSelector';
 import RoundResultModal from '../../components/battle/RoundResultModal';
 import { GameOverModal } from '../../components/battle/GameOverModal';
 import ReportModal from '../../components/battle/ReportModal'; // 导入举报模态框组件
+import ChatBox from '../../components/battle/ChatBox'; // 导入聊天框组件
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -40,6 +41,7 @@ const BattleRoom: React.FC = () => {
 	const [hasCopied, setHasCopied] = useState(false);
 	const [stonesUpdated, setStonesUpdated] = useState(false); // 标记是否已经更新过原石
 	const [rewardProcessed, setRewardProcessed] = useState(false); // 标记是否已经处理过奖励/扣除
+	const [showChatBox, setShowChatBox] = useState(false); // 聊天框显示状态
 
 	// 使用业务逻辑处理钩子
 	const {
@@ -77,6 +79,15 @@ const BattleRoom: React.FC = () => {
 		openReportModal,
 		submitReport
 	);
+
+	// 聊天相关处理函数
+	const handleChatClick = () => {
+		setShowChatBox(true);
+	};
+
+	const handleChatClose = () => {
+		setShowChatBox(false);
+	};
 
 	// 初始化音效
 	useEffect(() => {
@@ -235,6 +246,14 @@ const BattleRoom: React.FC = () => {
 											📊 上回合结果
 										</button>
 									)}
+									{opponent && opponent.playerId && (
+										<button
+											className="chat-with-opponent-btn"
+											onClick={handleChatClick}
+										>
+											💬 与对手聊天
+										</button>
+									)}
 									<button
 										className="report-opponent-btn"
 										onClick={handleInGameReport}
@@ -281,6 +300,16 @@ const BattleRoom: React.FC = () => {
 						isOpen={showReportModal}
 						onClose={closeReportModal}
 						onSubmit={handleReportSubmit}
+					/>
+				)}
+
+				{/* 聊天框 */}
+				{showChatBox && opponent && opponent.playerId && (
+					<ChatBox
+						friendId={opponent.playerId}
+						friendName={opponent.username}
+						onClose={handleChatClose}
+						isVisible={showChatBox}
 					/>
 				)}
 			</div>
