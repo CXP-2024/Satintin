@@ -6,17 +6,17 @@ import './ShopPage.css';
 import primogemIcon from '../../assets/images/primogem-icon.png';
 import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo, setUserInfoField} from "Plugins/CommonUtils/Store/UserInfoStore";
+import { useUserInfo, setUserInfoField } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { ChargeAssetMessage } from 'Plugins/AssetService/APIs/ChargeAssetMessage';
 import { QueryAssetStatusMessage } from 'Plugins/AssetService/APIs/QueryAssetStatusMessage';
-import { showSuccess } from 'utils/alertUtils';
+import { showError, showSuccess } from 'utils/alertUtils';
 
 const ShopPage: React.FC = () => {
     const user = useUserInfo();
-	const userID = user?.userID;
+    const userID = user?.userID;
     const { navigateWithTransition } = usePageTransition();
     const [rechargingIndex, setRechargingIndex] = useState<number | null>(null);
-    
+
     // 支付弹窗相关状态
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [currentPayment, setCurrentPayment] = useState<{
@@ -34,7 +34,7 @@ const ShopPage: React.FC = () => {
     // 播放按钮点击音效
     const playClickSound = () => {
         SoundUtils.playClickSound(0.5);
-    };    const handleBackToHome = () => {
+    }; const handleBackToHome = () => {
         console.log('🏠 [ShopPage] 返回游戏大厅');
         playClickSound();
         navigateWithTransition('/', '正在返回游戏大厅...');
@@ -50,7 +50,7 @@ const ShopPage: React.FC = () => {
                 );
             });
             console.log('AssetService raw response:', response);
-            
+
             let stoneAmount: number;
             if (typeof response === 'number') {
                 stoneAmount = response;
@@ -74,7 +74,7 @@ const ShopPage: React.FC = () => {
     const handleRecharge = async (amount: number, crystals: number, index: number) => {
         console.log(`💰 [ShopPage] 用户准备充值: ${amount}元, ${crystals}原石`);
         playClickSound();
-        
+
         // 设置当前支付信息并显示支付弹窗
         setCurrentPayment({ amount, crystals, index });
         setShowPaymentModal(true);
@@ -83,32 +83,29 @@ const ShopPage: React.FC = () => {
     // 处理支付完成
     const handlePaymentComplete = async () => {
         if (!currentPayment) return;
-        
+
         console.log(`💰 [ShopPage] 开始处理充值: ${currentPayment.amount}元, ${currentPayment.crystals}原石`);
         setIsProcessingPayment(true);
-        
+
         try {
             const result = await new Promise((resolve, reject) => {
                 new ChargeAssetMessage(userID, currentPayment.crystals).send(
                     (response: any) => response.error ? reject(new Error(response.error)) : resolve(response)
                 );
             });
-            
+
             console.log('充值成功:', result);
-            
+
             // 刷新用户资产
             await refreshUserAssets();
-            
+
             // 关闭弹窗
             setShowPaymentModal(false);
             setCurrentPayment(null);
-            
-            // 显示成功消息
-            showSuccess(`充值成功！获得 ${currentPayment.crystals} 原石`, '充值成功');
-            
+
         } catch (error) {
             console.error('充值失败:', error);
-            alert('充值失败，请重试');
+            // 这里可以显示错误提示，但成功不再使用showSuccess
         } finally {
             setIsProcessingPayment(false);
         }
@@ -191,7 +188,7 @@ const ShopPage: React.FC = () => {
                     </div>
                 </section>
             </main>
-            
+
             {/* 支付弹窗 */}
             {currentPayment && (
                 <PaymentModal
