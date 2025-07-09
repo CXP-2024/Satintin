@@ -24,9 +24,10 @@ import BlockedList from '../BlockedList';
 interface UserProfileProps {
 	isOpen: boolean;
 	onClose: () => void;
+	onOpenChatBox?: (friend: FriendInfo) => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
+const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBox }) => {
 	const user = useUserInfo();
 	const [activeTab, setActiveTab] = useState<'friends' | 'blocked'>('friends');
 	const [isClosing, setIsClosing] = useState(false);
@@ -240,6 +241,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
 								handleState={handleState}
 								onRefreshFriends={handleRefreshFriends}
 								isRefreshing={isRefreshingFriends}
+								onOpenChatBox={onOpenChatBox}
 							/>
 
 							{/* 黑名单页面 */}
