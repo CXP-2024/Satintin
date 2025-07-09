@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .response-container {
+            margin-top: 15px;
+        }
+        pre {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #22543d !important;
+            background-color: #c6f6d5 !important;
+        }
+        .error {
+            color: #822727 !important;
+            background-color: #fed7d7 !important;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .chat-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            background: white;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 70%;
+        }
+        .message-sent {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .message-received {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 聊天功能测试</h1>
+        
+        <div class="section">
+            <h3>🔐 用户登录设置</h3>
+            <input id="userToken" placeholder="用户Token (userID)" value="" />
+            <input id="friendID" placeholder="好友ID" value="" />
+            <button onclick="setUsers()">设置用户</button>
+            <div class="response-container">
+                <h4>状态:</h4>
+                <pre id="userStatus">请设置用户Token和好友ID</pre>
+            </div>
+        </div>
+
+        <div class="two-column">
+            <div class="section">
+                <h3>📤 发送消息</h3>
+                <textarea id="messageContent" placeholder="输入消息内容..." rows="3"></textarea>
+                <button onclick="sendMessage()">发送消息</button>
+                <div class="response-container">
+                    <h4>发送结果:</h4>
+                    <pre id="sendOutput"></pre>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📥 获取聊天记录</h3>
+                <button onclick="getChatHistory()">刷新聊天记录</button>
+                <button onclick="clearChat()">清空显示</button>
+                <div class="response-container">
+                    <h4>聊天记录:</h4>
+                    <div id="chatContainer" class="chat-container">
+                        <div style="text-align: center; color: #a0aec0;">点击"刷新聊天记录"获取消息</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🧪 快速测试场景</h3>
+            <button onclick="testScenario1()">场景1: UserA -> UserB 发送问候</button>
+            <button onclick="testScenario2()">场景2: UserB -> UserA 回复</button>
+            <button onclick="testScenario3()">场景3: 模拟对话</button>
+            <div class="response-container">
+                <h4>场景测试结果:</h4>
+                <pre id="scenarioOutput"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = 'http://localhost:10010';
+        let currentUserToken = '';
+        let currentFriendID = '';
+
+        // 设置用户
+        function setUsers() {
+            currentUserToken = document.getElementById('userToken').value;
+            currentFriendID = document.getElementById('friendID').value;
+            
+            if (currentUserToken && currentFriendID) {
+                document.getElementById('userStatus').textContent = 
+                    `当前用户: ${currentUserToken}\n好友: ${currentFriendID}`;
+                document.getElementById('userStatus').className = 'success';
+            } else {
+                document.getElementById('userStatus').textContent = '请填写用户Token和好友ID';
+                document.getElementById('userStatus').className = 'error';
+            }
+        }
+
+        // 通用API调用函数
+        async function makeAPICall(endpoint, data, outputElement) {
+            try {
+                const response = await fetch(`${apiBase}/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    outputElement.textContent = `❌ HTTP ${response.status}: ${errorText}`;
+                    outputElement.className = 'error';
+                    return null;
+                }
+
+                const result = await response.text();
+                console.log(`${endpoint} response:`, result);
+                
+                try {
+                    const parsed = JSON.parse(result);
+                    outputElement.textContent = JSON.stringify(parsed, null, 2);
+                    outputElement.className = 'success';
+                    return parsed;
+                } catch {
+                    outputElement.textContent = result;
+                    outputElement.className = 'success';
+                    return result;
+                }
+            } catch (error) {
+                outputElement.textContent = `❌ Network Error: ${error.message}`;
+                outputElement.className = 'error';
+                return null;
+            }
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const messageContent = document.getElementById('messageContent').value;
+            const outputElement = document.getElementById('sendOutput');
+            
+            if (!currentUserToken || !currentFriendID) {
+                outputElement.textContent = '❌ 请先设置用户Token和好友ID';
+                outputElement.className = 'error';
+                return;
+            }
+            
+            if (!messageContent.trim()) {
+                outputElement.textContent = '❌ 请输入消息内容';
+                outputElement.className = 'error';
+                return;
+            }
+
+            const result = await makeAPICall('SendMessageMessage', {
+                userToken: currentUserToken,
+                recipientID: currentFriendID,
+                messageContent: messageContent.trim()
+            }, outputElement);
+
+            if (result) {
+                document.getElementById('messageContent').value = '';
+                // 自动刷新聊天记录
+                setTimeout(getChatHistory, 500);
+            }
+        }
+
+        // 获取聊天记录
+        async function getChatHistory() {
+            const outputElement = document.getElementById('chatContainer');
+            
+            if (!currentUserToken || !currentFriendID) {
+                outputElement.innerHTML = '<div style="text-align: center; color: #e53e3e;">❌ 请先设置用户Token和好友ID</div>';
+                return;
+            }
+
+            // 显示加载状态
+            outputElement.innerHTML = '<div style="text-align: center; color: #a0aec0;">🔄 正在加载聊天记录...</div>';
+
+            try {
+                const response = await fetch(`${apiBase}/api/GetChatHistoryMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userToken: currentUserToken,
+                        friendID: currentFriendID
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    outputElement.innerHTML = `<div style="text-align: center; color: #e53e3e;">❌ HTTP ${response.status}: ${errorText}</div>`;
+                    return;
+                }
+
+                const result = await response.text();
+                console.log('GetChatHistory response:', result);
+                
+                try {
+                    const messages = JSON.parse(result);
+                    displayChatMessages(messages);
+                } catch (e) {
+                    outputElement.innerHTML = `<div style="text-align: center; color: #e53e3e;">❌ 解析响应失败: ${e.message}</div>`;
+                }
+            } catch (error) {
+                outputElement.innerHTML = `<div style="text-align: center; color: #e53e3e;">❌ Network Error: ${error.message}</div>`;
+            }
+        }
+
+        // 显示聊天消息
+        function displayChatMessages(messages) {
+            const container = document.getElementById('chatContainer');
+            
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #a0aec0;">📭 暂无聊天记录</div>';
+                return;
+            }
+
+            let html = '';
+            messages.forEach(msg => {
+                const isCurrentUser = msg.messageSource === currentUserToken;
+                const messageClass = isCurrentUser ? 'message-sent' : 'message-received';
+                const time = new Date(msg.messageTime).toLocaleString('zh-CN');
+                
+                html += `
+                    <div class="message ${messageClass}">
+                        <div>${msg.messageContent}</div>
+                        <div class="message-time">${time}</div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 清空聊天显示
+        function clearChat() {
+            document.getElementById('chatContainer').innerHTML = 
+                '<div style="text-align: center; color: #a0aec0;">📭 聊天记录已清空</div>';
+        }
+
+        // 测试场景
+        async function testScenario1() {
+            const outputElement = document.getElementById('scenarioOutput');
+            outputElement.textContent = '🔄 正在执行场景1: UserA -> UserB 发送问候...';
+            
+            // 设置为UserA
+            document.getElementById('userToken').value = 'UserA';
+            document.getElementById('friendID').value = 'UserB';
+            setUsers();
+            
+            // 发送问候消息
+            const result = await makeAPICall('SendMessageMessage', {
+                userToken: 'UserA',
+                recipientID: 'UserB',
+                messageContent: '你好！我是UserA，很高兴认识你！'
+            }, outputElement);
+            
+            if (result) {
+                outputElement.textContent = '✅ 场景1完成: UserA已向UserB发送问候消息';
+                outputElement.className = 'success';
+                setTimeout(getChatHistory, 500);
+            }
+        }
+
+        async function testScenario2() {
+            const outputElement = document.getElementById('scenarioOutput');
+            outputElement.textContent = '🔄 正在执行场景2: UserB -> UserA 回复...';
+            
+            // 设置为UserB
+            document.getElementById('userToken').value = 'UserB';
+            document.getElementById('friendID').value = 'UserA';
+            setUsers();
+            
+            // 发送回复
+            const result = await makeAPICall('SendMessageMessage', {
+                userToken: 'UserB',
+                recipientID: 'UserA',
+                messageContent: '你好UserA！我也很高兴认识你，要不要一起玩游戏？'
+            }, outputElement);
+            
+            if (result) {
+                outputElement.textContent = '✅ 场景2完成: UserB已回复UserA';
+                outputElement.className = 'success';
+                setTimeout(getChatHistory, 500);
+            }
+        }
+
+        async function testScenario3() {
+            const outputElement = document.getElementById('scenarioOutput');
+            outputElement.textContent = '🔄 正在执行场景3: 模拟对话...';
+            
+            try {
+                // UserA发送第一条消息
+                await makeAPICall('SendMessageMessage', {
+                    userToken: 'UserA',
+                    recipientID: 'UserB',
+                    messageContent: '今天天气真不错！'
+                }, { textContent: '', className: '' });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // UserB回复
+                await makeAPICall('SendMessageMessage', {
+                    userToken: 'UserB',
+                    recipientID: 'UserA',
+                    messageContent: '是啊，正适合出去玩！你想去哪里？'
+                }, { textContent: '', className: '' });
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // UserA再次回复
+                await makeAPICall('SendMessageMessage', {
+                    userToken: 'UserA',
+                    recipientID: 'UserB',
+                    messageContent: '我们去公园走走吧，顺便可以聊聊游戏！'
+                }, { textContent: '', className: '' });
+                
+                outputElement.textContent = '✅ 场景3完成: 模拟对话已完成，共3条消息';
+                outputElement.className = 'success';
+                
+                // 设置为UserA视角查看聊天记录
+                document.getElementById('userToken').value = 'UserA';
+                document.getElementById('friendID').value = 'UserB';
+                setUsers();
+                setTimeout(getChatHistory, 1000);
+                
+            } catch (error) {
+                outputElement.textContent = `❌ 场景3失败: ${error.message}`;
+                outputElement.className = 'error';
+            }
+        }
+
+        // 页面加载时设置默认值
+        window.onload = function() {
+            document.getElementById('userToken').value = 'UserA';
+            document.getElementById('friendID').value = 'UserB';
+        };
+    </script>
+</body>
+</html>

@@ -1,19 +1,20 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import LoginPage from '../pages/LoginPage';
-import RegisterPage from '../pages/RegisterPage';
+import LoginPage from '../pages/User/LoginPage';
+import RegisterPage from '../pages/User/RegisterPage';
 import GameHomePage from '../pages/GameHomePage';
 import BattlePage from '../pages/Battle/BattlePage';
-import CardCollectionPage from '../pages/CardCollectionPage';
-import WishPage from '../pages/WishPage';
-import WishResultPage from '../pages/WishResultPage';
-import BattleRulesPage from '../pages/BattleRulesPage';
-import BattleTestPage from '../pages/BattleTestPage';
+import CardCollectionPage from '../pages/Card/CardCollectionPage';
+import WishPage from '../pages/Card/WishPage';
+import WishResultPage from '../pages/Card/WishResultPage';
+import BattleRulesPage from '../pages/Battle/BattleRulesPage';
 import BattleRoom from '../pages/Battle/BattleRoom';
-import ShopPage from "../pages/ShopPage";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
-import AdminRegisterPage from "../pages/AdminRegisterPage";
+import ShopPage from "../pages/Asset/ShopPage";
+import AdminDashboardPage from "../pages/Admin/AdminDashboardPage";
+import AdminRegisterPage from "../pages/Admin/AdminRegisterPage";
 import { useUserToken, useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import ChatBox from './gameHome/ChatBox';
+import ChatPage from 'pages/Chat/ChatPage';
 
 // 内部路由组件，用于监听路由变化
 const RouterContent: React.FC = () => {
@@ -153,20 +154,6 @@ const RouterContent: React.FC = () => {
 				}
 			/>
 			<Route
-				path="/battle-test"
-				element={
-					isAuthenticated ? (
-						(() => {
-							return <BattleTestPage />;
-						})()
-					) : (
-						(() => {
-							return <Navigate to="/login" replace />;
-						})()
-					)
-				}
-			/>
-			<Route
 				path="/battle-rules"
 				element={
 					isAuthenticated ? (
@@ -186,6 +173,20 @@ const RouterContent: React.FC = () => {
 					isAuthenticated ? (
 						(() => {
 							return <ShopPage />;
+						})()
+					) : (
+						(() => {
+							return <Navigate to="/login" replace />;
+						})()
+					)
+				}
+			/>
+			<Route
+				path="/chat"
+				element={
+					isAuthenticated ? (
+						(() => {
+							return <ChatPage />;
 						})()
 					) : (
 						(() => {

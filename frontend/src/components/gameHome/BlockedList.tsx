@@ -1,6 +1,6 @@
 import React from 'react';
-import { BlockedUserInfo } from './UserProfileUtils';
-import { UserProfileHandleState, handleUnblockUser, getRankColor } from './UserProfileHandles';
+import { BlockedUserInfo } from './UserProfile/UserProfileUtils';
+import { UserProfileHandleState, handleUnblockUser, getRankColor } from './UserProfile/UserProfileHandles';
 
 interface BlockedListProps {
     blockedData: BlockedUserInfo[];

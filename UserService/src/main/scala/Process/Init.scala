@@ -104,9 +104,9 @@ object Init {
         s"""
         CREATE TABLE IF NOT EXISTS "${schemaName}"."user_social_table" (
             user_id VARCHAR NOT NULL PRIMARY KEY,
-            friend_list TEXT NOT NULL,
-            black_list TEXT NOT NULL,
-            message_box TEXT NOT NULL
+            friend_list JSONB NOT NULL DEFAULT '[]'::jsonb,
+            black_list JSONB NOT NULL DEFAULT '[]'::jsonb,
+            message_box JSONB NOT NULL DEFAULT '[]'::jsonb
         );
          
         """,

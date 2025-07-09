@@ -6,40 +6,49 @@ export const getActionDisplay = (action: PassiveAction | ActiveAction) => {
     if (action.actionCategory === 'passive') {
         const passiveAction = action as PassiveAction;
 
-        // 查找对应的被动行动配置
-        const passiveConfig = passiveActions.find(config => config.type === passiveAction.objectName);
-        if (passiveConfig) {
-            // 处理特殊防御类型
-            if (passiveAction.defenseType === 'object_defense' && passiveAction.targetObject) {
-                const targetConfig = activeActions.find(config => config.type === passiveAction.targetObject);
-                return {
-                    icon: `${passiveConfig.icon}🎯`,
-                    text: `${passiveConfig.name}(${targetConfig?.name || passiveAction.targetObject})`,
-                    color: passiveConfig.color
-                };
-            } else if (passiveAction.defenseType === 'action_defense' && passiveAction.targetAction) {
-                const targetNames = passiveAction.targetAction.map(actionName => {
-                    const targetConfig = activeActions.find(config => config.type === actionName);
-                    return targetConfig?.name || actionName;
-                }).join('+');
-                return {
-                    icon: `${passiveConfig.icon}🌀`,
-                    text: `${passiveConfig.name}(${targetNames})`,
-                    color: passiveConfig.color
-                };
-            }
-
-            // 查找特殊防御配置
+        // 先检查是否是特殊防御类型
+        if (passiveAction.defenseType === 'object_defense' || passiveAction.defenseType === 'action_defense') {
             const specialConfig = specialDefenseActions.find(config => config.type === passiveAction.objectName);
             if (specialConfig) {
-                return {
-                    icon: specialConfig.icon,
-                    text: specialConfig.name,
-                    color: specialConfig.color
-                };
+                // 处理object_defense类型
+                if (passiveAction.defenseType === 'object_defense' && passiveAction.targetObject) {
+                    const targetConfig = activeActions.find(config => config.type === passiveAction.targetObject);
+                    return {
+                        icon: `${specialConfig.icon}${targetConfig?.icon || '❓'}`,
+                        text: `${specialConfig.name}(${targetConfig?.name || passiveAction.targetObject})`,
+                        color: specialConfig.color
+                    };
+                }
+                // 处理action_defense类型
+                else if (passiveAction.defenseType === 'action_defense' && passiveAction.targetAction) {
+                    const targetNames = passiveAction.targetAction.map(actionName => {
+                        const targetConfig = activeActions.find(config => config.type === actionName);
+                        return targetConfig?.name || actionName;
+                    }).join('+');
+                    const targetIcons = passiveAction.targetAction.map(actionName => {
+                        const targetConfig = activeActions.find(config => config.type === actionName);
+                        return targetConfig?.icon || '❓';
+                    }).join('');
+                    return {
+                        icon: `${specialConfig.icon}${targetIcons}`,
+                        text: `${specialConfig.name}(${targetNames})`,
+                        color: specialConfig.color
+                    };
+                }
+                // 基础特殊防御显示
+                else {
+                    return {
+                        icon: specialConfig.icon,
+                        text: specialConfig.name,
+                        color: specialConfig.color
+                    };
+                }
             }
+        }
 
-            // 普通被动行动
+        // 查找普通被动行动配置
+        const passiveConfig = passiveActions.find(config => config.type === passiveAction.objectName);
+        if (passiveConfig) {
             return {
                 icon: passiveConfig.icon,
                 text: passiveConfig.name,

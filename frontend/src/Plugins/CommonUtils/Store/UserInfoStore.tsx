@@ -60,6 +60,10 @@ export function getUserToken(): string {
     return tokenStore.getState().userToken
 }
 
+export function getUserTokenSnap(): string {
+    return tokenStore.getState().userToken
+}
+
 export function useUserToken(): string {
     return tokenStore(s => s.userToken)
 }

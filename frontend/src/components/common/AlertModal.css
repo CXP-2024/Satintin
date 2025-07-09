@@ -1,0 +1,508 @@
+/* 警告弹窗样式 - 符合游戏银灰色主色调 */
+.alert-modal-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 2000;
+	animation: alertFadeIn 0.3s ease;
+	padding: 20px;
+}
+
+.alert-modal-overlay.closing {
+	animation: alertFadeOut 0.3s ease;
+}
+
+.alert-modal {
+	background: rgba(255, 255, 255, 0.15);
+	backdrop-filter: blur(20px);
+	border: 2px solid rgba(255, 255, 255, 0.25);
+	border-radius: 25px;
+	width: 100%;
+	max-width: 420px;
+	min-height: 300px;
+	padding: 40px 35px;
+	animation: alertSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+	overflow: hidden;
+	position: relative;
+	box-shadow:
+		0 25px 60px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+	display: flex;
+	flex-direction: column;
+}
+
+.alert-modal.closing {
+	animation: alertSlideDown 0.3s ease;
+}
+
+/* 不同类型的边框色彩 */
+.alert-modal-warning {
+	border-top: 4px solid #f39c12;
+	box-shadow:
+		0 25px 60px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3),
+		0 0 30px rgba(243, 156, 18, 0.2);
+}
+
+.alert-modal-error {
+	border-top: 4px solid #e74c3c;
+	box-shadow:
+		0 25px 60px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3),
+		0 0 30px rgba(231, 76, 60, 0.2);
+}
+
+.alert-modal-success {
+	border-top: 4px solid #27ae60;
+	box-shadow:
+		0 25px 60px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3),
+		0 0 30px rgba(39, 174, 96, 0.2);
+}
+
+.alert-modal-info {
+	border-top: 4px solid #3498db;
+	box-shadow:
+		0 25px 60px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3),
+		0 0 30px rgba(52, 152, 219, 0.2);
+}
+
+/* 动画关键帧 */
+@keyframes alertFadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes alertFadeOut {
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes alertSlideUp {
+	from {
+		transform: translateY(60px) scale(0.9);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+	}
+}
+
+@keyframes alertSlideDown {
+	from {
+		transform: translateY(0) scale(1);
+		opacity: 1;
+	}
+
+	to {
+		transform: translateY(60px) scale(0.9);
+		opacity: 0;
+	}
+}
+
+/* 关闭按钮 */
+.alert-close-btn {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	width: 38px;
+	height: 38px;
+	background: rgba(255, 255, 255, 0.15);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: white;
+	font-size: 20px;
+	font-weight: bold;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	z-index: 100;
+	user-select: none;
+}
+
+.alert-close-btn:hover {
+	background: rgba(255, 255, 255, 0.25);
+	transform: rotate(90deg) scale(1.1);
+	box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+/* 装饰性背景效果 */
+.alert-decorations {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.decoration-circle {
+	position: absolute;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+	animation: float 6s ease-in-out infinite;
+}
+
+.decoration-1 {
+	width: 100px;
+	height: 100px;
+	top: -30px;
+	right: -30px;
+	animation-delay: 0s;
+}
+
+.decoration-2 {
+	width: 60px;
+	height: 60px;
+	bottom: -20px;
+	left: -20px;
+	animation-delay: 2s;
+}
+
+.decoration-3 {
+	width: 80px;
+	height: 80px;
+	top: 50%;
+	left: -40px;
+	animation-delay: 4s;
+}
+
+@keyframes float {
+
+	0%,
+	100% {
+		transform: translateY(0px) rotate(0deg);
+		opacity: 0.3;
+	}
+
+	33% {
+		transform: translateY(-10px) rotate(120deg);
+		opacity: 0.6;
+	}
+
+	66% {
+		transform: translateY(5px) rotate(240deg);
+		opacity: 0.4;
+	}
+}
+
+/* 主要内容区域 */
+.alert-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	flex: 1;
+	gap: 25px;
+	position: relative;
+	z-index: 10;
+}
+
+/* 警告图标 */
+.alert-icon {
+	font-size: 4.5rem;
+	margin-bottom: 10px;
+	opacity: 0;
+	transform: scale(0.3) rotate(-180deg);
+	transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+	animation: pulse 2s infinite;
+}
+
+.alert-icon.animate {
+	opacity: 1;
+	transform: scale(1) rotate(0deg);
+}
+
+.alert-icon-warning {
+	filter: drop-shadow(0 0 20px rgba(243, 156, 18, 0.6));
+}
+
+.alert-icon-error {
+	filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.6));
+}
+
+.alert-icon-success {
+	filter: drop-shadow(0 0 20px rgba(39, 174, 96, 0.6));
+}
+
+.alert-icon-info {
+	filter: drop-shadow(0 0 20px rgba(52, 152, 219, 0.6));
+}
+
+@keyframes pulse {
+
+	0%,
+	100% {
+		transform: scale(1);
+	}
+
+	50% {
+		transform: scale(1.05);
+	}
+}
+
+/* 标题 */
+.alert-title {
+	font-size: 2rem;
+	font-weight: bold;
+	color: white;
+	margin: 0;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+	text-align: center;
+	letter-spacing: 0.5px;
+}
+
+/* 消息内容 */
+.alert-message {
+	color: rgba(255, 255, 255, 0.95);
+	font-size: 1.15rem;
+	margin: 0;
+	line-height: 1.6;
+	text-align: center;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+	max-width: 100%;
+	word-wrap: break-word;
+	font-weight: 400;
+}
+
+/* 确认按钮 */
+.alert-confirm-btn {
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+	backdrop-filter: blur(10px);
+	border: 2px solid rgba(255, 255, 255, 0.3);
+	color: white;
+	padding: 16px 45px;
+	border-radius: 18px;
+	cursor: pointer;
+	font-weight: 600;
+	font-size: 1.1rem;
+	transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+	margin-top: 15px;
+	opacity: 0;
+	transform: translateY(30px);
+	position: relative;
+	overflow: hidden;
+	user-select: none;
+	min-width: 140px;
+}
+
+.alert-confirm-btn.animate {
+	opacity: 1;
+	transform: translateY(0);
+	transition-delay: 0.4s;
+}
+
+.alert-confirm-btn:hover {
+	transform: translateY(-4px) scale(1.05);
+	box-shadow: 0 12px 30px rgba(255, 255, 255, 0.25);
+	background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.2));
+	border-color: rgba(255, 255, 255, 0.5);
+}
+
+.alert-confirm-btn.animate:hover {
+	transform: translateY(-4px) scale(1.05);
+}
+
+/* 不同类型按钮的特殊效果 */
+.alert-confirm-btn-warning:hover {
+	box-shadow: 0 12px 30px rgba(243, 156, 18, 0.3);
+}
+
+.alert-confirm-btn-error:hover {
+	box-shadow: 0 12px 30px rgba(231, 76, 60, 0.3);
+}
+
+.alert-confirm-btn-success:hover {
+	box-shadow: 0 12px 30px rgba(39, 174, 96, 0.3);
+}
+
+.alert-confirm-btn-info:hover {
+	box-shadow: 0 12px 30px rgba(52, 152, 219, 0.3);
+}
+
+.alert-confirm-btn:active {
+	transform: translateY(-2px) scale(1.02);
+}
+
+.alert-confirm-btn .btn-text {
+	font-weight: 600;
+	letter-spacing: 0.3px;
+}
+
+.alert-confirm-btn .btn-icon {
+	font-size: 1.1rem;
+	animation: sparkle 2.5s infinite;
+}
+
+@keyframes sparkle {
+
+	0%,
+	100% {
+		transform: scale(1) rotate(0deg);
+		opacity: 1;
+	}
+
+	25% {
+		transform: scale(1.3) rotate(10deg);
+		opacity: 0.7;
+	}
+
+	50% {
+		transform: scale(1.1) rotate(-10deg);
+		opacity: 1;
+	}
+
+	75% {
+		transform: scale(1.3) rotate(8deg);
+		opacity: 0.8;
+	}
+}
+
+/* 按钮悬浮光效 */
+.alert-confirm-btn::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+	transition: left 0.5s;
+}
+
+.alert-confirm-btn:hover::before {
+	left: 100%;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+	.alert-modal {
+		max-width: 90%;
+		min-height: 280px;
+		padding: 35px 25px;
+		border-radius: 20px;
+	}
+
+	.alert-icon {
+		font-size: 3.8rem;
+	}
+
+	.alert-title {
+		font-size: 1.7rem;
+	}
+
+	.alert-message {
+		font-size: 1.05rem;
+	}
+
+	.alert-confirm-btn {
+		padding: 14px 35px;
+		font-size: 1rem;
+		min-width: 120px;
+	}
+
+	.decoration-1 {
+		width: 80px;
+		height: 80px;
+	}
+
+	.decoration-2 {
+		width: 50px;
+		height: 50px;
+	}
+
+	.decoration-3 {
+		width: 65px;
+		height: 65px;
+	}
+}
+
+@media (max-width: 480px) {
+	.alert-modal-overlay {
+		padding: 15px;
+	}
+
+	.alert-modal {
+		max-width: 100%;
+		min-height: 260px;
+		padding: 30px 20px;
+		border-radius: 18px;
+	}
+
+	.alert-content {
+		gap: 20px;
+	}
+
+	.alert-icon {
+		font-size: 3.5rem;
+	}
+
+	.alert-title {
+		font-size: 1.5rem;
+	}
+
+	.alert-message {
+		font-size: 1rem;
+		line-height: 1.5;
+	}
+
+	.alert-confirm-btn {
+		padding: 12px 30px;
+		font-size: 0.95rem;
+		gap: 10px;
+		min-width: 110px;
+	}
+
+	.alert-close-btn {
+		top: 15px;
+		right: 15px;
+		width: 32px;
+		height: 32px;
+		font-size: 18px;
+	}
+
+	.decoration-1 {
+		width: 60px;
+		height: 60px;
+	}
+
+	.decoration-2 {
+		width: 40px;
+		height: 40px;
+	}
+
+	.decoration-3 {
+		width: 50px;
+		height: 50px;
+	}
+}
