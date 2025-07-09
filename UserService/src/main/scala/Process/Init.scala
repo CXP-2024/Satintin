@@ -93,6 +93,7 @@ object Init {
         """,
         List()
       )
+      
       /** 用户社交关系表，包含好友列表、黑名单和消息盒子信息
        * user_id: 用户的唯一ID
        * friend_list: 好友列表，包含好友user_id数组
@@ -111,6 +112,32 @@ object Init {
         """,
         List()
       )
+      
+      /** 匹配房间表，记录用户匹配房间的相关信息
+       * room_id: 房间的唯一ID
+       * owner_id: 房主用户ID
+       * match_type: 匹配类型 (quick, ranked)
+       * owner_rank: 房主段位
+       * create_time: 房间创建时间
+       * status: 房间状态 (open, matched, closed)
+       * expire_time: 房间过期时间
+       */
+      _ <- writeDB(
+        s"""
+        CREATE TABLE IF NOT EXISTS "${schemaName}"."match_room_table" (
+            room_id VARCHAR NOT NULL PRIMARY KEY,
+            owner_id TEXT NOT NULL,
+            match_type TEXT NOT NULL,
+            owner_rank TEXT,
+            create_time TIMESTAMP NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            expire_time TIMESTAMP NOT NULL
+        );
+         
+        """,
+        List()
+      )
+
     } yield ()
 
     program.handleErrorWith(err => IO {

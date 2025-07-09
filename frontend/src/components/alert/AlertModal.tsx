@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './AlertModal.css';
+import { SoundUtils } from '../../utils/soundUtils';
+import clickSound from '../../assets/sound/yingxiao.mp3';
 
 interface AlertModalProps {
 	isOpen: boolean;
@@ -25,6 +27,16 @@ const AlertModal: React.FC<AlertModalProps> = ({
 	const [isAnimating, setIsAnimating] = useState(false);
 	const [isClosing, setIsClosing] = useState(false);
 
+	// 初始化音效
+	useEffect(() => {
+		SoundUtils.setClickSoundSource(clickSound);
+	}, []);
+
+	// 播放按钮点击音效
+	const playClickSound = () => {
+		SoundUtils.playClickSound(0.5);
+	};
+
 	useEffect(() => {
 		if (isOpen) {
 			setIsAnimating(true);
@@ -41,6 +53,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 	}, [isOpen, autoClose]);
 
 	const handleClose = () => {
+		playClickSound();
 		setIsClosing(true);
 		setTimeout(() => {
 			onClose();
@@ -50,6 +63,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 	};
 
 	const handleConfirm = () => {
+		playClickSound();
 		if (onConfirm) {
 			onConfirm();
 		}

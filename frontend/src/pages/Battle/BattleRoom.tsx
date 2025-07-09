@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useBattleStore } from '../../store/battleStore';
 import { useReportStore } from '../../store/reportStore';
-import { webSocketService } from '../../services/WebSocketService';
-import { webSocketHandles } from '../../services/WebsocketHandles';
+import { useBattleRoomHandlers } from './BattleRoomHandlers';
 import PageTransition from '../../components/PageTransition';
 import GameBoard from '../../components/battle/GameBoard';
 import ActionSelector from '../../components/battle/ActionSelector';
@@ -13,22 +11,22 @@ import ReportModal from '../../components/battle/ReportModal'; // 导入举报�
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yingxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import { useUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserToken, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {SetUserMatchStatusMessage} from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";
 
 const BattleRoom: React.FC = () => {
-	const navigate = useNavigate();
 	const user = useUserInfo();
 	const {
-		roomId, gameState, isConnected, connectionError, currentPlayer, opponent, 
-		showActionSelector, actionSelectorTemporarilyHidden, 
-		showRoundResult, currentRoundResult, lastRoundResult, 
+		roomId, gameState, isConnected, connectionError, currentPlayer, opponent,
+		showActionSelector, actionSelectorTemporarilyHidden,
+		showRoundResult, currentRoundResult, lastRoundResult,
 		showGameOver, gameOverTemporarilyHidden, currentGameOverResult,
-		setRoomId, setConnectionStatus, 
-		hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult, 
-		hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, 
+		setRoomId, setConnectionStatus,
+		hideRoundResultModal, hideRoundResultTemporarily, showLastRoundResult,
+		hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, setLastRoundResult,
 		showActionSelectorAgain, resetBattle
 	} = useBattleStore();
-	
+
 	// 使用举报store
 	const {
 		showReportModal,
@@ -40,6 +38,45 @@ const BattleRoom: React.FC = () => {
 	const [isConnecting, setIsConnecting] = useState(true);
 	const [roomStatus, setRoomStatus] = useState<'connecting' | 'waiting' | 'ready' | 'playing'>('connecting');
 	const [hasCopied, setHasCopied] = useState(false);
+	const [stonesUpdated, setStonesUpdated] = useState(false); // 标记是否已经更新过原石
+	const [rewardProcessed, setRewardProcessed] = useState(false); // 标记是否已经处理过奖励/扣除
+
+	// 使用业务逻辑处理钩子
+	const {
+		initializeConnection,
+		cleanupConnection,
+		handleLeaveRoom,
+		handleGameOverExit,
+		handleDirectExitFromRoundResult,
+		handleReady,
+		handleShowActionSelector,
+		handleShowLastRoundResult,
+		handleViewLastRoundFromGameOver,
+		handleReturnToGameOver,
+		handleCopyRoomId,
+		handleInGameReport,
+		handleReportSubmit
+	} = useBattleRoomHandlers(
+		user,
+		setRoomId,
+		setConnectionStatus,
+		setIsConnecting,
+		setRoomStatus,
+		hideGameOverModal,
+		hideRoundResultModal,
+		showActionSelectorAgain,
+		showLastRoundResult,
+		hideGameOverTemporarily,
+		showGameOverAgain,
+		resetBattle,
+		stonesUpdated,
+		setLastRoundResult,
+		setStonesUpdated,
+		rewardProcessed,
+		setRewardProcessed,
+		openReportModal,
+		submitReport
+	);
 
 	// 初始化音效
 	useEffect(() => {
@@ -48,88 +85,14 @@ const BattleRoom: React.FC = () => {
 
 	// 初始化WebSocket连接
 	useEffect(() => {
-		const initializeConnection = async () => {
-			try {
-				// 生成或获取房间ID（实际应用中可能从路由参数获取）
-				const battleRoomId = new URLSearchParams(window.location.search).get('roomId') ||
-					`room_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-				setRoomId(battleRoomId);
-				console.log('🎮 [BattleRoom] 初始化房间:', battleRoomId);
-				// 连接WebSocket
-				await webSocketService.connect(battleRoomId, user.userID, user.userName);
-				setConnectionStatus(true);
-				setIsConnecting(false);
-				setRoomStatus('waiting');
-				// 设置事件监听器
-				console.log('🔌 [BattleRoom] 设置事件监听器');
-				webSocketHandles.setupWebSocketListeners(setRoomStatus);
-				console.log('🎮 [BattleRoom] 事件监听器已设置');
-			} catch (error) {
-				console.error('❌ [BattleRoom] 连接失败:', error);
-				setConnectionStatus(false, '连接失败，请重试');
-				setIsConnecting(false);
-			}
-		};
 		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接');
 		initializeConnection();
 		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接完成');
 		return () => {
 			console.log('🔌 [BattleRoom] useEffect return 清理WebSocket连接');
-			webSocketHandles.cleanupWebSocketListeners(setRoomStatus);
+			cleanupConnection();
 		};
 	}, [user, setRoomId, setConnectionStatus]);
-
-	// 离开房间
-	const handleLeaveRoom = () => {
-		console.log('🔙 [BattleRoom] 离开房间');
-		SoundUtils.playClickSound(0.5);
-		webSocketService.disconnect();
-		resetBattle();
-		navigate('/battle');
-	};
-
-	// 准备游戏
-	const handleReady = () => {
-		SoundUtils.playClickSound(0.5);
-		webSocketService.sendReady();
-	};
-
-	// 重新显示行动选择器
-	const handleShowActionSelector = () => {
-		SoundUtils.playClickSound(0.5);
-		showActionSelectorAgain();
-	};
-
-	// 查看上一回合结果
-	const handleShowLastRoundResult = () => {
-		SoundUtils.playClickSound(0.5);
-		showLastRoundResult();
-	};
-
-	// 查看上一回合结果（从游戏结束面板）
-	const handleViewLastRoundFromGameOver = () => {
-		SoundUtils.playClickSound(0.5);
-		hideGameOverTemporarily(); // 暂时隐藏游戏结束面板
-		showLastRoundResult(); // 显示上一回合结果
-	};
-
-	// 从结果页面返回游戏结束面板
-	const handleReturnToGameOver = () => {
-		SoundUtils.playClickSound(0.5);
-		hideRoundResultModal(); // 隐藏结果面板
-		showGameOverAgain(); // 重新显示游戏结束面板
-	};
-
-	// 处理游戏中举报功能
-	const handleInGameReport = () => {
-		SoundUtils.playClickSound(0.5);
-		openReportModal();
-	};
-	
-	// 处理举报提交
-	const handleReportSubmit = (reason: string, description: string) => {
-		submitReport(reason, description);
-	};
 
 	// 渲染连接状态
 	if (isConnecting) {
@@ -201,19 +164,7 @@ const BattleRoom: React.FC = () => {
 								<div className="share-room">
 									<button
 										className="share-btn"
-										onClick={() => {
-											navigator.clipboard.writeText(roomId || '')
-												.then(() => {
-													SoundUtils.playClickSound(0.5);
-													setHasCopied(true);
-													// 3秒后重置状态
-													setTimeout(() => setHasCopied(false), 3000);
-												})
-												.catch(err => {
-													console.error('❌ [BattleRoom] 复制房间ID失败:', err);
-													alert('复制房间ID失败，请手动复制。');
-												});
-										}}
+										onClick={() => handleCopyRoomId(roomId, setHasCopied)}
 									>
 										{hasCopied ? '已复制 ✓' : '复制房间ID'}
 									</button>
@@ -274,6 +225,7 @@ const BattleRoom: React.FC = () => {
 										🎮 行动选择器
 									</button>
 									{lastRoundResult && gameState.currentRound !== 1 && (
+										console.log('🔍 [BattleRoom] 显示上回合结果按钮'),
 										<button
 											className="show-last-result-btn"
 											onClick={handleShowLastRoundResult}
@@ -299,10 +251,11 @@ const BattleRoom: React.FC = () => {
 				</main>
 
 				{/* 回合结果模态框 */}
-				{showRoundResult && currentRoundResult && gameState?.roundPhase !== "waiting" && (
+				{showRoundResult && currentRoundResult && gameState && gameState?.roundPhase !== "waiting" && lastRoundResult && (
 					<RoundResultModal
 						result={currentRoundResult}
 						onClose={gameOverTemporarilyHidden ? handleReturnToGameOver : hideRoundResultModal}
+						onDirectExit={gameOverTemporarilyHidden ? handleDirectExitFromRoundResult : undefined}
 						onHideTemporarily={gameOverTemporarilyHidden ? undefined : hideRoundResultTemporarily}
 						isGameOver={gameOverTemporarilyHidden}
 					/>
@@ -313,14 +266,12 @@ const BattleRoom: React.FC = () => {
 					<GameOverModal
 						open={showGameOver}
 						gameOverResult={currentGameOverResult}
-						onClose={() => {
-							hideGameOverModal();
-							handleLeaveRoom();
-						}}
+						onClose={handleGameOverExit}
+						skipRewardProcessing={rewardProcessed} // 传入是否跳过奖励处理的标记
 						onViewLastRound={lastRoundResult ? handleViewLastRoundFromGameOver : undefined}
 					/>
 				)}
-				
+
 				{/* 举报玩家模态框 */}
 				{showReportModal && opponent && (
 					<ReportModal

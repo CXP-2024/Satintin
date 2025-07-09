@@ -386,6 +386,26 @@
 	transition: all 0.3s ease;
 	background: linear-gradient(45deg, #3498db, #2980b9);
 	color: white;
+	margin: 0 5px;
+	/* 添加间距 */
+}
+
+/* 主要按钮样式 */
+.continue-btn.primary {
+	background: linear-gradient(45deg, #e74c3c, #c0392b);
+}
+
+.continue-btn.primary:hover:not(:disabled) {
+	box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+}
+
+/* 次要按钮样式 */
+.continue-btn.secondary {
+	background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+}
+
+.continue-btn.secondary:hover:not(:disabled) {
+	box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
 }
 
 .continue-btn:hover:not(:disabled) {

@@ -1,11 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { GameOverResult } from '../../services/WebSocketService';
-import { getUserInfo, setUserInfoField } from "Plugins/CommonUtils/Store/UserInfoStore";
-import { RewardAssetMessage } from 'Plugins/AssetService/APIs/RewardAssetMessage';
-import { DeductAssetMessage } from 'Plugins/AssetService/APIs/DeductAssetMessage';
-import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
+import { useGameOverModalLogic, REWARD_AMOUNT } from './GameOverModalLogic';
 
 interface GameOverModalProps {
 	open: boolean;
@@ -13,6 +10,7 @@ interface GameOverModalProps {
 	onClose: () => void;
 	onRestart?: () => void;
 	onViewLastRound?: () => void; // 新增：查看上一轮结果的回调
+	skipRewardProcessing?: boolean; // 新增：是否跳过奖励处理（用于避免重复扣减）
 }
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -74,79 +72,31 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 	gameOverResult,
 	onClose,
 	onRestart,
-	onViewLastRound
+	onViewLastRound,
+	skipRewardProcessing = false
 }) => {
-	const userInfo = getUserInfo();
-	const userName = userInfo.userName;
-	const userToken = userInfo.userID;
-	const REWARD_AMOUNT = 50; // 奖惩金额设为50原石
+	// 使用逻辑钩子
+	const {
+		userName,
+		userToken,
+		isWinner,
+		getReasonText,
+		getWinnerTitle,
+		getWinnerDescription,
+		getDialogBackgroundStyle
+	} = useGameOverModalLogic(open, gameOverResult, skipRewardProcessing);
 
-	// 更新原石数量的函数
-	const updateStoneAmount = () => {
-		if (!userToken) return;
-		
-		new QueryAssetStatusMessage(userToken).send(
-			(res: string) => {
-				try {
-					const amt = typeof res === 'string' ? parseInt(JSON.parse(res)) : res;
-					setUserInfoField('stoneAmount', amt);
-					console.log('✅ [GameOverModal] 更新原石数量成功:', amt);
-				} catch (e) {
-					console.error('❌ [GameOverModal] 解析原石数量失败:', e);
-				}
-			},
-			(err: any) => console.error('❌ [GameOverModal] 查询原石数量失败:', err)
-		);
+	// 处理退出对战按钮点击
+	const handleExitBattle = () => {
+		console.log('🚪 [GameOverModal] 用户点击退出对战');
+		// 直接调用onClose，父组件会处理原石更新
+		onClose();
 	};
-
-	useEffect(() => {
-		if (open && gameOverResult && userToken) {
-			const isWinner = (gameOverResult.winner === userName);
-
-			if (isWinner) {
-				// 胜利者获得奖励
-				new RewardAssetMessage(userToken, REWARD_AMOUNT).send(
-					(response) => {
-						console.log('✅ [GameOverModal] 胜利奖励发放成功:', response);
-						updateStoneAmount(); // 查询最新原石数量
-					},
-					(error) => {
-						console.error('❌ [GameOverModal] 胜利奖励发放失败:', error);
-					}
-				);
-			} else {
-				// 失败者扣除原石
-				new DeductAssetMessage(userToken, REWARD_AMOUNT).send(
-					(response) => {
-						console.log('✅ [GameOverModal] 失败扣除原石成功:', response);
-						updateStoneAmount(); // 查询最新原石数量
-					},
-					(error) => {
-						console.error('❌ [GameOverModal] 失败扣除原石失败:', error);
-					}
-				);
-			}
-		}
-	}, [open, gameOverResult, userName, userToken]);
 
 	if (!gameOverResult) return null;
 
 	console.log('Current Player UserName: ', userName);
 	console.log('Winner: ', gameOverResult.winner);
-	const isWinner = (gameOverResult.winner === userName);
-	const winnerTitle = isWinner ? '🎉 你获胜了！' : '💔 你失败了！';
-	const winnerDescription = isWinner ?
-		'恭喜你在这场激烈的对战中获得胜利！' :
-		'虽然失败了，但这是成长的机会，继续努力！';
-
-	const getReasonText = (reason: string) => {
-		switch (reason) {
-			case 'health_zero': return '血量归零';
-			case 'timeout': return '超时';
-			case 'surrender': return '投降';
-			default: return reason;
-		}
-	};
 
 	// 渲染奖惩信息
 	const renderRewards = () => {
@@ -226,14 +176,12 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 	return (
 		<StyledDialog
 			open={open}
-			onClose={onClose}
+			onClose={handleExitBattle} // 统一使用handleExitBattle处理所有关闭情况
 			maxWidth="sm"
 			fullWidth
 			PaperProps={{
 				style: {
-					backgroundImage: isWinner ?
-						'linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%)' :
-						'linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%)'
+					backgroundImage: getDialogBackgroundStyle()
 				}
 			}}
 		>
@@ -244,10 +192,10 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 			<DialogContent sx={{ pt: 0 }}>
 				<Box sx={{ textAlign: 'center', mb: 3 }}>
 					<Typography variant="h5" component="h2" sx={{ mb: 1, fontWeight: 'bold' }}>
-						{winnerTitle}
+						{getWinnerTitle()}
 					</Typography>
 					<Typography variant="body1" sx={{ opacity: 0.9 }}>
-						{winnerDescription}
+						{getWinnerDescription()}
 					</Typography>
 				</Box>
 
@@ -300,7 +248,7 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 					)}
 					<ActionButton
 						className="secondary"
-						onClick={onClose}
+						onClick={handleExitBattle}
 						variant="outlined"
 					>
 						✋ 退出对战

@@ -131,18 +131,6 @@ const RegisterPage: React.FC = () => {
                         (info: string) => {
                             const successmessage = JSON.parse(info);
                             console.log(successmessage)
-
-                            new CreateReportMessage(userID, userID, 'test').send(
-                                (info: string) => {
-                                    const successmessage = JSON.parse(info);
-                                    console.log(successmessage)
-                                },
-                                (error: any) => {
-                                    const errormessage = JSON.parse(error);
-                                    console.log(errormessage)
-                                }
-                            )
-
                         },
                         (error: any) => {
                             const errormessage = JSON.parse(error);
