@@ -171,14 +171,13 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 
 		console.log('📝 [BattleUIStore] 更新行动选择器显示状态');
 
-		// 根据游戏阶段显示行动选择器
+		// 根据游戏阶段显示行动选择器 - 移除currentAction限制，允许在提交行动后仍可查看
 		const shouldShowActionSelector = gameStore.gameState?.roundPhase === 'action' &&
-			!gameStore.currentPlayer?.currentAction &&
 			!actionSelectorTemporarilyHidden;
 
 		console.log('📝 [BattleUIStore] 行动选择器状态检查:', {
 			roundPhase: gameStore.gameState?.roundPhase,
-			currentAction: gameStore.currentPlayer?.currentAction,
+			hasActed: gameStore.currentPlayer?.hasActed,
 			actionSelectorTemporarilyHidden,
 			shouldShowActionSelector
 		});
@@ -190,7 +189,7 @@ export const useBattleUIStore = create<BattleUIState>((set, get) => ({
 		console.log('📝 [BattleUIStore] 重置UI状态');
 		// 同时重置举报UI
 		useReportStore.getState().resetReportUI();
-		
+
 		set({
 			showActionSelector: false,
 			actionSelectorTemporarilyHidden: false,
@@ -240,8 +239,8 @@ export const useBattleActions = () => {
 	// 增强的showActionSelectorAgain，包含游戏状态检查
 	const showActionSelectorAgain = () => {
 		console.log('📝 [BattleActions] 重新显示行动选择器');
-		// 只有在行动阶段且当前玩家未提交行动时才显示
-		if (gameStore.gameState?.roundPhase === 'action' && !gameStore.currentPlayer?.currentAction) {
+		// 只要在行动阶段就可以显示行动选择器，不限制是否已提交行动
+		if (gameStore.gameState?.roundPhase === 'action') {
 			uiStore.showActionSelectorAgain();
 		}
 	};
@@ -250,7 +249,6 @@ export const useBattleActions = () => {
 	const updateActionSelectorVisibility = () => {
 		console.log('📝 [BattleActions] 更新行动选择器显示状态');
 		const shouldShowActionSelector = gameStore.gameState?.roundPhase === 'action' &&
-			!gameStore.currentPlayer?.currentAction &&
 			!uiStore.actionSelectorTemporarilyHidden;
 
 		if (shouldShowActionSelector && !uiStore.showActionSelector) {
