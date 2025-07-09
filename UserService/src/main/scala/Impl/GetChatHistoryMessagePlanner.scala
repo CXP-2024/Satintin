@@ -112,18 +112,14 @@ case class GetChatHistoryMessagePlanner(
     currentUserID: String,
     friendID: String
   ): List[MessageEntry] = {
-    // 从当前用户的消息中筛选发送给好友的消息
+    // 从当前用户的消息中筛选与好友的对话（发送给好友的消息）
     val userToFriendMessages = userMessages.filter(msg => 
-      msg.messageSource == currentUserID && 
-      // 由于我们把消息同时存储在发送者和接收者的message_box中，
-      // 这里我们需要根据消息内容来推断接收者
-      // 简化处理：从用户的message_box中获取所有消息
-      true
+      msg.messageSource == currentUserID && msg.messageDestination == friendID
     )
 
-    // 从好友的消息中筛选发送给当前用户的消息
+    // 从好友的消息中筛选与当前用户的对话（好友发送给当前用户的消息）
     val friendToUserMessages = friendMessages.filter(msg => 
-      msg.messageSource == friendID
+      msg.messageSource == friendID && msg.messageDestination == currentUserID
     )
 
     // 合并所有相关消息
@@ -131,7 +127,7 @@ case class GetChatHistoryMessagePlanner(
 
     // 去重（因为消息可能在两个用户的message_box中都存在）
     val uniqueMessages = allChatMessages
-      .groupBy(msg => (msg.messageSource, msg.messageContent, msg.messageTime))
+      .groupBy(msg => (msg.messageSource, msg.messageDestination, msg.messageContent, msg.messageTime))
       .values
       .map(_.head)
       .toList

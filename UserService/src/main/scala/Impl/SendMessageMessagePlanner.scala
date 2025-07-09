@@ -43,7 +43,7 @@ case class SendMessageMessagePlanner(
 
       // Step 5: Add message to sender's message_box
       _ <- IO(logger.info(s"添加消息到发送者的message_box"))
-      messageEntry = MessageEntry(senderID, messageContent, messageTime)
+      messageEntry = MessageEntry(senderID, recipientID, messageContent, messageTime)
       _ <- addMessageToUser(senderID, messageEntry)
 
       // Step 6: Add message to recipient's message_box

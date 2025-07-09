@@ -145,6 +145,7 @@ case class GetUserInfoMessagePlanner(
           val messageBox = decodeMessageField(json, "message_box").map { msg =>
             MessageEntry(
               messageSource = msg("messageSource"),
+              messageDestination = msg.getOrElse("messageDestination", ""), // 提供默认值以兼容旧数据
               messageContent = msg("messageContent"),
               messageTime = DateTime.parse(msg("messageTime"))
             )
