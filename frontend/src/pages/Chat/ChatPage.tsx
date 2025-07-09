@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ChatPage.css';
+import { GetChatHistoryMessage } from '../../Plugins/UserService/APIs/GetChatHistoryMessage';
+import { SendMessageMessage } from '../../Plugins/UserService/APIs/SendMessageMessage';
+import { GetUserInfoMessage } from '../../Plugins/UserService/APIs/GetUserInfoMessage';
+import { commonSend } from '../../Plugins/CommonUtils/Send/CommonSend';
+import { getUserToken, getUserIDSnap, getUserInfo } from '../../Plugins/CommonUtils/Store/UserInfoStore';
+import { MessageEntry } from '../../Plugins/UserService/Objects/MessageEntry';
+import { User } from '../../Plugins/UserService/Objects/User';
 
 interface Message {
     id: string;
@@ -23,6 +30,7 @@ const ChatPage: React.FC = () => {
     
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     // 如果没有传递好友信息，返回主页
@@ -32,70 +40,77 @@ const ChatPage: React.FC = () => {
         }
     }, [state, navigate]);
 
-    // Mock data for demonstration
+    // 加载真实的聊天数据
     useEffect(() => {
         if (state?.friendId && state?.friendName) {
-            const mockMessages: Message[] = [
-                {
-                    id: '1',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '嗨！你在吗？',
-                    timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '2',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '在的！刚刚在玩游戏',
-                    timestamp: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '3',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '哈哈，我也是！今天运气怎么样？',
-                    timestamp: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '4',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '还不错！抽到了几张不错的卡牌',
-                    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '5',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '羡慕！要不要来对战一局？',
-                    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10 minutes ago
-                    isCurrentUser: false
-                },
-                {
-                    id: '6',
-                    senderId: 'currentUser',
-                    senderName: '我',
-                    content: '好啊！等我整理一下卡组',
-                    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-                    isCurrentUser: true
-                },
-                {
-                    id: '7',
-                    senderId: state.friendId,
-                    senderName: state.friendName,
-                    content: '没问题！我在等你',
-                    timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-                    isCurrentUser: false
-                }
-            ];
-            setMessages(mockMessages);
+            loadChatHistory();
         }
     }, [state]);
+
+    const loadChatHistory = async () => {
+        if (isRefreshing) return; // Prevent multiple simultaneous requests
+        
+        setIsRefreshing(true);
+        try {
+            const userToken = getUserInfo().userID;
+            if (!userToken) {
+                console.error('用户未登录');
+                navigate('/login');
+                return;
+            }
+
+            const getChatHistoryMessage = new GetChatHistoryMessage(userToken, state.friendId);
+            
+            await commonSend(
+                getChatHistoryMessage,
+                (responseText: string) => {
+                    try {
+                        // 解析 JSON 字符串为对象
+                        const response = JSON.parse(responseText);
+                        
+                        // 确保 response 是数组
+                        if (!Array.isArray(response)) {
+                            console.error('响应数据不是数组格式:', response);
+                            setMessages([]);
+                            return;
+                        }
+
+                        // 转换MessageEntry格式为本地Message格式
+                        const currentUserID = getUserIDSnap();
+                        const convertedMessages: Message[] = response.map((msg: any, index: number) => ({
+                            id: `${index + 1}`,
+                            senderId: msg.messageSource,
+                            senderName: msg.messageSource === currentUserID ? '我' : state.friendName,
+                            content: msg.messageContent,
+                            timestamp: new Date(msg.messageTime),
+                            isCurrentUser: msg.messageSource === currentUserID
+                        }));
+                        setMessages(convertedMessages);
+                    } catch (parseError) {
+                        console.error('解析聊天记录失败:', parseError, '原始响应:', responseText);
+                        setMessages([]);
+                    }
+                },
+                (error: string) => {
+                    console.error('加载聊天记录失败:', error);
+                    // 设置空数组而不是模拟数据
+                    setMessages([]);
+                }
+            );
+        } catch (error) {
+            console.error('加载聊天记录出错:', error);
+            // 设置空数组而不是模拟数据
+            setMessages([]);
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    // 手动刷新聊天记录
+    const handleRefreshChat = async () => {
+        console.log('🔄 Refreshing chat history...');
+        await loadChatHistory();
+    };
 
     // Auto scroll to bottom when new messages arrive
     useEffect(() => {
@@ -106,18 +121,49 @@ const ChatPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (newMessage.trim()) {
-            const message: Message = {
+            const userToken = getUserInfo().userID;
+            const currentUserID = getUserIDSnap();
+            
+            if (!userToken || !currentUserID) {
+                console.error('用户未登录');
+                return;
+            }
+
+            // 先在本地显示消息，提供即时反馈
+            const localMessage: Message = {
                 id: Date.now().toString(),
-                senderId: 'currentUser',
+                senderId: currentUserID,
                 senderName: '我',
                 content: newMessage.trim(),
                 timestamp: new Date(),
                 isCurrentUser: true
             };
-            setMessages(prev => [...prev, message]);
+            setMessages(prev => [...prev, localMessage]);
+            const messageContent = newMessage.trim();
             setNewMessage('');
+
+            try {
+                // 发送到服务器
+                const sendMessageMessage = new SendMessageMessage(userToken, state.friendId, messageContent);
+                
+                await commonSend(
+                    sendMessageMessage,
+                    (response: string) => {
+                        console.log('消息发送成功:', response);
+                        // 可以在这里更新消息状态为"已发送"
+                    },
+                    (error: string) => {
+                        console.error('消息发送失败:', error);
+                        // 可以在这里显示错误状态或重试机制
+                        // 暂时保留本地消息，用户可以手动重试
+                    }
+                );
+            } catch (error) {
+                console.error('发送消息出错:', error);
+                // 发送失败时保留本地消息
+            }
         }
     };
 
@@ -174,6 +220,24 @@ const ChatPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="chat-actions">
+                        <button 
+                            className={`action-btn refresh-chat ${isRefreshing ? 'loading' : ''}`}
+                            onClick={handleRefreshChat}
+                            disabled={isRefreshing}
+                            title="刷新聊天记录"
+                        >
+                            <svg 
+                                className="refresh-icon" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2"
+                            >
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                            </svg>
+                        </button>
                         <button className="action-btn video-call" title="视频通话">
                             📹
                         </button>
@@ -187,28 +251,38 @@ const ChatPage: React.FC = () => {
                 </div>
 
                 <div className="chat-page-messages">
-                    {messages.map((message, index) => {
-                        const showDate = index === 0 || 
-                            formatDate(message.timestamp) !== formatDate(messages[index - 1].timestamp);
-                        
-                        return (
-                            <div key={message.id}>
-                                {showDate && (
-                                    <div className="message-date">
-                                        {formatDate(message.timestamp)}
-                                    </div>
-                                )}
-                                <div className={`message ${message.isCurrentUser ? 'message-sent' : 'message-received'}`}>
-                                    <div className="message-content">
-                                        {message.content}
-                                    </div>
-                                    <div className="message-time">
-                                        {formatTime(message.timestamp)}
+                    {messages.length === 0 ? (
+                        <div className="empty-chat-state">
+                            <div className="empty-chat-icon">💬</div>
+                            <div className="empty-chat-text">
+                                <h3>开始对话吧！</h3>
+                                <p>向 {state.friendName} 发送第一条消息</p>
+                            </div>
+                        </div>
+                    ) : (
+                        messages.map((message, index) => {
+                            const showDate = index === 0 || 
+                                formatDate(message.timestamp) !== formatDate(messages[index - 1].timestamp);
+                            
+                            return (
+                                <div key={message.id}>
+                                    {showDate && (
+                                        <div className="message-date">
+                                            {formatDate(message.timestamp)}
+                                        </div>
+                                    )}
+                                    <div className={`message ${message.isCurrentUser ? 'message-sent' : 'message-received'}`}>
+                                        <div className="message-content">
+                                            {message.content}
+                                        </div>
+                                        <div className="message-time">
+                                            {formatTime(message.timestamp)}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                     <div ref={messagesEndRef} />
                 </div>
 

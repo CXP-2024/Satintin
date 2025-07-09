@@ -4,7 +4,8 @@ import PageTransition from '../../components/PageTransition';
 import './BattlePage.css';
 import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-import {useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {getUserInfo, getUserToken, setUserInfo, useUserInfo} from "Plugins/CommonUtils/Store/UserInfoStore";
+import {SetUserMatchStatusMessage} from "Plugins/UserService/APIs/Battle/SetUserMatchStatusMessage";
 
 const BattlePage: React.FC = () => {
 	const user = useUserInfo();
@@ -34,20 +35,42 @@ const BattlePage: React.FC = () => {
 		setIsMatching(true);
 		setMatchingMode(mode);
 
+		new SetUserMatchStatusMessage(getUserToken(), mode).send(
+			(info) => {
+				const matchStatus = JSON.parse(info);
+				setUserInfo(
+					{
+						...getUserInfo(),
+						matchStatus: matchStatus
+					}
+				)
+				console.log(matchStatus);
+			}
+		);
+
 		// 模拟匹配过程
 		//const matchingMessage = mode === 'quick' ? '正在寻找对手...' : '正在进行排位匹配...';
 
-		// 模拟匹配成功后跳转到对战房间
-		setTimeout(() => {
-			setIsMatching(false);
-			setMatchingMode(null);
-			navigateWithTransition('/battle-room', '进入对战房间...');
-		}, 3000); // 3秒后匹配成功
+		navigateWithTransition('/battle-room', '进入对战房间...');
 	};
 
  // 创建房间
 	const handleCreateRoom = () => {
 		playClickSound();
+
+		new SetUserMatchStatusMessage(getUserToken(), "custom").send(
+			(info) => {
+				const matchStatus = JSON.parse(info);
+				console.log(matchStatus);
+				setUserInfo(
+					{
+						...getUserInfo(),
+						matchStatus: matchStatus
+					}
+				)
+			}
+		);
+
 		navigateWithTransition('/battle-room', '创建房间中...');
 	};
 

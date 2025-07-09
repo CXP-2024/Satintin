@@ -111,7 +111,7 @@ case object UserRegistrationProcess {
         s"""
         INSERT INTO ${schemaName}.user_social_table
         (user_id, friend_list, black_list, message_box)
-        VALUES (?, ?, ?, ?)
+        VALUES (?, ?::jsonb, ?::jsonb, ?::jsonb)
         """.stripMargin,
         List(
           SqlParameter("String", userRecord.userID),

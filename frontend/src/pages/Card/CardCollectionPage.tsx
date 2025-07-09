@@ -19,6 +19,7 @@ import {
 	CardTemplate, 
 	TabType 
 } from '../../components/cardCollection';
+import { showSuccess } from 'utils/alertUtils';
 
 const CardCollectionPage: React.FC = () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -238,7 +239,7 @@ const CardCollectionPage: React.FC = () => {
 			});
 			
 			console.log('[CardCollectionPage] 卡组配置成功:', response);
-			alert('卡组配置成功！');
+			showSuccess('卡组配置成功！', '配置成功');
 			
 		} catch (err) {
 			console.error('[CardCollectionPage] 卡组配置失败:', err);

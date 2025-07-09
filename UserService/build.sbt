@@ -86,6 +86,11 @@ libraryDependencies ++= Seq(
   "co.fs2" %% "fs2-core" % "3.11.0", // 添加 fs2 核心库
   "co.fs2" %% "fs2-io" % "3.11.0", // fs2 IO 支持
 
+  // 数据库库
+  "io.getquill" %% "quill-jdbc-zio" % "4.8.0",
+  "io.getquill" %% "quill-jdbc" % "4.8.0",
+  "dev.zio" %% "zio-json" % "0.6.2",
+
   // 其他库
   "joda-time" % "joda-time" % "2.12.7",
   "org.eclipse.jgit" % "org.eclipse.jgit" % "5.13.0.202109080827-r",

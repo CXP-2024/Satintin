@@ -9,10 +9,11 @@ interface RoundResultModalProps {
 	result: RoundResult;
 	onClose: () => void;
 	onHideTemporarily?: () => void; // 新增：暂时隐藏回调
+	onDirectExit?: () => void; // 新增：直接退出回调（跳过GameOverModal）
 	isGameOver?: boolean; // 新增：标记游戏是否已结束
 }
 
-const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily, isGameOver }) => {
+const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, onHideTemporarily, onDirectExit, isGameOver }) => {
 	const { currentPlayer, opponent, roundResultExiting, lastRoundSelectedAction } = useBattleStore();
 	const [animationPhase, setAnimationPhase] = useState<'actions' | 'effects' | 'results'>('actions');
 	const [showEffects, setShowEffects] = useState(false);
@@ -35,6 +36,14 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 	const handleClose = () => {
 		SoundUtils.playClickSound(0.5);
 		onClose();
+	};
+
+	// 直接退出战斗（跳过GameOverModal）
+	const handleDirectExit = () => {
+		SoundUtils.playClickSound(0.5);
+		if (onDirectExit) {
+			onDirectExit();
+		}
 	};
 
 	// 暂时隐藏模态框
@@ -189,13 +198,34 @@ const RoundResultModal: React.FC<RoundResultModalProps> = ({ result, onClose, on
 								{animationPhase === 'results' ? '暂时隐藏' : '结算中...'}
 							</button>
 						)}
-						<button
-							className="continue-btn"
-							onClick={handleClose}
-							disabled={animationPhase !== 'results'}
-						>
-							{animationPhase === 'results' ? (isGameOver ? '退出战斗' : '继续游戏') : '结算中...'}
-						</button>
+
+						{/* 当游戏结束时，提供两个选项 */}
+						{isGameOver && onDirectExit ? (
+							<>
+								<button
+									className="continue-btn secondary"
+									onClick={handleClose}
+									disabled={animationPhase !== 'results'}
+								>
+									{animationPhase === 'results' ? '返回结果面板' : '结算中...'}
+								</button>
+								<button
+									className="continue-btn primary"
+									onClick={handleDirectExit}
+									disabled={animationPhase !== 'results'}
+								>
+									{animationPhase === 'results' ? '直接退出战斗' : '结算中...'}
+								</button>
+							</>
+						) : (
+							<button
+								className="continue-btn"
+								onClick={handleClose}
+								disabled={animationPhase !== 'results'}
+							>
+								{animationPhase === 'results' ? (isGameOver ? '退出战斗' : '继续游戏') : '结算中...'}
+							</button>
+						)}
 					</div>
 				</div>
 			</div>

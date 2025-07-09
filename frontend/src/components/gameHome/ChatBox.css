@@ -97,6 +97,84 @@
     font-size: 10px;
 }
 
+/* Header actions container */
+.chatbox-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Refresh button styles */
+.chatbox-refresh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.chatbox-refresh-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.chatbox-refresh-btn:hover:not(:disabled)::before {
+    left: 100%;
+}
+
+.chatbox-refresh-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.chatbox-refresh-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.chatbox-refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.chatbox-refresh-btn .refresh-icon {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.chatbox-refresh-btn.loading .refresh-icon {
+    animation: spin 1s linear infinite;
+}
+
+.chatbox-refresh-btn:hover:not(:disabled) .refresh-icon {
+    transform: rotate(15deg);
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .chatbox-close-btn {
     background: none;
     border: none;

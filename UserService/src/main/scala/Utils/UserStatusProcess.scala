@@ -76,7 +76,7 @@ case object UserStatusProcess {
                       decodeField[List[String]](json, "friend_list").map(FriendEntry),
                       decodeField[List[String]](json, "black_list").map(BlackEntry),
                       decodeField[List[MessageRecord]](json, "message_box").map(
-                        rec => MessageEntry(rec.source, rec.content, rec.time)
+                        rec => MessageEntry(rec.source, rec.destination, rec.content, rec.time)
                       )
                     )
                   case None =>
@@ -152,7 +152,7 @@ case object UserStatusProcess {
   )
   
   // 用于解析 message_box 的辅助数据结构
-  case class MessageRecord(source: String, content: String, time: DateTime)
+  case class MessageRecord(source: String, destination: String, content: String, time: DateTime)
   
   
   def updateBanStatus(userID: String, banDays: Int)(using PlanContext): IO[String] = {
