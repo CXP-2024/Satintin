@@ -16,6 +16,6 @@ export class QueryIDByUserNameMessage extends TongWenMessage {
         super()
     }
     getAddress(): string {
-        return ServiceConfig.getCardServiceAddress()
+        return ServiceConfig.getUserServiceAddress()
     }
 }

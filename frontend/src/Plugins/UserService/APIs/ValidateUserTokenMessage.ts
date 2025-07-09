@@ -16,6 +16,6 @@ export class ValidateUserTokenMessage extends TongWenMessage {
     }
 
    getAddress(): string {
-       return ServiceConfig.getCardServiceAddress()
+       return ServiceConfig.getUserServiceAddress()
     }
 }
