@@ -28,6 +28,50 @@
 	animation: slideUp 0.4s ease-out;
 }
 
+/* 自定义滚动条样式 */
+.action-selector::-webkit-scrollbar {
+	width: 12px;
+}
+
+.action-selector::-webkit-scrollbar-track {
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-selector::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg,
+			rgba(149, 165, 166, 0.8) 0%,
+			rgba(127, 140, 141, 0.8) 50%,
+			rgba(149, 165, 166, 0.8) 100%);
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	box-shadow:
+		0 2px 4px rgba(0, 0, 0, 0.3),
+		inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-selector::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(180deg,
+			rgba(149, 165, 166, 1) 0%,
+			rgba(127, 140, 141, 1) 50%,
+			rgba(149, 165, 166, 1) 100%);
+	box-shadow:
+		0 4px 8px rgba(0, 0, 0, 0.4),
+		inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.action-selector::-webkit-scrollbar-thumb:active {
+	background: linear-gradient(180deg,
+			rgba(127, 140, 141, 1) 0%,
+			rgba(149, 165, 166, 1) 50%,
+			rgba(127, 140, 141, 1) 100%);
+}
+
+.action-selector::-webkit-scrollbar-corner {
+	background: rgba(0, 0, 0, 0.2);
+}
+
 /* 淡出动画 */
 .action-selector-overlay.exiting {
 	animation: fadeOut 0.3s ease-out;
@@ -634,4 +678,10 @@
 		padding: 10px 20px;
 		font-size: 0.9rem;
 	}
+}
+
+/* Firefox 滚动条样式 */
+.action-selector {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(149, 165, 166, 0.8) rgba(0, 0, 0, 0.2);
 }

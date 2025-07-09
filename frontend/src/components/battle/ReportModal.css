@@ -26,6 +26,50 @@
   animation: slideUp 0.3s ease;
 }
 
+/* 自定义滚动条样式 */
+.report-modal::-webkit-scrollbar {
+  width: 12px;
+}
+
+.report-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.report-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg,
+      rgba(149, 165, 166, 0.8) 0%,
+      rgba(127, 140, 141, 0.8) 50%,
+      rgba(149, 165, 166, 0.8) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.report-modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg,
+      rgba(149, 165, 166, 1) 0%,
+      rgba(127, 140, 141, 1) 50%,
+      rgba(149, 165, 166, 1) 100%);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.report-modal::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg,
+      rgba(127, 140, 141, 1) 0%,
+      rgba(149, 165, 166, 1) 50%,
+      rgba(127, 140, 141, 1) 100%);
+}
+
+.report-modal::-webkit-scrollbar-corner {
+  background: rgba(0, 0, 0, 0.2);
+}
+
 .report-modal-header {
   background: rgba(231, 76, 60, 0.8);
   padding: 15px 20px;
@@ -191,6 +235,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -201,6 +246,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -208,15 +254,27 @@
 }
 
 @keyframes shake {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateX(0);
   }
-  20%, 60% {
+
+  20%,
+  60% {
     transform: translateX(-5px);
   }
-  40%, 80% {
+
+  40%,
+  80% {
     transform: translateX(5px);
   }
+}
+
+/* Firefox 滚动条样式 */
+.report-modal {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(149, 165, 166, 0.8) rgba(0, 0, 0, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -225,7 +283,7 @@
     max-width: none;
     max-height: 80vh;
   }
-  
+
   .report-modal-header h2 {
     font-size: 1.2rem;
   }
@@ -235,19 +293,19 @@
   .report-modal-header {
     padding: 12px 15px;
   }
-  
+
   .report-modal-body {
     padding: 15px;
   }
-  
+
   .report-modal-footer {
     padding: 12px 15px;
     flex-direction: column;
   }
-  
+
   .report-cancel-button,
   .report-submit-button {
     width: 100%;
     padding: 12px;
   }
-} 
+}
