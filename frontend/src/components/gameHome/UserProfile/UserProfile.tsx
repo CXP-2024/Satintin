@@ -20,6 +20,9 @@ import {
 } from './UserProfileHandles';
 import FriendsList from '../FriendsList';
 import BlockedList from '../BlockedList';
+// 导入卡牌相关API
+import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
+import { GetAllCardTemplatesMessage } from 'Plugins/CardService/APIs/GetAllCardTemplatesMessage';
 
 interface UserProfileProps {
 	isOpen: boolean;
@@ -38,6 +41,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 	const [friendsLoadingStatus, setFriendsLoadingStatus] = useState<string>('');
 	const [isRefreshingFriends, setIsRefreshingFriends] = useState(false);
 	const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+	// 添加卡牌收集数据状态
+	const [cardCollection, setCardCollection] = useState({ owned: 0, total: 0 });
+	const [isLoadingCards, setIsLoadingCards] = useState(false);
 
 	// 创建刷新用户信息的函数
 	const handleRefreshUserInfo = async (quiet = false) => {
@@ -59,6 +65,49 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			}
 		} catch (error) {
 			console.error('Failed to refresh user info in UserProfile:', error);
+		}
+	};
+
+	// 获取用户卡牌收集数据
+	const fetchCardCollectionData = async (userID: string) => {
+		try {
+			setIsLoadingCards(true);
+			
+			// 获取用户拥有的卡牌
+			const userCardsResponse: any = await new Promise((resolve, reject) => {
+				new GetPlayerCardsMessage(userID).send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+			
+			// 获取所有卡牌模板
+			const allTemplatesResponse: any = await new Promise((resolve, reject) => {
+				new GetAllCardTemplatesMessage().send(
+					(res: any) => resolve(res),
+					(err: any) => reject(err)
+				);
+			});
+			
+			// 解析响应数据
+			const userCards = typeof userCardsResponse === 'string' ? JSON.parse(userCardsResponse) : userCardsResponse;
+			const allTemplates = typeof allTemplatesResponse === 'string' ? JSON.parse(allTemplatesResponse) : allTemplatesResponse;
+			
+			// 统计用户拥有的卡牌种类数量（去重）
+			const uniqueUserCardIDs = new Set(userCards.map(card => card.cardID));
+			
+			setCardCollection({
+				owned: uniqueUserCardIDs.size,
+				total: allTemplates.length
+			});
+			
+			console.log(`[UserProfile] 卡牌收集情况: ${uniqueUserCardIDs.size}/${allTemplates.length}`);
+			
+		} catch (error) {
+			console.error('[UserProfile] 获取卡牌收集数据失败:', error);
+			setCardCollection({ owned: 0, total: 0 });
+		} finally {
+			setIsLoadingCards(false);
 		}
 	};
 
@@ -122,6 +171,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			console.log('UserProfile opened - user data:', user);
 			console.log('User ID:', user.userID);
 			console.log('User Token:', getUserToken());
+			// 获取卡牌收集数据
+			if (user.userID) {
+				fetchCardCollectionData(user.userID);
+			}
 			console.log('Friend list:', user.friendList);
 			console.log('Friend list type:', typeof user.friendList);
 			console.log('Is friend list array:', Array.isArray(user.friendList));
@@ -209,7 +262,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						</div>
 					</div>
 					<div className="profile-info">
-						<h2 className="profile-username">{user?.userName}</h2>
+						<h2 className="profile-username">
+							{user?.userName}
+							<span style={{ color: '#888', fontSize: '0.7em', marginLeft: '8px' }}>
+								{user?.userID}
+							</span>
+						</h2>
 						<p className="profile-email">{user?.email || 'test@satintin.com'}</p>
 					</div>
 				</div>
@@ -218,8 +276,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 				<div className="profile-details">
 					<div className="details-grid">
 						<div className="detail-item">
-							<span className="detail-label">用户ID</span>
-							<span className="detail-value">{user?.userID || '12345'}</span>
+							<span className="detail-label">积分</span>
+							<span className="detail-value">{user?.credits || '0'}</span>
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">段位</span>
@@ -235,7 +293,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">注册时间</span>
-							<span className="detail-value">2024-12-01</span>
+							<span className="detail-value">
+								{user?.registerTime ? new Date(user.registerTime).toLocaleDateString('zh-CN', {
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric',
+									hour: '2-digit',
+									minute: '2-digit'
+								}) : '未知'}
+							</span>
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">游戏时长</span>
@@ -251,7 +317,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">收集卡牌</span>
-							<span className="detail-value">45/120</span>
+							<span className="detail-value">
+								{`${cardCollection.owned}/${cardCollection.total}`}
+							</span>
 						</div>
 					</div>
 				</div>
