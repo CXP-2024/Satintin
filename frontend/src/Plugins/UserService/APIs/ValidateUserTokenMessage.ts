@@ -6,7 +6,7 @@
  */
 
 import { TongWenMessage } from 'Plugins/TongWenAPI/TongWenMessage'
-import { ServiceConfig } from 'Globals/ServiceConfig'
+import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 export class ValidateUserTokenMessage extends TongWenMessage {
     constructor(
@@ -16,6 +16,6 @@ export class ValidateUserTokenMessage extends TongWenMessage {
     }
 
    getAddress(): string {
-        return ServiceConfig.getUserServiceAddress()
+       return ServiceConfig.getUserServiceAddress()
     }
 }

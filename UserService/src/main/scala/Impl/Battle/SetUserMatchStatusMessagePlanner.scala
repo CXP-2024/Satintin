@@ -37,7 +37,7 @@ case class SetUserMatchStatusMessagePlanner(
       _ <- updateUserMatchStatus(userID, matchStatus)
       _ <- IO(logger.info(s"[Step 3] 用户匹配状态更新成功"))
 
-    } yield s" ${matchStatus}"
+    } yield s"${matchStatus}"
   }
 
   private def validateUserToken()(using PlanContext): IO[String] = {

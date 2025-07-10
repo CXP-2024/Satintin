@@ -5,7 +5,7 @@
  * @return result: CardTemplate (卡牌模板信息，如果不存在则抛出异常)
  */
 import { TongWenMessage } from '../../TongWenAPI/TongWenMessage'
-import { ServiceConfig } from 'Globals/ServiceConfig'
+import {ServiceConfig} from "../../../Globals/ServiceConfig";
 
 export class GetCardTemplateByIDMessage extends TongWenMessage {
     constructor(

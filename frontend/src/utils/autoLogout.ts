@@ -1,5 +1,5 @@
 import { LogoutUserMessage } from 'Plugins/UserService/APIs/LogoutUserMessage';
-import { getUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
+import { getUserToken, setUserToken, clearUserInfo, initUserToken } from 'Plugins/CommonUtils/Store/UserInfoStore';
 
 class AutoLogoutManager {
   private currentUserToken: string | null = null;
@@ -80,6 +80,8 @@ class AutoLogoutManager {
       
       if (success) {
         console.log('✅ [AutoLogout] sendBeacon成功');
+        // 清除前端的用户token
+        this.clearUserTokenAndInfo();
         return;
       }
     } catch (error) {
@@ -99,6 +101,8 @@ class AutoLogoutManager {
       
       if (xhr.status === 200) {
         console.log('✅ [AutoLogout] 同步XHR成功');
+        // 清除前端的用户token
+        this.clearUserTokenAndInfo();
         return;
       }
     } catch (error) {
@@ -115,12 +119,26 @@ class AutoLogoutManager {
         keepalive: true
       }).then(response => {
         console.log(`📡 [AutoLogout] fetch keepalive状态: ${response.status}`);
+        if (response.status === 200) {
+          // 清除前端的用户token
+          this.clearUserTokenAndInfo();
+        }
       }).catch(error => {
         console.log('❌ [AutoLogout] fetch keepalive失败:', error);
       });
     } catch (error) {
       console.error('❌ [AutoLogout] fetch keepalive异常:', error);
     }
+  }
+
+  /**
+   * 清除用户token和信息
+   */
+  private clearUserTokenAndInfo(): void {
+    console.log('🧹 [AutoLogout] 清除前端用户token和信息');
+    initUserToken();
+    clearUserInfo();
+    this.currentUserToken = null;
   }
 
   /**
@@ -141,7 +159,11 @@ class AutoLogoutManager {
     console.log('🖱️ [AutoLogout] 手动logout:', reason);
     return new Promise((resolve, reject) => {
       new LogoutUserMessage(userToken).send(
-        () => resolve(),
+        () => {
+          // 成功登出后清除token和用户信息
+          this.clearUserTokenAndInfo();
+          resolve();
+        },
         (error) => reject(error)
       );
     });
