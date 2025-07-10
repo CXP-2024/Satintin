@@ -143,6 +143,273 @@
 	margin-top: 20px;
 }
 
+/* 行动类别 */
+.action-category {
+	margin-bottom: 30px;
+}
+
+.category-title {
+	color: white;
+	font-size: 1.5rem;
+	font-weight: bold;
+	margin-bottom: 20px;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.section-desc {
+	color: white;
+	font-size: 1rem;
+	margin-bottom: 20px;
+	opacity: 0.9;
+}
+
+/* 被动行动样式 */
+.action-card.passive {
+	background: rgba(100, 150, 255, 0.15);
+}
+
+.action-card.passive.bing {
+	border-left: 4px solid #f39c12;
+}
+
+.action-card.passive.dan {
+	border-left: 4px solid #e74c3c;
+}
+
+.action-card.passive.fang {
+	border-left: 4px solid #3498db;
+}
+
+.action-item {
+	color: white;
+	margin: 8px 0;
+	font-size: 0.95rem;
+	line-height: 1.4;
+}
+
+.action-note {
+	color: #f8f9fa !important;
+	font-style: italic;
+	opacity: 0.8;
+	margin-top: 10px !important;
+}
+
+/* 攻击类型表格 */
+.attack-table-wrapper {
+	margin: 20px 0;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	padding: 20px;
+	backdrop-filter: blur(10px);
+}
+
+.table-title {
+	color: white;
+	font-size: 1.2rem;
+	font-weight: bold;
+	margin-bottom: 15px;
+	text-align: center;
+}
+
+.attack-table {
+	width: 100%;
+	border-collapse: collapse;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.attack-table th,
+.attack-table td {
+	padding: 12px 15px;
+	text-align: center;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attack-table th {
+	background: rgba(255, 255, 255, 0.15);
+	color: white;
+	font-weight: bold;
+	font-size: 0.9rem;
+}
+
+.attack-table td {
+	color: white;
+	font-size: 0.85rem;
+}
+
+.attack-table tr:hover {
+	background: rgba(255, 255, 255, 0.05);
+}
+
+/* 组合规则 */
+.combination-rules {
+	margin-top: 25px;
+}
+
+.combo-title {
+	color: white;
+	font-size: 1.2rem;
+	font-weight: bold;
+	margin-bottom: 15px;
+}
+
+.combo-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 20px;
+}
+
+.combo-card {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	padding: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.combo-card h5 {
+	color: white;
+	font-size: 1.1rem;
+	margin-bottom: 8px;
+}
+
+.combo-card p {
+	color: white;
+	opacity: 0.9;
+	margin-bottom: 12px;
+	font-size: 0.9rem;
+}
+
+.combo-card ul {
+	color: white;
+	margin: 0;
+	padding-left: 20px;
+}
+
+.combo-card li {
+	font-size: 0.85rem;
+	margin-bottom: 4px;
+	opacity: 0.8;
+}
+
+/* 结算步骤 */
+.settlement-step {
+	margin-bottom: 30px;
+}
+
+.step-title {
+	color: white;
+	font-size: 1.3rem;
+	font-weight: bold;
+	margin-bottom: 15px;
+}
+
+.warning {
+	border: 2px solid rgba(231, 76, 60, 0.4) !important;
+	background: linear-gradient(45deg, rgba(231, 76, 60, 0.1), rgba(192, 57, 43, 0.1)) !important;
+}
+
+/* 结算场景 */
+.settlement-scenarios {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	gap: 20px;
+	margin-top: 15px;
+}
+
+.scenario-card {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 15px;
+	padding: 20px;
+	border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.scenario-card h4 {
+	color: white;
+	font-size: 1.1rem;
+	margin-bottom: 12px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+	padding-bottom: 8px;
+}
+
+.scenario-card p {
+	color: white;
+	font-size: 0.9rem;
+	margin: 8px 0;
+	opacity: 0.9;
+}
+
+.scenario-details ul {
+	color: white;
+	margin: 10px 0;
+	padding-left: 20px;
+}
+
+.scenario-details li {
+	font-size: 0.85rem;
+	margin-bottom: 4px;
+	opacity: 0.8;
+}
+
+/* 被动伤害表格 */
+.passive-damage-table {
+	margin-top: 15px;
+}
+
+.passive-damage-table table {
+	width: 100%;
+	border-collapse: collapse;
+	background: rgba(255, 255, 255, 0.05);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.passive-damage-table th,
+.passive-damage-table td {
+	padding: 10px 12px;
+	text-align: left;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	font-size: 0.8rem;
+}
+
+.passive-damage-table th {
+	background: rgba(255, 255, 255, 0.1);
+	color: white;
+	font-weight: bold;
+}
+
+.passive-damage-table td {
+	color: white;
+	opacity: 0.9;
+}
+
+/* 胜利规则 */
+.victory-rules {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.victory-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 15px;
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 10px;
+	border-left: 3px solid rgba(255, 215, 0, 0.6);
+}
+
+.victory-condition {
+	font-size: 1.2rem;
+	flex-shrink: 0;
+}
+
+.victory-item span:last-child {
+	color: white;
+	font-size: 0.95rem;
+}
+
 .action-card {
 	background: rgba(255, 255, 255, 0.15);
 	backdrop-filter: blur(20px);
@@ -359,13 +626,21 @@
 		gap: 15px;
 		text-align: center;
 	}
-	
+
 	.back-btn {
 		align-self: flex-start;
 	}
-	
+
 	.rules-title {
 		font-size: 2.2rem;
+	}
+
+	.combo-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.settlement-scenarios {
+		grid-template-columns: 1fr;
 	}
 }
 
@@ -398,5 +673,28 @@
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 15px;
+	}
+
+	.attack-table-wrapper {
+		overflow-x: auto;
+		padding: 15px;
+	}
+
+	.attack-table {
+		min-width: 600px;
+	}
+
+	.attack-table th,
+	.attack-table td {
+		padding: 8px 10px;
+		font-size: 0.8rem;
+	}
+
+	.passive-damage-table {
+		overflow-x: auto;
+	}
+
+	.passive-damage-table table {
+		min-width: 500px;
 	}
 }

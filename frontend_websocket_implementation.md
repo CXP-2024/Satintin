@@ -212,7 +212,7 @@ export const useBattleStore = create<BattleState>((set, get) => ({
          "username": "Player 1",
          "health": 6,
          "energy": 0,
-         "rank": "Bronze",
+         "rank": "黑铁",
          "cards": [],
          "isReady": true,
          "isConnected": true
@@ -222,7 +222,7 @@ export const useBattleStore = create<BattleState>((set, get) => ({
          "username": "Player 2",
          "health": 6,
          "energy": 0,
-         "rank": "Bronze",
+         "rank": "黑铁",
          "cards": [],
          "isReady": true,
          "isConnected": true

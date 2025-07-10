@@ -202,7 +202,7 @@ This ensures that the battle logic remains consistent between the HTTP API and W
          "username": "Player 1",
          "health": 6,
          "energy": 0,
-         "rank": "Bronze",
+         "rank": "黑铁",
          "cards": [],
          "isReady": true,
          "isConnected": true
@@ -212,7 +212,7 @@ This ensures that the battle logic remains consistent between the HTTP API and W
          "username": "Player 2",
          "health": 6,
          "energy": 0,
-         "rank": "Bronze",
+         "rank": "黑铁",
          "cards": [],
          "isReady": true,
          "isConnected": true

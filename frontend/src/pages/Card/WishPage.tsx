@@ -205,9 +205,9 @@ const WishPage: React.FC = () => {
 						<button className="rules-btn" onClick={handleShowRules}>
 							📋 祈愿规则
 						</button>
-						<button className="test-btn" onClick={handleSetDrawCount}>
+						{/* <button className="test-btn" onClick={handleSetDrawCount}>
 							🎲 测试抽数89
-						</button>
+						</button> */}
 					</div>
 				</header>
 

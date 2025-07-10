@@ -18,14 +18,17 @@
  * 创建时间: 2025-07-09
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { RewardAssetMessage } from 'Plugins/AssetService/APIs/RewardAssetMessage';
 import { DeductAssetMessage } from 'Plugins/AssetService/APIs/DeductAssetMessage';
 import { GameOverResult } from '../../services/WebSocketService';
+import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
+import { ModifyUserCreditsMessage } from 'Plugins/UserService/APIs/ModifyUserCreditsMessage';
 
 // 常量定义
 export const REWARD_AMOUNT = 50; // 奖惩金额设为50原石
+export const CREDITS_CHANGE_AMOUNT = 44; // 积分变更量设为44
 
 /**
  * GameOverModal 逻辑处理钩子
@@ -39,6 +42,22 @@ export const useGameOverModalLogic = (
 	const userInfo = getUserInfo();
 	const userName = userInfo.userName;
 	const userToken = userInfo.userID;
+	const [currentCredits, setCurrentCredits] = useState(0);
+
+	// 获取用户当前积分
+	useEffect(() => {
+		if (open && gameOverResult && userToken) {
+			new GetUserInfoMessage(userToken).send(
+				(response) => {
+					console.log('✅ [GameOverModal] 获取用户信息成功:', response);
+					setCurrentCredits(response.credits || 0);
+				},
+				(error) => {
+					console.error('❌ [GameOverModal] 获取用户信息失败:', error);
+				}
+			);
+		}
+	}, [open, gameOverResult, userToken]);
 
 	useEffect(() => {
 		// 只有在不跳过奖励处理时才执行
@@ -55,6 +74,17 @@ export const useGameOverModalLogic = (
 						console.error('❌ [GameOverModal] 胜利奖励发放失败:', error);
 					}
 				);
+				
+				// 增加积分
+				const newCredits = currentCredits + CREDITS_CHANGE_AMOUNT;
+				new ModifyUserCreditsMessage(userToken, newCredits).send(
+					(response) => {
+						console.log('✅ [GameOverModal] 胜利积分增加成功:', response);
+					},
+					(error) => {
+						console.error('❌ [GameOverModal] 胜利积分增加失败:', error);
+					}
+				);
 			} else {
 				// 失败者扣除原石
 				new DeductAssetMessage(userToken, REWARD_AMOUNT).send(
@@ -65,11 +95,22 @@ export const useGameOverModalLogic = (
 						console.error('❌ [GameOverModal] 失败扣除原石失败:', error);
 					}
 				);
+				
+				// 减少积分，但不低于0
+				const newCredits = Math.max(0, currentCredits - CREDITS_CHANGE_AMOUNT);
+				new ModifyUserCreditsMessage(userToken, newCredits).send(
+					(response) => {
+						console.log('✅ [GameOverModal] 失败积分减少成功:', response);
+					},
+					(error) => {
+						console.error('❌ [GameOverModal] 失败积分减少失败:', error);
+					}
+				);
 			}
 		} else if (skipRewardProcessing) {
 			console.log('🚫 [GameOverModal] 跳过奖励处理，避免重复扣减');
 		}
-	}, [open, gameOverResult, userName, userToken, skipRewardProcessing]);
+	}, [open, gameOverResult, userName, userToken, skipRewardProcessing, currentCredits]);
 
 	/**
 	 * 获取结束原因的中文描述
@@ -121,6 +162,7 @@ export const useGameOverModalLogic = (
 		getWinnerTitle,
 		getWinnerDescription,
 		getDialogBackgroundStyle,
-		REWARD_AMOUNT
+		REWARD_AMOUNT,
+		CREDITS_CHANGE_AMOUNT
 	};
 };

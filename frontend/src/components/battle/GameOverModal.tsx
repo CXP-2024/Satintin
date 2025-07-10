@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogTitle, Button, Typography, Box, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { GameOverResult } from '../../services/WebSocketService';
-import { useGameOverModalLogic, REWARD_AMOUNT } from './GameOverModalLogic';
+import { useGameOverModalLogic, REWARD_AMOUNT, CREDITS_CHANGE_AMOUNT } from './GameOverModalLogic';
 
 interface GameOverModalProps {
 	open: boolean;
@@ -116,22 +116,14 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 								💎 原石
 							</Typography>
 						</Box>
-						{gameOverResult.rewards?.rankChange && (
-							<Box sx={{ textAlign: 'center' }}>
-								<Typography
-									variant="h4"
-									sx={{
-										color: gameOverResult.rewards.rankChange > 0 ? '#4CAF50' : '#F44336',
-										fontWeight: 'bold'
-									}}
-								>
-									{gameOverResult.rewards.rankChange > 0 ? '+' : ''}{gameOverResult.rewards.rankChange}
-								</Typography>
-								<Typography variant="body2">
-									📈 排名变化
-								</Typography>
-							</Box>
-						)}
+						<Box sx={{ textAlign: 'center' }}>
+							<Typography variant="h4" sx={{ color: '#4CAF50', fontWeight: 'bold' }}>
+								+{CREDITS_CHANGE_AMOUNT}
+							</Typography>
+							<Typography variant="body2">
+								🏆 积分
+							</Typography>
+						</Box>
 					</Box>
 				</RewardBox>
 			);
@@ -151,22 +143,14 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 								💎 原石
 							</Typography>
 						</Box>
-						{gameOverResult.rewards?.rankChange && (
-							<Box sx={{ textAlign: 'center' }}>
-								<Typography
-									variant="h4"
-									sx={{
-										color: '#F44336',
-										fontWeight: 'bold'
-									}}
-								>
-									{gameOverResult.rewards.rankChange}
-								</Typography>
-								<Typography variant="body2">
-									📉 排名变化
-								</Typography>
-							</Box>
-						)}
+						<Box sx={{ textAlign: 'center' }}>
+							<Typography variant="h4" sx={{ color: '#F44336', fontWeight: 'bold' }}>
+								-{CREDITS_CHANGE_AMOUNT}
+							</Typography>
+							<Typography variant="body2">
+								🏆 积分
+							</Typography>
+						</Box>
 					</Box>
 				</RewardBox>
 			);

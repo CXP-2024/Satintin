@@ -130,3 +130,7 @@ npm start
 ## GameCore设计
 
 <img src="Assets/gamecore.jpg" alt="login" width="100%">
+
+## Relation Map
+
+<img src="Assets/relation_map.png" alt="login" width="100%">

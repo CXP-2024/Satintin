@@ -410,7 +410,8 @@
 	display: flex;
 	flex-direction: column;
 	gap: 15px;
-	align-items: stretch; /* 确保所有按钮宽度一致 */
+	align-items: stretch;
+	/* 确保所有按钮宽度一致 */
 }
 
 .show-action-selector-btn {
@@ -467,6 +468,25 @@
 	box-shadow: 0 12px 35px rgba(231, 76, 60, 0.5);
 }
 
+/* 聊天按钮样式 */
+.chat-with-opponent-btn {
+	background: linear-gradient(45deg, #27ae60, #2ecc71);
+	border: none;
+	padding: 15px 20px;
+	border-radius: 50px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
+	animation: pulse-glow-green 2s ease-in-out infinite;
+}
+
+.chat-with-opponent-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 12px 35px rgba(46, 204, 113, 0.5);
+}
+
 @keyframes pulse-glow-purple {
 
 	0%,
@@ -476,6 +496,18 @@
 
 	50% {
 		box-shadow: 0 8px 35px rgba(155, 89, 182, 0.6);
+	}
+}
+
+@keyframes pulse-glow-green {
+
+	0%,
+	100% {
+		box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);
+	}
+
+	50% {
+		box-shadow: 0 8px 35px rgba(46, 204, 113, 0.6);
 	}
 }
 
@@ -639,8 +671,9 @@
 		padding: 12px 16px;
 		font-size: 0.9rem;
 	}
-	
-	.report-opponent-btn {
+
+	.report-opponent-btn,
+	.chat-with-opponent-btn {
 		padding: 12px 16px;
 		font-size: 0.9rem;
 	}
@@ -689,8 +722,9 @@
 		padding: 10px 14px;
 		font-size: 0.8rem;
 	}
-	
-	.report-opponent-btn {
+
+	.report-opponent-btn,
+	.chat-with-opponent-btn {
 		padding: 10px 14px;
 		font-size: 0.8rem;
 	}
