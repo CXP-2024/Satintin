@@ -354,7 +354,7 @@ class BattleWebSocketManager(roomId: String) {
           username = userName,
           health = 6,
           energy = 0,
-          rank = "Bronze",
+          rank = "黑铁",
           cards = List(card1_battle, card2_battle, card3_battle), // 使用获取到的卡牌ID列表
           isReady = false,
           isConnected = true
@@ -403,7 +403,7 @@ class BattleWebSocketManager(roomId: String) {
           username = s"Error initializing player $playerId in room $roomId from backend",
           health = 6,
           energy = 0,
-          rank = "Bronze",
+          rank = "黑铁",
           cards = List(),
           isReady = false,
           isConnected = true

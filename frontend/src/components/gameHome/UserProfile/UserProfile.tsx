@@ -281,8 +281,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						</div>
 						<div className="detail-item">
 							<span className="detail-label">段位</span>
-							<span className="detail-value" style={{ color: getRankColor(user?.rank || '青铜I') }}>
-								{user?.rank || '青铜I'}
+							<span className="detail-value" style={{ color: getRankColor(user?.rank || '黑铁') }}>
+								{user?.rank || '黑铁'}
 							</span>
 						</div>
 						<div className="detail-item">

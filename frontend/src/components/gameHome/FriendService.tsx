@@ -52,7 +52,7 @@ export const fetchFriendInfo = async (friendID: string): Promise<FriendInfo | nu
         return {
             id: friendData.userID,
             username: friendData.userName,
-            rank: friendData.rank || '青铜I',
+            rank: friendData.rank || '黑铁',
             status: friendData.isOnline ? 'online' : 'offline',
             lastSeen: friendData.isOnline ? '在线' : '离线'
         };

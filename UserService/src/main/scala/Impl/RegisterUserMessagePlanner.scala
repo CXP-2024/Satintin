@@ -65,7 +65,7 @@ case class RegisterUserMessagePlanner(
       matchStatus = "Idle",
       stoneAmount = 10000,
       credits = 0,
-      rank = "Bronze",
+      rank = "黑铁",
       rankPosition = 0,
       friendList = List.empty,
       blackList = List.empty,
