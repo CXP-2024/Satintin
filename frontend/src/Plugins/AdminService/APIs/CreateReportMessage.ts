@@ -5,9 +5,9 @@ import { ServiceConfig } from 'Globals/ServiceConfig'
 
 export class CreateReportMessage extends TongWenMessage {
     constructor(
-        public  userToken : string,        // ✅ Changed from "reportertoken"
-        public  reportedUserID: string,    // ✅ Changed from "reporteduserID"
-        public  reportReason: string       // ✅ Changed from "reportreason"
+        public  userID : string,        
+        public  reportedUserID: string,    
+        public  reportReason: string    
     ) {
         super()
     }

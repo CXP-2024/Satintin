@@ -20,13 +20,13 @@ import java.util.UUID
 /**
  * CreateReportMessage
  * desc: 用户提交举报记录，报告违规行为或作弊行为
- * @param userToken: String (举报人的用户Token，用于身份验证)
+ * @param userID: String (举报人的用户ID，用于身份验证)
  * @param reportedUserID: String (被举报用户的ID)
  * @param reportReason: String (举报的具体原因，例如"使用外挂"、"恶意行为"等)
  * @return result: String (举报提交结果，包含举报ID或成功信息)
  */
 case class CreateReportMessage(
-  userToken: String,
+  userID: String,
   reportedUserID: String,
   reportReason: String
 ) extends API[String](AdminServiceCode)

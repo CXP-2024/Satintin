@@ -10,12 +10,12 @@ import java.util.UUID
 
 /**
  * 创建举报记录的处理器
- * @param userToken 举报人的用户Token，用于身份验证
+ * @param userID 举报人的用户ID
  * @param reportedUserID 被举报用户的ID
  * @param reportReason 举报的具体原因
  */
 case class CreateReportUserMessagePlanner(
-  userToken: String,
+  userID: String,
   reportedUserID: String,
   reportReason: String,
   override val planContext: PlanContext
@@ -25,11 +25,6 @@ case class CreateReportUserMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: 验证用户Token并获取用户ID
-      _ <- IO(logger.info(s"[Step 1] 验证用户Token: $userToken"))
-      reportingUserID <- validateUserToken(userToken)
-      _ <- IO(logger.info(s"[Step 1] 用户Token验证成功，举报人ID: $reportingUserID"))
-
       // Step 2: 验证被举报用户存在
       _ <- IO(logger.info(s"[Step 2] 验证被举报用户是否存在: $reportedUserID"))
       _ <- validateReportedUser(reportedUserID)
@@ -43,7 +38,7 @@ case class CreateReportUserMessagePlanner(
       // Step 4: 创建举报记录
       reportID <- IO(UUID.randomUUID().toString)
       _ <- IO(logger.info(s"[Step 4] 开始创建举报记录，举报ID: $reportID"))
-      _ <- createReportRecord(reportID, reportingUserID, reportedUserID, reportReason)
+      _ <- createReportRecord(reportID, userID, reportedUserID, reportReason)
       
       // Step 5: 更新系统统计数据
       _ <- IO(logger.info(s"[Step 5] 更新系统举报统计数据"))
@@ -51,24 +46,6 @@ case class CreateReportUserMessagePlanner(
 
       _ <- IO(logger.info(s"[Step 6] 举报记录创建成功，举报ID: $reportID"))
     } yield s"举报提交成功，举报ID: $reportID"
-  }
-
-  /**
-   * 验证用户Token并返回用户ID
-   * 注意：这里需要调用UserService来验证用户Token
-   */
-  private def validateUserToken(userToken: String)(using PlanContext): IO[String] = {
-    for {
-      _ <- IO {
-        if (userToken == null || userToken.trim.isEmpty)
-          throw new IllegalArgumentException("用户Token不能为空")
-      }
-      userID <- IO {
-        userToken
-      }
-      
-      _ <- IO(logger.info(s"用户Token验证成功，用户ID: $userID"))
-    } yield userID
   }
 
   /**
@@ -108,7 +85,7 @@ case class CreateReportUserMessagePlanner(
    */
   private def createReportRecord(
     reportID: String,
-    reportingUserID: String,
+    userID: String,
     reportedUserID: String,
     reportReason: String
   )(using PlanContext): IO[Unit] = {
@@ -121,7 +98,7 @@ case class CreateReportUserMessagePlanner(
 
     val params = List(
       SqlParameter("String", reportID),
-      SqlParameter("String", reportingUserID),
+      SqlParameter("String", userID),
       SqlParameter("String", reportedUserID),
       SqlParameter("String", reportReason)
     )
