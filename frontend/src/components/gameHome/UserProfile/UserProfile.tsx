@@ -150,7 +150,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			console.log('✅ Friends refresh completed');
 		} catch (error) {
 			console.error('❌ Failed to refresh friends list:', error);
-			setFriendsLoadingStatus('刷新失败，请重试');
+			//setFriendsLoadingStatus('刷新失败，请重试');
 			// 清除错误状态
 			setTimeout(() => setFriendsLoadingStatus(''), 3000);
 		} finally {
@@ -234,7 +234,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			if (activeTab === 'friends' && !isRefreshingFriends && !loading) {
 				console.log('⏰ Auto-refreshing friends list...');
 				const currentTime = new Date().toLocaleTimeString();
-				setFriendsLoadingStatus(`🔄 自动刷新 ${currentTime}`);
+				//setFriendsLoadingStatus(`🔄 自动刷新 ${currentTime}`);
 				await handleRefreshFriends();
 			}
 		}, 1000); // 每1秒刷新一次

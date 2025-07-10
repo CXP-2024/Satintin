@@ -55,7 +55,7 @@ export const validateMultipleUsersExist = async (
     // Process users sequentially to avoid overwhelming the backend
     for (let i = 0; i < userIDs.length; i++) {
         const userID = userIDs[i];
-        setFriendsLoadingStatus(`验证用户 ${i + 1}/${userIDs.length}: ${userID}`);
+        //setFriendsLoadingStatus(`验证用户 ${i + 1}/${userIDs.length}: ${userID}`);
 
         try {
             const exists = await checkUserExistsLightweight(userID);

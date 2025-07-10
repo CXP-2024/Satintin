@@ -56,7 +56,7 @@ const FriendsList: React.FC<FriendsListProps> = ({
                         <div className="list-header-buttons">
                             {onRefreshFriends && (
                                 <>
-                                    <button 
+                                    {/* <button 
                                         className={`friends-refresh-btn ${isRefreshing ? 'loading' : ''}`}
                                         onClick={onRefreshFriends}
                                         disabled={isRefreshing || loading}
@@ -74,9 +74,9 @@ const FriendsList: React.FC<FriendsListProps> = ({
                                             <path d="m20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
                                         </svg>
                                         <span className="refresh-text">
-                                            {isRefreshing ? '刷新中...' : '手动'}
+                                            {isRefreshing ? '刷新' : '刷新'}
                                         </span>
-                                    </button>
+                                    </button> */}
                                     
                                     {setAutoRefreshEnabled && (
                                         <button 
@@ -114,7 +114,7 @@ const FriendsList: React.FC<FriendsListProps> = ({
                             onClick={() => handleAddFriend(handleState)}
                             disabled={loading || !addFriendID.trim()}
                         >
-                            {loading ? '添加中...' : '+ 添加好友'}
+                            {loading ? '+ 添加好友' : '+ 添加好友'}
                         </button>
                     </div>
                 </div>
