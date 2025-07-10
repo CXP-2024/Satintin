@@ -41,14 +41,14 @@ const ReportModal: React.FC<ReportModalProps> = ({
             <div className="admin-info-row">
               <span className="admin-info-label">举报者:</span>
               <span className="admin-info-value">
-                {userNameCache[selectedReport.reportingUserID] || selectedReport.reportingUserID}
+                {userNameCache[selectedReport.reportingUserID]}
                 <span className="user-id">({selectedReport.reportingUserID})</span>
               </span>
             </div>
             <div className="admin-info-row">
               <span className="admin-info-label">被举报者:</span>
               <span className="admin-info-value">
-                {userNameCache[selectedReport.reportedUserID] || selectedReport.reportedUserID}
+                {userNameCache[selectedReport.reportedUserID]}
                 <span className="user-id">({selectedReport.reportedUserID})</span>
               </span>
             </div>

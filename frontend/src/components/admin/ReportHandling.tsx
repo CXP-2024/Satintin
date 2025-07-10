@@ -148,8 +148,8 @@ const ReportHandling: React.FC<ReportHandlingProps> = ({
             {currentReports.map(report => (
               <tr key={report.reportID}>
                 <td>{report.reportID.substring(0, 8)}...</td>
-                <td>{userNameCache[report.reportingUserID] || report.reportingUserID}</td>
-                <td>{userNameCache[report.reportedUserID] || report.reportedUserID}</td>
+                <td>{userNameCache[report.reportingUserID]}</td>
+                <td>{userNameCache[report.reportedUserID]}</td>
                 <td>{report.reportReason}</td>
                 <td>{report.getFormattedTime()}</td>
                 <td>

@@ -47,6 +47,7 @@ const UserReportModal: React.FC<UserReportModalProps> = ({
     }
 
     const userToken = getUserToken();
+    const currentPlayer = currentUser?.userID;
     if (!userToken) {
       setSubmitError('您需要登录才能举报用户');
       return;
@@ -57,7 +58,7 @@ const UserReportModal: React.FC<UserReportModalProps> = ({
     
     // 提交举报
     new CreateReportMessage(
-      userToken,
+      currentPlayer,
       userID,
       selectedReason + ": " + description
     ).send(
