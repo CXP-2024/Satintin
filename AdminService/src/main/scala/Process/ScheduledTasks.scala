@@ -19,11 +19,11 @@ object ScheduledTasks {
 
   def startBanDayDecreaseTask(): Resource[IO, Unit] = {
     val stream = Stream
-      .fixedDelay[IO](1.minute)
+      .fixedDelay[IO](1.day)
       .evalMap(_ => runBanDayDecrease())
       .handleErrorWith { error =>
         Stream.eval(IO(logger.error(s"[ScheduledTasks] Error in ban day decrease stream: ${error.getMessage}", error))) ++
-        Stream.fixedDelay[IO](1.minute)
+        Stream.fixedDelay[IO](1.day)
       }
       .repeat
 

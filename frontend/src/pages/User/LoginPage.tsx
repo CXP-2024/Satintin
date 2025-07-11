@@ -58,11 +58,6 @@ const LoginPage: React.FC = () => {
 						isLoading={isVisible}
 					/>
 
-					<TestLoginButtons
-						onTestLogin={handleTestLogin}
-						onAdminLogin={handleAdminLogin}
-						isLoading={isVisible}
-					/>
 
 					<LoginFooter registerLink="/register" />
 				</div>
