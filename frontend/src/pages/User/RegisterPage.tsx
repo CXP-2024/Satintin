@@ -6,6 +6,7 @@ import './RegisterPage.css';
 import {RegisterUserMessage} from "Plugins/UserService/APIs/RegisterUserMessage";
 import {CreateReportMessage} from "Plugins/AdminService/APIs/CreateReportMessage";
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
+import CryptoJS from 'crypto-js';
 
 const RegisterPage: React.FC = () => {
     const [formData, setFormData] = useState<RegisterFormData>({
@@ -19,12 +20,10 @@ const RegisterPage: React.FC = () => {
     const [success, setSuccess] = useState<string>(''); // 添加成功消息状态
     const [loading, setLoading] = useState<boolean>(false);
 
-    // 更安全的加盐哈希函数
-    const hashPasswordWithSalt = (password: string): string => {
-        /*const salt = CryptoJS.lib.WordArray.random(128/8).toString();
-        const hash = CryptoJS.SHA256(password + salt).toString(CryptoJS.enc.Hex);
-        return `${hash}:${salt}`;*/
-        return password;
+    // 哈希函数
+    const hashPassword = (password: string): string => {
+        const hash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+        return `${hash}`;
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +110,7 @@ const RegisterPage: React.FC = () => {
             console.log('🔐 [安全] 对密码进行哈希加密...');
 
             // 对密码进行哈希加密
-            const passwordHash = hashPasswordWithSalt(formData.password);
+            const passwordHash = hashPassword(formData.password);
 
             console.log('✅ [安全] 密码哈希完成');
 

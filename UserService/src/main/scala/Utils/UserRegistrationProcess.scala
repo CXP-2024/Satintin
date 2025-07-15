@@ -152,8 +152,6 @@ case object UserRegistrationProcess {
 
       // Validate password
       if (password.isEmpty) errors += "密码不能为空"
-      if (password.length < 8 || password.length > 32) errors += "密码长度必须在8到32个字符之间"
-      if (!password.exists(_.isLetter) || !password.exists(_.isDigit)) errors += "密码必须同时包含字母和数字"
 
       // Validate email
       if (email.isEmpty) errors += "邮箱不能为空"
