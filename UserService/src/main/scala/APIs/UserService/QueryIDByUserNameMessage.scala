@@ -2,18 +2,14 @@ package APIs.UserService
 
 import Common.API.API
 import Global.ServiceCenter.UserServiceCode
-
 import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax.*
 import io.circe.parser.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-
 import com.fasterxml.jackson.core.`type`.TypeReference
 import Common.Serialize.JacksonSerializeUtils
-
 import scala.util.Try
-
 import org.joda.time.DateTime
 import java.util.UUID
 

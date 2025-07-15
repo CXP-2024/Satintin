@@ -105,7 +105,6 @@ case object UserAuthenticationProcess {
             IO {
               val passwordHashFromDB = decodeField[String](userJson, "password_hash")
               logger.info(s"从数据库中读取username: ${userName} 的password_hash字段")
-              
               if (passwordHashFromDB == password) {
                 logger.info(s"密码验证成功，开始解码用户: ${userName} 的完整信息")
                 Some(decodeType[User](userJson))
@@ -115,7 +114,7 @@ case object UserAuthenticationProcess {
               }
             }
           case None =>
-            logger.warn(s"未找到用户名为: ${userName} 的记录")
+            logger.warn(s"LINE 161 未找到用户名为: ${userName} 的记录")
             IO.pure(None) // 用户名不存在
         }
       } yield userOpt

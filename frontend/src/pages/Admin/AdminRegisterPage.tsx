@@ -5,6 +5,7 @@ import { RegisterFormData } from '../../types/User';
 import './AdminRegisterPage.css';
 import {RewardAssetMessage} from "Plugins/AssetService/APIs/RewardAssetMessage";
 import {CreateAdminMessage} from "Plugins/AdminService/APIs/CreateAdminMessage";
+import CryptoJS from 'crypto-js';
 
 // Extended form data interface to include adminToken
 interface AdminRegisterFormData extends RegisterFormData {
@@ -25,11 +26,9 @@ const AdminRegisterPage: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
 
     // 更安全的加盐哈希函数
-    const hashPasswordWithSalt = (password: string): string => {
-        /*const salt = CryptoJS.lib.WordArray.random(128/8).toString();
-        const hash = CryptoJS.SHA256(password + salt).toString(CryptoJS.enc.Hex);
-        return `${hash}:${salt}`;*/
-        return password;
+    const hashPassword = (password: string): string => {
+        const hash = CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+        return `${hash}`
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,7 +121,7 @@ const AdminRegisterPage: React.FC = () => {
             console.log('🔐 [安全] 对密码进行哈希加密...');
 
             // 对密码进行哈希加密
-            const passwordHash = hashPasswordWithSalt(formData.password);
+            const passwordHash = hashPassword(formData.password);
 
             console.log('✅ [安全] 密码哈希完成');
 

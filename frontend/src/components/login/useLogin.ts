@@ -14,11 +14,17 @@ import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetSta
 import { LoginAdminMessage } from "Plugins/AdminService/APIs/LoginAdminMessage";
 import { LoginFormData } from './loginTypes';
 import { UserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import CryptoJS from 'crypto-js';
 
 export const useLogin = () => {
     const { navigateWithTransition } = usePageTransition();
     const { showLoading, hideLoading } = useGlobalLoading();
     const [error, setError] = useState<string>('');
+
+    // 哈希密码函数 - 用于登录时
+    const hashPassword = (password: string): string => {
+        return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+    };
 
     const playClickSound = () => {
         SoundUtils.playClickSound(0.5);
@@ -163,8 +169,12 @@ export const useLogin = () => {
 
         try {
             console.log('🔄 [登录流程] 调用真实API...');
+            console.log('🔐 [安全] 对密码进行哈希处理...');
+            
+            // 对密码进行哈希处理 - 注意这里我们先只生成哈希，因为后端会处理验证
+            const hashedPassword = hashPassword(formData.password);
 
-            new LoginAdminMessage(formData.username, formData.password).send(
+            new LoginAdminMessage(formData.username, hashedPassword).send(
                 async (Info) => {
                     const usertoken = JSON.parse(Info);
                     setUserToken(usertoken);
@@ -182,7 +192,7 @@ export const useLogin = () => {
                     console.log(errormessage);
                     console.log('fail admin login');
 
-                    new LoginUserMessage(formData.username, formData.password).send(
+                    new LoginUserMessage(formData.username, hashedPassword).send(
                         (Response) => {
                             console.log('原始响应:', Response);
                             
