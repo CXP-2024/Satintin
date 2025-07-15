@@ -309,9 +309,9 @@ class BattleWebSocketManager(roomId: String) {
   // decide effect chance based on rarity
   private def ChooseEffect(rarity: String): Double = {
     rarity match {
-      case "普通" => 0.20
+      case "普通" => 0.05
       case "稀有" => 0.15
-      case "传说" => 0.33
+      case "传说" => 0.99
       case _ => 0.1 // Default chance for unknown rarities
     }
   }
