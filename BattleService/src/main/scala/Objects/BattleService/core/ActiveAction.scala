@@ -20,34 +20,33 @@ sealed trait ActiveAction {
   def actionCategory: ActionCategory = ActionCategory.Active
   
   // 计算总攻击力
-  def getTotalAttack: Map[AttackType, Int] = {
+  lazy val getTotalAttack: Map[AttackType, Int] = 
     attackObjects.foldLeft(Map.empty[AttackType, Int]) { case (acc, (attackObject, stackCount)) =>
       val attackType = attackObject.attackType
       val damage = attackObject.damage * stackCount
       acc + (attackType -> (acc.getOrElse(attackType, 0) + damage))
     }
-  }
   
   // 计算总防御力
-  def getTotalDefense: Int = 
+  lazy val getTotalDefense: Int = 
     attackObjects.map { case (attackObject, stackCount) => 
       attackObject.defense * stackCount 
     }.sum
   
   // 计算总能量消耗
-  def getTotalEnergyCost: Int = 
+  lazy val getTotalEnergyCost: Int = 
     attackObjects.map { case (attackObject, stackCount) => 
       attackObject.energyCost * stackCount 
     }.sum
   
   // 获取所有基础对象
-  def getBaseObjects: Set[AttackObject] = attackObjects.keys.toSet
+  lazy val getBaseObjects: Set[AttackObject] = attackObjects.keys.toSet
 
   // 检查是否为单一类型
-  def isSingleObject: Boolean = getBaseObjects.size == 1
+  lazy val isSingleObject: Boolean = attackObjects.keys.size == 1
 
   // 检查是否为混合行动
-  def isMixed: Boolean = getBaseObjects.size > 1
+  lazy val isMixed: Boolean = attackObjects.keys.size > 1
 
   // 检查是否包含特定类型的攻击对象
   def containsObject(attackObject: AttackObject): Boolean = 
@@ -80,11 +79,10 @@ case class SingleAction(
     this.getBaseObjects == other.getBaseObjects
   
   // 获取总叠加次数
-  def getTotalStackCount: Int = attackObjects.values.sum
+  lazy val getTotalStackCount: Int = attackObjects.values.sum
   
   // 如果只有一个攻击对象，获取它
-  def getSingleAttackObject: Option[(AttackObject, Int)] = 
-    if (attackObjects.size == 1) attackObjects.headOption else None
+  lazy val getSingleAttackObject: Option[(AttackObject, Int)] = attackObjects.headOption
 }
 
 /**
@@ -99,14 +97,13 @@ case class CompositeAction(
   require(isMixed == true, "复合行动必须包含至少两种类型的攻击对象")
 
   // 复合行动必然是混合行动
-  override def isMixed: Boolean = true
+  override lazy val isMixed: Boolean = true
   
   // 获取等效的单一行动列表
-  def getSingleActions: List[SingleAction] = {
+  lazy val getSingleActions: List[SingleAction] = 
     attackObjects.toList.map { case (attackObject, stackCount) =>
       SingleAction(Map(attackObject -> stackCount))
     }
-  }
 }
 
 object ActiveAction {
@@ -189,17 +186,18 @@ object ActiveAction {
     circeDecoder.tryDecode(cursor).orElse(jacksonDecoder.tryDecode(cursor))
   }
   
-  // 智能构造函数 - 根据攻击对象种类数量自动选择类型
+  // 智能构造函数 - 使用for/yield函数式风格
   def create(attackObjects: Map[AttackObject, Int]): ActiveAction = {
+    // 检查输入
     require(attackObjects.nonEmpty, "行动必须包含至少一个攻击对象")
     require(attackObjects.values.forall(_ > 0), "所有叠加次数必须大于0")
     
+    // 根据攻击对象数量决定创建单一行动还是复合行动
     val attackObjectCount = attackObjects.keys.size
-    if (attackObjectCount == 1) {
-      SingleAction(attackObjects)
-    } else {
-      CompositeAction(attackObjects)
-    }
+    
+    // 返回相应的行动对象
+    if (attackObjectCount == 1) SingleAction(attackObjects)
+    else CompositeAction(attackObjects)
   }
   
   // 便捷构造函数 - 单个攻击对象
@@ -207,16 +205,18 @@ object ActiveAction {
     SingleAction(Map(attackObject -> stackCount))
   
   // 从攻击对象列表构造
-  def fromList(attackObjects: List[(AttackObject, Int)]): ActiveAction = {
+  def fromList(attackObjects: List[(AttackObject, Int)]): ActiveAction = 
     create(attackObjects.toMap)
-  }
   
   // 合并两个行动
   def merge(action1: ActiveAction, action2: ActiveAction): ActiveAction = {
-    val mergedMap = (action1.attackObjects.toSeq ++ action2.attackObjects.toSeq)
-      .groupBy(_._1)
-      .view.mapValues(_.map(_._2).sum).toMap
+    // 合并两个行动的攻击对象
+    val combinedSeq = action1.attackObjects.toSeq ++ action2.attackObjects.toSeq
     
+    // 对相同的攻击对象进行叠加
+    val mergedMap = combinedSeq.groupBy(_._1).view.mapValues(_.map(_._2).sum).toMap
+    
+    // 创建新的行动
     create(mergedMap)
   }
 }

@@ -245,11 +245,7 @@ class BattleWebSocketManager(roomId: String) {
       result <- stateBeforeBattleOpt match {
         case Some(stateBeforeBattle) =>
           // Process actions using the new BattleResolver that returns (GameState, RoundResult)
-          val (updatedGameState, roundResult) = BattleResolver.resolveBattle(
-            stateBeforeBattle,
-            action1,
-            action2
-          )
+          val (updatedGameState, roundResult) = BattleResolver(stateBeforeBattle, action1, action2)
           
           // Update the game state
           IO {
@@ -309,7 +305,7 @@ class BattleWebSocketManager(roomId: String) {
   // decide effect chance based on rarity
   private def ChooseEffect(rarity: String): Double = {
     rarity match {
-      case "普通" => 0.20
+      case "普通" => 0.05
       case "稀有" => 0.15
       case "传说" => 0.33
       case _ => 0.1 // Default chance for unknown rarities

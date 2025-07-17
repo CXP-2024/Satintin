@@ -67,7 +67,7 @@ object InitGameData {
     val passiveObjects = List(
       // 饼类
       ("Cake", "cake", "cake", 1, 1.0, 1.0, "", "基础饼"),
-      ("Pouch", "cake", "cake", 2, 2.0, 1.0, "", "馕"),
+      ("Pouch", "cake", "cake", 2, 3.0, 1.0, "", "馕"),
       
       // 盾类
       ("BasicShield", "shield", "shield", 0, 1.0, 1.0, "", "基础盾"),
