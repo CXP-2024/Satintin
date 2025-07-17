@@ -1,4 +1,4 @@
-import { getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
+import { getUserInfo, getUserToken } from "Plugins/CommonUtils/Store/UserInfoStore";
 import { AddFriendMessage } from "Plugins/UserService/APIs/AddFriendMessage";
 import { RemoveFriendMessage } from "Plugins/UserService/APIs/RemoveFriendMessage";
 import { BlockUserMessage } from "Plugins/UserService/APIs/BlockUserMessage";
@@ -45,8 +45,12 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
 
         console.log('✅ User exists, proceeding to add friend');
 
+        // 获取用户token而不是用户ID进行身份验证
+        const userToken = getUserToken();
+        console.log('🔐 Using userToken for authentication');
+
         await new Promise<string>((resolve, reject) => {
-            new AddFriendMessage(user.userID, addFriendID.trim()).send(
+            new AddFriendMessage(userToken, addFriendID.trim()).send(
                 (result) => resolve(result),
                 (error) => reject(error)
             );
@@ -74,11 +78,12 @@ export const handleAddFriend = async (state: UserProfileHandleState) => {
 export const handleRemoveFriend = async (friendID: string, state: UserProfileHandleState) => {
     const { setLoading, setFriendsData, refreshUserInfo } = state;
     const user = getUserInfo()
+    const userToken = getUserToken()
 
     setLoading(true);
     try {
         await new Promise<string>((resolve, reject) => {
-            new RemoveFriendMessage(user.userID, friendID).send(
+            new RemoveFriendMessage(userToken, friendID).send(
                 (result) => resolve(result),
                 (error) => reject(error)
             );
@@ -105,11 +110,12 @@ export const handleRemoveFriend = async (friendID: string, state: UserProfileHan
 // 拉黑用户
 export const handleBlockUser = async (userID: string, state: UserProfileHandleState) => {
     const { setLoading, friendsData, setFriendsData, setBlockedData, refreshUserInfo } = state;
+    const userToken = getUserToken();
 
     setLoading(true);
     try {
         await new Promise<string>((resolve, reject) => {
-            new BlockUserMessage(getUserInfo().userID, userID).send(
+            new BlockUserMessage(userToken, userID).send(
                 (result) => resolve(result),
                 (error) => reject(error)
             );

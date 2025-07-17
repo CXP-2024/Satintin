@@ -5,6 +5,7 @@ import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Objects.UserService.MessageEntry
+import Utils.UserTokenValidator.getUserIDFromToken
 import cats.effect.IO
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -15,23 +16,19 @@ import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class SendMessageMessagePlanner(
-  userToken: String,  // 现在直接作为senderID使用
-  recipientID: String,
+  userToken: String,  // 用户的认证令牌，用于验证发送者身份
+  recipientID: String, // 接收者的用户ID
   messageContent: String,
   override val planContext: PlanContext
 ) extends Planner[String] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[String] = {
-    // Step 1: 直接使用userToken作为senderID
-    val senderID = userToken
-    
     for {
-      _ <- IO(logger.info(s"使用senderID: ${senderID}"))
-
-      // Step 2: Verify sender exists
-      _ <- IO(logger.info(s"验证发送者用户: ${senderID}"))
-      _ <- verifyUserExists(senderID)
+      // Step 1: 验证userToken并获取真实的发送者userID
+      _ <- IO(logger.info(s"开始验证发送者的userToken并获取userID"))
+      senderID <- getUserIDFromToken(userToken)
+      _ <- IO(logger.info(s"userToken验证成功，发送者userID=${senderID}"))
 
       // Step 3: Verify recipient exists
       _ <- IO(logger.info(s"验证接收者用户: ${recipientID}"))

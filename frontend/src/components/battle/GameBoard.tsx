@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {ActiveAction, GameState, PassiveAction, PlayerState} from '../../services/WebSocketService';
 import { getCardImage } from 'utils/cardImageMap';
 import './GameBoard.css';
 import {getActionDisplay} from "./RoundResultModalUtils";
+import { GetUserInfoMessage } from 'Plugins/UserService/APIs/GetUserInfoMessage';
 
 interface GameBoardProps {
 	gameState: GameState;
@@ -28,17 +29,72 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 		return `${percentage}%`;
 	};
 
+	// 添加状态来存储玩家段位信息
+	const [playerRank, setPlayerRank] = useState<string>('未知段位');
+	// 添加状态来存储对手段位信息
+	const [opponentRank, setOpponentRank] = useState<string>('未知段位');
+
+	// 当currentPlayer变化时获取最新的段位信息
+	useEffect(() => {
+		if (currentPlayer?.playerId) {
+			const getUserInfoMsg = new GetUserInfoMessage(currentPlayer.playerId);
+			getUserInfoMsg.send(
+				(response) => {
+					// 成功回调
+					try {
+						const data = JSON.parse(response);
+						console.log('获取当前玩家信息成功:', data);
+						if (data && data.rank) {
+							setPlayerRank(data.rank);
+						}
+					} catch (error) {
+						console.error('解析用户信息失败:', error);
+					}
+				},
+				(error) => {
+					// 失败回调
+					console.error('获取用户段位信息失败:', error);
+				}
+			);
+		}
+	}, [currentPlayer?.playerId]);
+
+	// 当opponent变化时获取最新的段位信息
+	useEffect(() => {
+		if (opponent?.playerId) {
+			const getUserInfoMsg = new GetUserInfoMessage(opponent.playerId);
+			getUserInfoMsg.send(
+				(response) => {
+					// 成功回调
+					try {
+						const data = JSON.parse(response);
+						console.log('获取对手信息成功:', data);
+						if (data && data.rank) {
+							setOpponentRank(data.rank);
+						}
+					} catch (error) {
+						console.error('解析对手信息失败:', error);
+					}
+				},
+				(error) => {
+					// 失败回调
+					console.error('获取对手段位信息失败:', error);
+				}
+			);
+		}
+	}, [opponent?.playerId]);
+
 	return (
 		<div className="game-board">
 			{/* 对手信息区域 */}
 			<div className="player-area opponent-area">
 				<div className="player-info">
 					<div className="player-avatar">
-						<span className="avatar-text">{opponent.username?.charAt(0) || 'O'}</span>
+						<span className="avatar-text">{opponent?.username?.charAt(0) || 'O'}</span>
 					</div>
 					<div className="player-details">
-						<h3 className="player-name">{opponent.username || '对手'}</h3>
-						<div className="player-rank">{opponent.rank || '未知段位'}</div>
+						<h3 className="player-name">{opponent?.username || '对手'}</h3>
+						<div className="player-rank">{opponentRank}</div>
 					</div>
 				</div>
 
@@ -200,7 +256,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameState, currentPlayer, opponen
 					</div>
 					<div className="player-details">
 						<h3 className="player-name">{currentPlayer?.username || '你'}</h3>
-						<div className="player-rank">{currentPlayer?.rank || '未知段位'}</div>
+						<div className="player-rank">{playerRank}</div>
 					</div>
 				</div>
 			</div>

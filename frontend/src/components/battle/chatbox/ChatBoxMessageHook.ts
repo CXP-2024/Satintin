@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Message } from './ChatBoxTypes';
 import { GetChatHistoryMessage } from '../../../Plugins/UserService/APIs/GetChatHistoryMessage';
 import { SendMessageMessage } from '../../../Plugins/UserService/APIs/SendMessageMessage';
-import { getUserIDSnap, getUserInfo } from '../../../Plugins/CommonUtils/Store/UserInfoStore';
+import { getUserIDSnap, getUserInfo, getUserToken } from '../../../Plugins/CommonUtils/Store/UserInfoStore';
 
 export const useChatBoxMessages = (friendId: string, friendName: string, isVisible: boolean) => {
 	const [messages, setMessages] = useState<Message[]>([]);
@@ -63,13 +63,14 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 
 		setIsRefreshing(true);
 		try {
+			const userToken = getUserToken();
 			const userID = getUserInfo().userID;
-			if (!userID) {
+			if (!userToken || !userID) {
 				console.error('用户未登录');
 				return;
 			}
 
-			await loadChatHistoryFromAPI(userID);
+			await loadChatHistoryFromAPI(userToken);
 		} catch (error) {
 			console.error('加载聊天记录出错:', error);
 			setMessages([]);
@@ -83,21 +84,22 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 		if (isRefreshing) return; // 如果正在手动刷新，跳过自动刷新
 
 		try {
+			const userToken = getUserToken();
 			const userID = getUserInfo().userID;
-			if (!userID) {
+			if (!userToken || !userID) {
 				return;
 			}
 
-			await loadChatHistoryFromAPI(userID, true);
+			await loadChatHistoryFromAPI(userToken, true);
 		} catch (error) {
 			console.error('自动刷新聊天记录出错:', error);
 		}
 	};
 
 	// 从API加载聊天历史记录
-	const loadChatHistoryFromAPI = async (userID: string, isQuiet: boolean = false) => {
+	const loadChatHistoryFromAPI = async (userToken: string, isQuiet: boolean = false) => {
 		return new Promise<void>((resolve, reject) => {
-			new GetChatHistoryMessage(userID, friendId).send(
+			new GetChatHistoryMessage(userToken, friendId).send(
 				(responseText: string) => {
 					try {
 						const response = JSON.parse(responseText);
@@ -166,10 +168,11 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 	const handleSendMessage = async () => {
 		if (!newMessage.trim()) return;
 
+		const userToken = getUserToken();
 		const userID = getUserInfo().userID;
 		const currentUserID = getUserIDSnap();
 
-		if (!userID || !currentUserID) {
+		if (!userToken || !userID || !currentUserID) {
 			console.error('用户未登录');
 			return;
 		}
@@ -190,16 +193,16 @@ export const useChatBoxMessages = (friendId: string, friendName: string, isVisib
 
 		// 发送到服务器
 		try {
-			await sendMessageToAPI(userID, messageContent);
+			await sendMessageToAPI(userToken, messageContent);
 		} catch (error) {
 			console.error('发送消息出错:', error);
 		}
 	};
 
 	// 发送消息到API
-	const sendMessageToAPI = async (userID: string, messageContent: string) => {
+	const sendMessageToAPI = async (userToken: string, messageContent: string) => {
 		return new Promise<void>((resolve, reject) => {
-			new SendMessageMessage(userID, friendId, messageContent).send(
+			new SendMessageMessage(userToken, friendId, messageContent).send(
 				(response: string) => {
 					console.log('消息发送成功:', response);
 					resolve();

@@ -3,6 +3,7 @@ package Impl
 import Objects.UserService.{MessageEntry, User, BlackEntry, FriendEntry}
 import Utils.FriendManagementProcess.addToBlacklist
 import Utils.UserAuthenticationProcess.authenticateUser
+import Utils.UserTokenValidator.getUserIDFromToken
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
 import Common.Object.SqlParameter
@@ -25,9 +26,10 @@ case class BlockUserMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1. Validate userToken and extract userID
-      _ <- IO(logger.info(s"开始验证用户身份，userToken=${userToken}"))
-      userID <- validateUserToken(userToken)
+      // Step 1. 验证userToken并获取真实的userID
+      _ <- IO(logger.info(s"开始验证userToken并获取userID"))
+      userID <- getUserIDFromToken(userToken)
+      _ <- IO(logger.info(s"userToken验证成功，用户ID=${userID}"))
 
       // Step 2. Ensure user exists in social table
       _ <- IO(logger.info(s"检查并确保用户${userID}在user_social_table中存在"))
@@ -40,47 +42,6 @@ case class BlockUserMessagePlanner(
       // Step 4. Return the result
       _ <- IO(logger.info(s"操作完成，返回结果：${resultMessage}"))
     } yield resultMessage
-  }
-
-  private def validateUserToken(userToken: String)(using PlanContext): IO[String] = {
-    for {
-      _ <- IO(logger.info(s"开始验证userToken: ${userToken}"))
-      // First try to treat it as a user_id (UUID)
-      userIdResult <- readDBRows(
-        s"SELECT * FROM ${schemaName}.user_table WHERE user_id = ?;",
-        List(SqlParameter("String", userToken))
-      )
-      _ <- IO(logger.info(s"按user_id查询结果数量: ${userIdResult.length}"))
-      
-      // If not found, try to treat it as a username
-      userNameResult <- if (userIdResult.isEmpty) {
-        for {
-          _ <- IO(logger.info(s"user_id未找到，尝试按username查询: ${userToken}"))
-          result <- readDBRows(
-            s"SELECT * FROM ${schemaName}.user_table WHERE username = ?;",
-            List(SqlParameter("String", userToken))
-          )
-          _ <- IO(logger.info(s"按username查询结果数量: ${result.length}"))
-        } yield result
-      } else IO(List.empty)
-      
-      // Use whichever query returned results
-      finalResult = if (userIdResult.nonEmpty) userIdResult else userNameResult
-      _ <- if (finalResult.nonEmpty) IO(logger.info(s"找到用户数据: ${finalResult.head}")) else IO(logger.info("未找到用户数据"))
-      
-      userID <- finalResult.headOption match {
-        case Some(userJson) =>
-          // Parse the user data and extract userID
-          for {
-            user <- IO.fromEither(userJson.as[User])
-            _ <- IO(logger.info(s"用户验证成功，用户ID: ${user.userID}, 用户名: ${user.userName}"))
-          } yield user.userID
-        case None =>
-          val errorMessage = s"无效的userToken，既不是有效的用户ID也不是有效的用户名: ${userToken}"
-          IO(logger.error(errorMessage)) >>
-            IO.raiseError(new IllegalArgumentException(errorMessage))
-      }
-    } yield userID
   }
 
   // Helper function: Ensure user exists in user_social_table

@@ -42,6 +42,7 @@ export const useGameOverModalLogic = (
 	const userInfo = getUserInfo();
 	const userName = userInfo.userName;
 	const userToken = userInfo.userID;
+	const userCredits = userInfo.credits;
 	const [currentCredits, setCurrentCredits] = useState(0);
 
 	// 获取用户当前积分
@@ -76,7 +77,7 @@ export const useGameOverModalLogic = (
 				);
 				
 				// 增加积分
-				const newCredits = currentCredits + CREDITS_CHANGE_AMOUNT;
+				const newCredits = userCredits + CREDITS_CHANGE_AMOUNT;
 				new ModifyUserCreditsMessage(userToken, newCredits).send(
 					(response) => {
 						console.log('✅ [GameOverModal] 胜利积分增加成功:', response);
@@ -97,7 +98,7 @@ export const useGameOverModalLogic = (
 				);
 				
 				// 减少积分，但不低于0
-				const newCredits = Math.max(0, currentCredits - CREDITS_CHANGE_AMOUNT);
+				const newCredits = Math.max(0, userCredits - CREDITS_CHANGE_AMOUNT);
 				new ModifyUserCreditsMessage(userToken, newCredits).send(
 					(response) => {
 						console.log('✅ [GameOverModal] 失败积分减少成功:', response);

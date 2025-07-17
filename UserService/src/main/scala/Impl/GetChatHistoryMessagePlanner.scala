@@ -5,6 +5,7 @@ import Common.DBAPI._
 import Common.Object.SqlParameter
 import Common.ServiceUtils.schemaName
 import Objects.UserService.MessageEntry
+import Utils.UserTokenValidator.getUserIDFromToken
 import cats.effect.IO
 import org.joda.time.DateTime
 import org.slf4j.LoggerFactory
@@ -15,36 +16,32 @@ import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
 
 case class GetChatHistoryMessagePlanner(
-  userToken: String,  // 现在直接作为currentUserID使用
-  friendID: String,
+  userToken: String,  // 用户的认证令牌，用于验证当前用户身份
+  friendID: String,   // 对话好友的用户ID
   override val planContext: PlanContext
 ) extends Planner[List[MessageEntry]] {
   val logger = LoggerFactory.getLogger(this.getClass.getSimpleName + "_" + planContext.traceID.id)
 
   override def plan(using planContext: PlanContext): IO[List[MessageEntry]] = {
-    // Step 1: 直接使用userToken作为currentUserID
-    val currentUserID = userToken
-    
     for {
-      _ <- IO(logger.info(s"使用currentUserID: ${currentUserID}"))
+      // Step 1: 验证userToken并获取真实的当前用户ID
+      _ <- IO(logger.info(s"开始验证用户的userToken并获取userID"))
+      currentUserID <- getUserIDFromToken(userToken)
+      _ <- IO(logger.info(s"userToken验证成功，当前用户ID=${currentUserID}"))
 
-      // Step 2: Verify current user exists
-      _ <- IO(logger.info(s"验证当前用户: ${currentUserID}"))
-      _ <- verifyUserExists(currentUserID)
-
-      // Step 3: Verify friend exists
+      // Step 2: Verify friend exists
       _ <- IO(logger.info(s"验证好友用户: ${friendID}"))
       _ <- verifyUserExists(friendID)
 
-      // Step 4: Get current user's messages
+      // Step 3: Get current user's messages
       _ <- IO(logger.info(s"获取当前用户的消息记录"))
       currentUserMessages <- getMessageBox(currentUserID)
 
-      // Step 5: Get friend's messages
+      // Step 4: Get friend's messages
       _ <- IO(logger.info(s"获取好友的消息记录"))
       friendMessages <- getMessageBox(friendID)
 
-      // Step 6: Filter and combine messages between the two users
+      // Step 5: Filter and combine messages between the two users
       _ <- IO(logger.info("筛选并合并两用户之间的聊天记录"))
       chatHistory <- IO {
         filterChatMessages(currentUserMessages, friendMessages, currentUserID, friendID)

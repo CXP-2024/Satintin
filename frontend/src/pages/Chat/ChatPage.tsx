@@ -53,13 +53,14 @@ const ChatPage: React.FC = () => {
         setIsRefreshing(true);
         try {
             const userID = getUserInfo().userID;
-            if (!userID) {
+            const userToken = getUserToken();
+            if (!userID || !userToken) {
                 console.error('用户未登录');
                 navigate('/login');
                 return;
             }
 
-            new GetChatHistoryMessage(userID, state.friendId).send(
+            new GetChatHistoryMessage(userToken, state.friendId).send(
                     (responseText: string) => {
                     try {
                         const response = JSON.parse(responseText);
@@ -116,9 +117,10 @@ const ChatPage: React.FC = () => {
     const handleSendMessage = async () => {
         if (newMessage.trim()) {
             const userID = getUserInfo().userID;
+            const userToken = getUserToken();
             const currentUserID = getUserIDSnap();
             
-            if (!userID || !currentUserID) {
+            if (!userID || !currentUserID || !userToken) {
                 console.error('用户未登录');
                 return;
             }
@@ -137,7 +139,7 @@ const ChatPage: React.FC = () => {
             setNewMessage('');
 
             try {
-                new SendMessageMessage(userID, state.friendId, messageContent).send(
+                new SendMessageMessage(userToken, state.friendId, messageContent).send(
                     (response: string) => {
                         console.log('消息发送成功:', response);
                     },

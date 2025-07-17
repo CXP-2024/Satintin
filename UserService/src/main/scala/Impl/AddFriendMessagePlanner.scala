@@ -3,6 +3,7 @@ package Impl
 
 import Utils.FriendManagementProcess.addFriendEntry
 import Utils.UserAuthenticationProcess.authenticateUser
+import Utils.UserTokenValidator.getUserIDFromToken
 import Objects.UserService.User
 import Common.API.{PlanContext, Planner}
 import Common.DBAPI._
@@ -16,22 +17,7 @@ import io.circe.generic.auto._
 import org.joda.time.DateTime
 import cats.implicits.*
 import Common.Serialize.CustomColumnTypes.{decodeDateTime, encodeDateTime}
-import Objects.UserService.MessageEntry
-import Objects.UserService.BlackEntry
-import Objects.UserService.FriendEntry
-import io.circe._
-import io.circe.syntax._
-import io.circe.generic.auto._
-import org.joda.time.DateTime
-import cats.implicits.*
-import Common.DBAPI._
-import Common.API.{PlanContext, Planner}
-import cats.effect.IO
-import Common.Object.SqlParameter
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
-import Common.ServiceUtils.schemaName
-import Objects.UserService.FriendEntry
-import Common.Serialize.CustomColumnTypes.{decodeDateTime,encodeDateTime}
+import Objects.UserService.{MessageEntry, BlackEntry, FriendEntry}
 
 case class AddFriendMessagePlanner(
   userToken: String,
@@ -42,9 +28,10 @@ case class AddFriendMessagePlanner(
 
   override def plan(using PlanContext): IO[String] = {
     for {
-      // Step 1: Use userToken directly as userID (no verification needed)
-      _ <- IO(logger.info(s"使用userToken作为userID，userID=${userToken}"))
-      userID = userToken
+      // Step 1: Validate userToken and get the actual userID
+      _ <- IO(logger.info(s"开始验证userToken并获取userID"))
+      userID <- getUserIDFromToken(userToken)
+      _ <- IO(logger.info(s"userToken验证成功，获取到userID=${userID}"))
 
       // Step 2: Add friendID to the user's friend list
       _ <- IO(logger.info(s"开始调用addFriendEntry，向用户${userID}的好友列表添加${friendID}"))
