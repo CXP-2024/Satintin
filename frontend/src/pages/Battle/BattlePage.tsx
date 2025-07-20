@@ -81,6 +81,19 @@ const BattlePage: React.FC = () => {
 			return;
 		}
 
+		new SetUserMatchStatusMessage(getUserToken(), "custom").send(
+			(info) => {
+				const matchStatus = JSON.parse(info);
+				console.log(matchStatus);
+				setUserInfo(
+					{
+						...getUserInfo(),
+						matchStatus: matchStatus
+					}
+				)
+			}
+		);
+
 		playClickSound();
 		navigateWithTransition(`/battle-room?roomId=${roomIdInput.trim()}`, '加入房间中...');
 	};
