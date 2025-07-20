@@ -8,7 +8,6 @@ import { commonSend } from '../../Plugins/CommonUtils/Send/CommonSend';
 import { getUserToken, getUserIDSnap, getUserInfo } from '../../Plugins/CommonUtils/Store/UserInfoStore';
 import { MessageEntry } from '../../Plugins/UserService/Objects/MessageEntry';
 import { User } from '../../Plugins/UserService/Objects/User';
-
 interface Message {
     id: string;
     senderId: string;
@@ -152,21 +151,18 @@ const ChatPage: React.FC = () => {
             }
         }
     };
-
     const handleKeyPress = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSendMessage();
         }
     };
-
     const formatTime = (timestamp: Date) => {
         return timestamp.toLocaleTimeString('zh-CN', { 
             hour: '2-digit', 
             minute: '2-digit' 
         });
     };
-
     const formatDate = (timestamp: Date) => {
         const today = new Date();
         const messageDate = new Date(timestamp);
@@ -235,7 +231,6 @@ const ChatPage: React.FC = () => {
                         </button>
                     </div>
                 </div>
-
                 <div className="chat-page-messages">
                     {messages.length === 0 ? (
                         <div className="empty-chat-state">
@@ -301,5 +296,4 @@ const ChatPage: React.FC = () => {
         </div>
     );
 };
-
 export default ChatPage;

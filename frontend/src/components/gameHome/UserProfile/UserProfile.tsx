@@ -3,33 +3,17 @@ import './UserProfile.css';
 import clickSound from '../../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
 import { useUserInfo, getUserToken, getUserInfo } from "Plugins/CommonUtils/Store/UserInfoStore";
-import {
-	FriendInfo,
-	BlockedUserInfo,
-	UserProfileState,
-	fetchFriendsData,
-	fetchBlockedData,
-	refreshUserInfo
-} from './UserProfileUtils';
-import {
-	UserProfileHandleState,
-	handleCloseButtonClick,
-	handleOverlayClick,
-	handleTabSwitch,
-	getRankColor
-} from './UserProfileHandles';
+import {FriendInfo,BlockedUserInfo,UserProfileState,fetchFriendsData,fetchBlockedData,refreshUserInfo} from './UserProfileUtils';
+import {UserProfileHandleState,handleCloseButtonClick,handleOverlayClick,handleTabSwitch,getRankColor} from './UserProfileHandles';
 import FriendsList from '../FriendsList';
 import BlockedList from '../BlockedList';
-// 导入卡牌相关API
 import { GetPlayerCardsMessage } from 'Plugins/CardService/APIs/GetPlayerCardsMessage';
 import { GetAllCardTemplatesMessage } from 'Plugins/CardService/APIs/GetAllCardTemplatesMessage';
-
 interface UserProfileProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onOpenChatBox?: (friend: FriendInfo) => void;
 }
-
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBox }) => {
 	const user = useUserInfo();
 	const [activeTab, setActiveTab] = useState<'friends' | 'blocked'>('friends');
@@ -41,15 +25,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 	const [friendsLoadingStatus, setFriendsLoadingStatus] = useState<string>('');
 	const [isRefreshingFriends, setIsRefreshingFriends] = useState(false);
 	const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
-	// 添加卡牌收集数据状态
 	const [cardCollection, setCardCollection] = useState({ owned: 0, total: 0 });
 	const [isLoadingCards, setIsLoadingCards] = useState(false);
-
-	// 创建刷新用户信息的函数
 	const handleRefreshUserInfo = async (quiet = false) => {
 		try {
 			await refreshUserInfo(quiet);
-			// 刷新后重新获取好友和黑名单数据
 			const updatedUser = getUserInfo();
 			if (updatedUser.userID) {
 				const userProfileState: UserProfileState = {
@@ -67,42 +47,29 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			console.error('Failed to refresh user info in UserProfile:', error);
 		}
 	};
-
-	// 获取用户卡牌收集数据
 	const fetchCardCollectionData = async (userID: string) => {
 		try {
 			setIsLoadingCards(true);
-			
-			// 获取用户拥有的卡牌
 			const userCardsResponse: any = await new Promise((resolve, reject) => {
 				new GetPlayerCardsMessage(userID).send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
 			});
-			
-			// 获取所有卡牌模板
 			const allTemplatesResponse: any = await new Promise((resolve, reject) => {
 				new GetAllCardTemplatesMessage().send(
 					(res: any) => resolve(res),
 					(err: any) => reject(err)
 				);
 			});
-			
-			// 解析响应数据
 			const userCards = typeof userCardsResponse === 'string' ? JSON.parse(userCardsResponse) : userCardsResponse;
 			const allTemplates = typeof allTemplatesResponse === 'string' ? JSON.parse(allTemplatesResponse) : allTemplatesResponse;
-			
-			// 统计用户拥有的卡牌种类数量（去重）
 			const uniqueUserCardIDs = new Set(userCards.map(card => card.cardID));
-			
 			setCardCollection({
 				owned: uniqueUserCardIDs.size,
 				total: allTemplates.length
 			});
-			
 			console.log(`[UserProfile] 卡牌收集情况: ${uniqueUserCardIDs.size}/${allTemplates.length}`);
-			
 		} catch (error) {
 			console.error('[UserProfile] 获取卡牌收集数据失败:', error);
 			setCardCollection({ owned: 0, total: 0 });
@@ -110,30 +77,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 			setIsLoadingCards(false);
 		}
 	};
-
-	// 刷新好友列表的函数
 	const handleRefreshFriends = async () => {
 		if (isRefreshingFriends) {
 			console.log('🔄 Refresh already in progress, skipping...');
 			return;
 		}
-		
 		setIsRefreshingFriends(true);
 		try {
-			console.log('🔄 Starting friends refresh...');
-			
-			// 1. 首先清除验证缓存，确保重新验证
 			const { clearFriendValidationCache } = await import('./UserProfileUtils');
 			clearFriendValidationCache();
-			
-			// 2. 重新获取最新的用户信息（包括好友列表）
 			await handleRefreshUserInfo();
-			
-			// 3. 获取更新后的用户信息
 			const updatedUser = getUserInfo();
 			console.log('📝 Updated user info:', updatedUser);
-			console.log('📝 Updated friend list:', updatedUser.friendList);
-			
 			if (updatedUser.userID) {
 				const userProfileState: UserProfileState = {
 					user: updatedUser,
@@ -143,43 +98,32 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 					setFriendsLoadingStatus,
 					refreshUserInfo: handleRefreshUserInfo
 				};
-				// 4. 重新获取好友数据（强制刷新）
 				await fetchFriendsData(userProfileState, true);
 			}
-			
 			console.log('✅ Friends refresh completed');
 		} catch (error) {
 			console.error('❌ Failed to refresh friends list:', error);
-			//setFriendsLoadingStatus('刷新失败，请重试');
-			// 清除错误状态
 			setTimeout(() => setFriendsLoadingStatus(''), 3000);
 		} finally {
 			setIsRefreshingFriends(false);
 		}
 	};
-
-	// 创建处理函数状态对象
 	const handleState: UserProfileHandleState = {
 		user, loading, setLoading, friendsData, setFriendsData, blockedData, setBlockedData,
 		addFriendID, setAddFriendID, isClosing, setIsClosing, activeTab, setActiveTab, onClose,
 		refreshUserInfo: handleRefreshUserInfo
 	};
-
-	// 初始化数据
 	useEffect(() => {
 		if (isOpen && user) {
 			console.log('UserProfile opened - user data:', user);
 			console.log('User ID:', user.userID);
 			console.log('User Token:', getUserToken());
-			// 获取卡牌收集数据
 			if (user.userID) {
 				fetchCardCollectionData(user.userID);
 			}
 			console.log('Friend list:', user.friendList);
 			console.log('Friend list type:', typeof user.friendList);
 			console.log('Is friend list array:', Array.isArray(user.friendList));
-			
-			// Additional debugging for friend list structure
 			if (user.friendList && Array.isArray(user.friendList)) {
 				console.log('Friend list entries:');
 				user.friendList.forEach((entry, index) => {
@@ -194,14 +138,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 				try {
 					const parsed = JSON.parse(user.friendList as any);
 					console.log('Parsed friend list:', parsed);
-					console.log('Parsed friend list type:', typeof parsed);
 					console.log('Is parsed array:', Array.isArray(parsed));
 				} catch (e) {
 					console.error('Failed to parse friend list as JSON:', e);
 				}
 			}
-			
-			// 创建状态对象
 			const userProfileState: UserProfileState = {
 				user,
 				setFriendsData,
@@ -210,44 +151,30 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 				setFriendsLoadingStatus,
 				refreshUserInfo: handleRefreshUserInfo
 			};
-			
 			fetchFriendsData(userProfileState);
 			fetchBlockedData(userProfileState);
 		}
 	}, [isOpen, user]);
-
-	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
-
-	// 自动刷新定时器
 	useEffect(() => {
 		if (!isOpen || !autoRefreshEnabled) {
 			return;
 		}
-
-		console.log('🔄 Starting auto-refresh timer (every 1 second)');
-		
 		const intervalId = setInterval(async () => {
-			// 只在好友列表标签页且没有正在刷新时才自动刷新
 			if (activeTab === 'friends' && !isRefreshingFriends && !loading) {
 				console.log('⏰ Auto-refreshing friends list...');
 				const currentTime = new Date().toLocaleTimeString();
-				//setFriendsLoadingStatus(`🔄 自动刷新 ${currentTime}`);
 				await handleRefreshFriends();
 			}
 		}, 1000); // 每1秒刷新一次
-
-		// 清理定时器
 		return () => {
 			console.log('🛑 Clearing auto-refresh timer');
 			clearInterval(intervalId);
 		};
 	}, [isOpen, autoRefreshEnabled, activeTab, isRefreshingFriends, loading]);
-
 	if (!isOpen) return null;
-
 	return (
 		<div className={`user-profile-overlay ${isClosing ? 'closing' : ''}`} onClick={(e) => handleOverlayClick(e, handleState)}>
 			<div className={`user-profile-modal ${isClosing ? 'closing' : ''}`} onClick={(e) => e.stopPropagation()}>
@@ -271,7 +198,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						<p className="profile-email">{user?.email || 'test@satintin.com'}</p>
 					</div>
 				</div>
-
 				{/* 详细信息区域 */}
 				<div className="profile-details">
 					<div className="details-grid">
@@ -323,7 +249,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						</div>
 					</div>
 				</div>
-
 				{/* 选项卡导航 */}
 				<div className="profile-tabs">
 					<button
@@ -341,7 +266,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 						黑名单
 					</button>
 				</div>
-
 				{/* 列表内容 */}
 				<div className="profile-content">
 					<div className="content-slider">
@@ -360,7 +284,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 								autoRefreshEnabled={autoRefreshEnabled}
 								setAutoRefreshEnabled={setAutoRefreshEnabled}
 							/>
-
 							{/* 黑名单页面 */}
 							<BlockedList 
 								blockedData={blockedData}
@@ -374,5 +297,4 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, onOpenChatBo
 		</div>
 	);
 };
-
 export default UserProfile;
