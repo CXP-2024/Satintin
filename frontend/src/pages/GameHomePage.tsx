@@ -32,7 +32,6 @@ import { AssetTransaction } from "Plugins/AssetService/Objects/AssetTransaction"
 import { QueryAssetStatusMessage } from "Plugins/AssetService/APIs/QueryAssetStatusMessage";
 import { LoadBattleDeckMessage } from "Plugins/CardService/APIs/LoadBattleDeckMessage";
 import { useAlert } from '../components/alert/AlertProvider';
-
 const GameHomePage: React.FC = () => {
     const user = useUserInfo();
     const userToken = useUserToken();
@@ -42,54 +41,40 @@ const GameHomePage: React.FC = () => {
     const { cardCount } = useCardCount(userToken, userID);
     const { showError, showWarning } = useAlert();
     const { searchUsername, setSearchUsername, searchedUser, searchLoading, searchError, showSearchUser, handleSearchUser, handleShowSearchUser, handleCloseSearchUser } = useUserSearch();
-
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showRewardModal, setShowRewardModal] = useState(false);
     const [showAlreadyClaimedModal, setShowAlreadyClaimedModal] = useState(false);
     const [showChatBox, setShowChatBox] = useState(false);
     const [chatBoxFriend, setChatBoxFriend] = useState<FriendInfo | null>(null);
-
     console.log('👤 [GameHomePage] 当前用户信息:', getUserInfo());
     console.log('🔍 [GameHomePage] userID:', userID, 'userToken:', userToken ? '有token' : '无token');
-
     // 初始化音效
     useEffect(() => {
         SoundUtils.setClickSoundSource(clickSound);
     }, []);
-
     // 播放按钮点击音效
     const playClickSound = () => {
         SoundUtils.playClickSound(0.5);
     };
-
     function logout() {
         playClickSound();
-        // 获取当前token并传递给autoLogoutManager
         const currentUserToken = getUserToken();
-        // 先清除本地状态
         clearUserInfo();
         initUserToken();
-
-        // 使用保存的token执行服务器logout
         if (currentUserToken) {
             autoLogoutManager.manualLogout('普通用户手动退出登录', currentUserToken).catch(console.error);
         }
-
-        // 立即导航到登录页
         navigateWithTransition('/login');
     }
-
     const handleLogout = () => {
         console.log('🚪 [GameHomePage] 用户点击退出登录');
         playClickSound();
         logout();
     };
-
     const handleNavigateToShop = () => {
         playClickSound();
         navigateWithTransition('/shop', '正在进入商店充值页面...');
     };
-
     const handleNavigateToBattle = () => {
         playClickSound();
         if (!userID) return;
@@ -232,19 +217,16 @@ const GameHomePage: React.FC = () => {
     const handleSearchUserWithUserID = () => {
         handleSearchUser(userID);
     };
-
     const handleOpenChatBox = (friend: FriendInfo) => {
         playClickSound();
         setChatBoxFriend(friend);
         setShowChatBox(true);
     };
-
     const handleCloseChatBox = () => {
         playClickSound();
         setShowChatBox(false);
         setChatBoxFriend(null);
     };
-
     return (
         <PageTransition className="game-page">
             <div className="game-home">
@@ -264,18 +246,14 @@ const GameHomePage: React.FC = () => {
                             <p className="welcome-subtitle">准备好迎接激烈的卡牌对战了吗？</p>
                         </div>
                     </section>
-
                     <UserStats user={user} cardCount={cardCount} />
-
                     <MainActions
                         onNavigateToBattle={handleNavigateToBattle}
                         onNavigateToCards={handleNavigateToCards}
                         onNavigateToWish={handleNavigateToWish}
                     />
-
                     <QuickInfo onClaimReward={handleClaimReward} />
                 </main>
-
                 <UserProfile
                     isOpen={showUserProfile}
                     onClose={handleCloseUserProfile}
@@ -289,7 +267,6 @@ const GameHomePage: React.FC = () => {
                     rewardTitle="每日奖励"
                     rewardDescription="恭喜您获得每日登录奖励！"
                 />
-
                 <AlreadyClaimedModal
                     isOpen={showAlreadyClaimedModal}
                     onClose={() => setShowAlreadyClaimedModal(false)}
@@ -297,7 +274,6 @@ const GameHomePage: React.FC = () => {
                     rewardTitle="今日已领取"
                     rewardDescription="您已领取过今日奖励，明天再来哦~"
                 />
-
                 <SearchUserModal
                     isOpen={showSearchUser}
                     searchUsername={searchUsername}
@@ -308,7 +284,6 @@ const GameHomePage: React.FC = () => {
                     onSearch={handleSearchUserWithUserID}
                     onClose={handleCloseSearchUser}
                 />
-
                 {chatBoxFriend && (
                     <ChatBox
                         friendId={chatBoxFriend.id}
@@ -321,5 +296,4 @@ const GameHomePage: React.FC = () => {
         </PageTransition>
     );
 };
-
 export default GameHomePage;
