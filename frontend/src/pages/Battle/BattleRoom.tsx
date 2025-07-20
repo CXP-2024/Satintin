@@ -7,8 +7,8 @@ import GameBoard from '../../components/battle/GameBoard';
 import ActionSelector from '../../components/battle/ActionSelector';
 import RoundResultModal from '../../components/battle/RoundResultModal';
 import { GameOverModal } from '../../components/battle/GameOverModal';
-import ReportModal from '../../components/battle/ReportModal'; // 导入举报模态框组件
-import ChatBox from '../../components/battle/chatbox/ChatBox'; // 导入聊天框组件
+import ReportModal from '../../components/battle/ReportModal';
+import ChatBox from '../../components/battle/chatbox/ChatBox';
 import './BattleRoom.css';
 import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
@@ -27,23 +27,18 @@ const BattleRoom: React.FC = () => {
 		hideGameOverModal, hideGameOverTemporarily, showGameOverAgain, setLastRoundResult,
 		showActionSelectorAgain, resetBattle
 	} = useBattleStore();
-
-	// 使用举报store
 	const {
 		showReportModal,
 		openReportModal,
 		closeReportModal,
 		submitReport
 	} = useReportStore();
-
 	const [isConnecting, setIsConnecting] = useState(true);
 	const [roomStatus, setRoomStatus] = useState<'connecting' | 'waiting' | 'ready' | 'playing'>('connecting');
 	const [hasCopied, setHasCopied] = useState(false);
-	const [stonesUpdated, setStonesUpdated] = useState(false); // 标记是否已经更新过原石
-	const [rewardProcessed, setRewardProcessed] = useState(false); // 标记是否已经处理过奖励/扣除
-	const [showChatBox, setShowChatBox] = useState(false); // 聊天框显示状态
-
-	// 使用业务逻辑处理钩子
+	const [stonesUpdated, setStonesUpdated] = useState(false);
+	const [rewardProcessed, setRewardProcessed] = useState(false);
+	const [showChatBox, setShowChatBox] = useState(false);
 	const {
 		initializeConnection,
 		cleanupConnection,
@@ -79,22 +74,15 @@ const BattleRoom: React.FC = () => {
 		openReportModal,
 		submitReport
 	);
-
-	// 聊天相关处理函数
 	const handleChatClick = () => {
 		setShowChatBox(true);
 	};
-
 	const handleChatClose = () => {
 		setShowChatBox(false);
 	};
-
-	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
-
-	// 初始化WebSocket连接
 	useEffect(() => {
 		console.log('🔌 [BattleRoom] useEffect 初始化WebSocket连接');
 		initializeConnection();
@@ -104,8 +92,6 @@ const BattleRoom: React.FC = () => {
 			cleanupConnection();
 		};
 	}, [user, setRoomId, setConnectionStatus]);
-
-	// 渲染连接状态
 	if (isConnecting) {
 		return (
 			<PageTransition className="battle-room-page">
@@ -119,8 +105,6 @@ const BattleRoom: React.FC = () => {
 			</PageTransition>
 		);
 	}
-
-	// 渲染连接错误
 	if (!isConnected && connectionError) {
 		return (
 			<PageTransition className="battle-room-page">
@@ -142,11 +126,9 @@ const BattleRoom: React.FC = () => {
 			</PageTransition>
 		);
 	}
-
 	return (
 		<PageTransition className="battle-room-page">
 			<div className="battle-room">
-				{/* 房间头部 */}
 				<header className="room-header">
 					<div className="room-info">
 						<h1>对战房间</h1>
@@ -163,8 +145,6 @@ const BattleRoom: React.FC = () => {
 						离开房间
 					</button>
 				</header>
-
-				{/* 主要内容区域 */}
 				<main className="room-main">
 					{roomStatus === 'waiting' && (
 						<div className="waiting-area">
@@ -183,7 +163,6 @@ const BattleRoom: React.FC = () => {
 							</div>
 						</div>
 					)}
-
 					{roomStatus === 'ready' && gameState && (
 						<div className="ready-area">
 							<div className="ready-message">
@@ -216,10 +195,8 @@ const BattleRoom: React.FC = () => {
 							</div>
 						</div>
 					)}
-
 					{roomStatus === 'playing' && gameState && (
 						<>
-							{/* 游戏界面 */}
 							<GameBoard
 								gameState={gameState}
 								currentPlayer={currentPlayer}
@@ -227,8 +204,6 @@ const BattleRoom: React.FC = () => {
 								isActionSubmitted={isActionSubmitted}
 								lastRoundSelectedAction={lastRoundSelectedAction}
 							/>
-
-							{/* 游戏控制按钮 */}
 							{gameState.roundPhase === 'action' && actionSelectorTemporarilyHidden && (
 								<div className="game-controls">
 									<button
@@ -262,16 +237,12 @@ const BattleRoom: React.FC = () => {
 									</button>
 								</div>
 							)}
-
-							{/* 行动选择器 */}
 							{showActionSelector && (
 								<ActionSelector />
 							)}
 						</>
 					)}
 				</main>
-
-				{/* 回合结果模态框 */}
 				{showRoundResult && currentRoundResult && gameState && gameState?.roundPhase !== "waiting" && lastRoundResult && (
 					<RoundResultModal
 						result={currentRoundResult}
@@ -281,19 +252,15 @@ const BattleRoom: React.FC = () => {
 						isGameOver={gameOverTemporarilyHidden}
 					/>
 				)}
-
-				{/* 游戏结束模态框 */}
 				{showGameOver && currentGameOverResult && (
 					<GameOverModal
 						open={showGameOver}
 						gameOverResult={currentGameOverResult}
 						onClose={handleGameOverExit}
-						skipRewardProcessing={rewardProcessed} // 传入是否跳过奖励处理的标记
+						skipRewardProcessing={rewardProcessed}
 						onViewLastRound={lastRoundResult ? handleViewLastRoundFromGameOver : undefined}
 					/>
 				)}
-
-				{/* 举报玩家模态框 */}
 				{showReportModal && opponent && (
 					<ReportModal
 						opponentName={opponent.username}
@@ -302,8 +269,6 @@ const BattleRoom: React.FC = () => {
 						onSubmit={handleReportSubmit}
 					/>
 				)}
-
-				{/* 聊天框 */}
 				{showChatBox && opponent && opponent.playerId && (
 					<ChatBox
 						friendId={opponent.playerId}

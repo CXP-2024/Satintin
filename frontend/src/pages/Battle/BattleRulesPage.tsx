@@ -4,30 +4,22 @@ import PageTransition from '../../components/PageTransition';
 import './BattleRulesPage.css';
 import clickSound from '../../assets/sound/yinxiao.mp3';
 import { SoundUtils } from 'utils/soundUtils';
-
 const BattleRulesPage: React.FC = () => {
 	const { navigateWithTransition } = usePageTransition();
-
-	// 初始化音效
 	useEffect(() => {
 		SoundUtils.setClickSoundSource(clickSound);
 	}, []);
-
-	// 播放按钮点击音效
 	const playClickSound = () => {
 		SoundUtils.playClickSound(0.5);
 	};
-
 	const handleGoBack = () => {
 		console.log('🔙 [BattleRulesPage] 返回游戏大厅');
 		playClickSound();
 		navigateWithTransition('/game', '返回游戏大厅...');
 	};
-
 	return (
 		<PageTransition className="battle-rules-page">
 			<div className="rules-container">
-				{/* 页面头部 */}
 				<header className="rules-header">
 					<button className="back-btn" onClick={handleGoBack}>
 						<span className="back-icon">←</span>
@@ -35,10 +27,7 @@ const BattleRulesPage: React.FC = () => {
 					</button>
 					<h1 className="rules-title">对战规则说明</h1>
 				</header>
-
-				{/* 规则内容 */}
 				<main className="rules-content">
-					{/* 游戏基础设定 */}
 					<section className="rules-section">
 						<h2 className="section-title">🎮 游戏基础设定</h2>
 						<div className="rules-card">
@@ -61,13 +50,9 @@ const BattleRulesPage: React.FC = () => {
 							</div>
 						</div>
 					</section>
-
-					{/* 行动系统 */}
 					<section className="rules-section">
 						<h2 className="section-title">⚔️ 行动系统</h2>
 						<p className="section-desc">每回合玩家可选择以下两种行动类型之一：</p>
-
-						{/* 被动行动 */}
 						<div className="action-category">
 							<h3 className="category-title">🛡️ 被动行动</h3>
 							<div className="actions-grid">
@@ -86,17 +71,15 @@ const BattleRulesPage: React.FC = () => {
 										<p className="action-note">获得能量 + 伤害倍率</p>
 									</div>
 								</div>
-
 								<div className="action-card passive dan">
 									<div className="action-header">
-										<span className="action-icon">�</span>
+										<span className="action-icon"></span>
 										<h4 className="action-name">弹</h4>
 									</div>
 									<div className="action-effect">
 										<p>效果：消耗所有能量</p>
 									</div>
 								</div>
-
 								<div className="action-card passive fang">
 									<div className="action-header">
 										<span className="action-icon">🛡️</span>
@@ -117,12 +100,8 @@ const BattleRulesPage: React.FC = () => {
 								</div>
 							</div>
 						</div>
-
-						{/* 主动行动 */}
 						<div className="action-category">
 							<h3 className="category-title">⚔️ 主动行动</h3>
-
-							{/* 基础攻击类型表格 */}
 							<div className="attack-table-wrapper">
 								<h4 className="table-title">基础攻击类型</h4>
 								<table className="attack-table">
@@ -181,13 +160,11 @@ const BattleRulesPage: React.FC = () => {
 									</tbody>
 								</table>
 							</div>
-
-							{/* 行动组合 */}
 							<div className="combination-rules">
 								<h4 className="combo-title">行动组合规则</h4>
 								<div className="combo-grid">
 									<div className="combo-card">
-										<h5>� 单一行动</h5>
+										<h5> 单一行动</h5>
 										<p>基础类型的叠加（n次）</p>
 										<ul>
 											<li>攻击值：n × 基础攻击值</li>
@@ -208,12 +185,8 @@ const BattleRulesPage: React.FC = () => {
 							</div>
 						</div>
 					</section>
-
-					{/* 结算机制 */}
 					<section className="rules-section">
 						<h2 className="section-title">🎯 结算机制</h2>
-
-						{/* 能量检查 */}
 						<div className="settlement-step">
 							<h3 className="step-title">1️⃣ 能量检查</h3>
 							<div className="rules-card warning">
@@ -221,17 +194,13 @@ const BattleRulesPage: React.FC = () => {
 								<p><strong>爆点惩罚：</strong>-3血，回合结束</p>
 							</div>
 						</div>
-
-						{/* 血量结算 */}
 						<div className="settlement-step">
 							<h3 className="step-title">2️⃣ 血量结算</h3>
-
 							<div className="settlement-scenarios">
 								<div className="scenario-card">
 									<h4>🛡️ 双方均被动行动</h4>
 									<p>双方血量不变</p>
 								</div>
-
 								<div className="scenario-card">
 									<h4>⚔️ 双方均主动行动</h4>
 									<div className="scenario-details">
@@ -244,7 +213,6 @@ const BattleRulesPage: React.FC = () => {
 										</ul>
 									</div>
 								</div>
-
 								<div className="scenario-card">
 									<h4>⚔️🛡️ 一方主动，一方被动</h4>
 									<div className="passive-damage-table">
@@ -288,8 +256,6 @@ const BattleRulesPage: React.FC = () => {
 								</div>
 							</div>
 						</div>
-
-						{/* 胜负判定 */}
 						<div className="settlement-step">
 							<h3 className="step-title">3️⃣ 胜负判定</h3>
 							<div className="victory-rules">
@@ -307,8 +273,6 @@ const BattleRulesPage: React.FC = () => {
 								</div>
 							</div>
 						</div>
-
-						{/* 回合结束 */}
 						<div className="settlement-step">
 							<h3 className="step-title">4️⃣ 回合结束</h3>
 							<div className="rules-card">
@@ -316,13 +280,10 @@ const BattleRulesPage: React.FC = () => {
 							</div>
 						</div>
 					</section>
-
-					{/* 重要提示 */}
 					<section className="rules-section">
 						<h2 className="section-title">⚠️ 策略要点</h2>
 						<div className="rules-card important">
 							<ul className="important-list">
-								<li>合理管理能量，避免爆点</li>
 								<li>预判对手行动，选择最优策略</li>
 								<li>利用复合行动创造优势</li>
 								<li>掌握各种攻击类型的克制关系</li>
@@ -335,5 +296,4 @@ const BattleRulesPage: React.FC = () => {
 		</PageTransition>
 	);
 };
-
 export default BattleRulesPage;
